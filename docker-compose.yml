@@ -2,17 +2,14 @@ version: "3.8"
 
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:16-alpine
     container_name: rnr_racing_db
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - .env
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
     networks:
       - app_network
 

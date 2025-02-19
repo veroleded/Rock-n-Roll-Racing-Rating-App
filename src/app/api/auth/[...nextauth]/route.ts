@@ -18,12 +18,14 @@ declare module "next-auth" {
   interface User {
     role: string;
     stats: Stats | null;
+    hasJoinedBot: boolean;
   }
   interface Session {
     user: User & {
       id: string;
       role: string;
       stats: Stats | null;
+      hasJoinedBot: boolean;
     };
   }
 }
@@ -52,73 +54,67 @@ export const authOptions: NextAuthOptions = {
           image: profile.image_url,
           role: "PLAYER" as const,
           stats: null,
+          hasJoinedBot: false,
         };
       },
     }),
   ],
   callbacks: {
-    async signIn() {
+    async signIn({ user, account }) {
+      if (!account) return false;
+
+      // Проверяем, существует ли пользователь и присоединился ли он к боту
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id },
+      });
+
+      // Если пользователь не существует или не присоединился к боту,
+      // перенаправляем на страницу с инструкциями
+      if (!dbUser || !dbUser.hasJoinedBot) {
+        return "/join-bot";
+      }
+
       return true;
     },
     async jwt({ token, account, profile }) {
       if (account && profile) {
         const discordProfile = profile as DiscordProfile;
         token.id = discordProfile.id;
-        token.role = "PLAYER";
       }
+
+      // Обновляем данные пользователя из базы при каждом обновлении токена
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, hasJoinedBot: true },
+        });
+
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.hasJoinedBot = dbUser.hasJoinedBot;
+        }
+      } catch (error) {
+        console.error("Error in jwt callback:", error);
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         try {
-          // Сначала ищем по email
-          let dbUser = await prisma.user.findUnique({
-            where: { email: session.user.email! },
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
             include: { stats: true },
           });
 
-          // Если не нашли по email, ищем по discord ID
           if (!dbUser) {
-            dbUser = await prisma.user.findUnique({
-              where: { id: token.id as string },
-              include: { stats: true },
-            });
-          }
-
-          // Если пользователь все еще не найден, создаем нового
-          if (!dbUser) {
-            dbUser = await prisma.user.create({
-              data: {
-                id: token.id as string,
-                name: session.user.name,
-                email: session.user.email!,
-                image: session.user.image,
-                role: "PLAYER",
-                stats: {
-                  create: {
-                    rating: 1000,
-                    gamesPlayed: 0,
-                    wins: 0,
-                    losses: 0,
-                    draws: 0,
-                  },
-                },
-              },
-              include: { stats: true },
-            });
-          }
-          // Если нашли пользователя по email, но у него другой discord ID, обновляем его
-          else if (dbUser.id !== token.id) {
-            dbUser = await prisma.user.update({
-              where: { email: session.user.email! },
-              data: { id: token.id as string },
-              include: { stats: true },
-            });
+            throw new Error("User not found");
           }
 
           session.user.id = dbUser.id;
           session.user.role = dbUser.role;
           session.user.stats = dbUser.stats;
+          session.user.hasJoinedBot = dbUser.hasJoinedBot;
         } catch (error) {
           console.error("Error in session callback:", error);
           throw error;
@@ -139,3 +135,4 @@ export const authOptions: NextAuthOptions = {
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
+

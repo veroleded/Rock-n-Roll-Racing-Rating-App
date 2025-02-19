@@ -1,12 +1,13 @@
+import { SignOutButton } from "@/components/SignOutButton";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../api/auth/[...nextauth]/route";
-
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
   return (
     <div className="space-y-6">
       <div className="bg-white shadow-sm rounded-lg p-6">
+        <SignOutButton />
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
           Добро пожаловать, {session?.user?.name || "Игрок"}!
         </h2>

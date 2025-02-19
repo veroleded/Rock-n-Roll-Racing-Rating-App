@@ -1,16 +1,38 @@
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+"use client";
 
-export default async function ProtectedLayout({
+import { trpc } from "@/utils/trpc";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+export default function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const router = useRouter();
+  const { data: session, isLoading } = trpc.auth.getSession.useQuery();
+  const { data: joinStatus } = trpc.auth.checkJoinRequired.useQuery(undefined, {
+    enabled: !!session,
+  });
+
+  useEffect(() => {
+    if (!isLoading && !session) {
+      router.push("/login");
+    } else if (session && joinStatus?.joinRequired) {
+      router.push("/join-bot");
+    }
+  }, [session, isLoading, joinStatus, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-gray-600">Загрузка...</div>
+      </div>
+    );
+  }
 
   if (!session) {
-    redirect("/login");
+    return null;
   }
 
   return (
