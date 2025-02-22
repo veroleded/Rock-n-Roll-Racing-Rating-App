@@ -1,5 +1,6 @@
 "use client";
 
+import { Header } from "@/components/Header";
 import { trpc } from "@/utils/trpc";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -25,8 +26,8 @@ export default function ProtectedLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-600">Загрузка...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground">Загрузка...</div>
       </div>
     );
   }
@@ -36,10 +37,11 @@ export default function ProtectedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {children}
-      </main>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="min-h-[calc(100vh-4rem)] bg-muted/10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
+      </div>
     </div>
   );
 }

@@ -1,52 +1,47 @@
-import { SignOutButton } from "@/components/SignOutButton";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../api/auth/[...nextauth]/route";
-export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+"use client";
+
+import { UsersTable } from "@/components/UsersTable";
+import { trpc } from "@/utils/trpc";
+import { Role } from "@prisma/client";
+
+export default function DashboardPage() {
+  const { data: session } = trpc.auth.getSession.useQuery();
+  const { data: users, isLoading } = trpc.users.list.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-muted-foreground">Загрузка данных...</div>
+      </div>
+    );
+  }
+
+  if (!users) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-destructive">Ошибка загрузки данных</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="bg-white shadow-sm rounded-lg p-6">
-        <SignOutButton />
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Добро пожаловать, {session?.user?.name || "Игрок"}!
-        </h2>
-        <p className="text-gray-600">
-          Здесь вы можете просматривать статистику игроков и историю матчей.
-        </p>
-      </div>
-
-      <div className="bg-white shadow-sm rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          Таблица игроков
-        </h3>
-        {/* TODO: Добавить компонент PlayerTable */}
-      </div>
-
-      <div className="bg-white shadow-sm rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          История матчей
-        </h3>
-        {/* TODO: Добавить компонент MatchHistory */}
-      </div>
-
-      {session?.user?.role !== "PLAYER" && (
-        <div className="bg-white shadow-sm rounded-lg p-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
-            Добавить матч
-          </h3>
-          {/* TODO: Добавить компонент AddMatchForm */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Статистика игроков
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Рейтинг и достижения всех игроков
+          </p>
         </div>
-      )}
-
-      <div className="bg-white shadow-sm rounded-lg p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          Данные сессии
-        </h3>
-        <pre className="bg-gray-100 p-4 rounded overflow-auto">
-          {JSON.stringify(session, null, 2)}
-        </pre>
       </div>
+
+      <UsersTable
+        users={users}
+        isAdminView={false}
+        currentUserRole={session?.user.role as Role}
+      />
     </div>
   );
 }

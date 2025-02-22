@@ -34,11 +34,6 @@ export const authRouter = router({
 
   // Проверить, является ли пользователь админом
   checkAdmin: protectedProcedure.query(({ ctx }) => {
-    console.log("Session in checkAdmin:", {
-      user: ctx.session.user,
-      id: ctx.session.user.id,
-      role: ctx.session.user.role,
-    });
     return {
       isAdmin: ctx.session.user.role === "ADMIN",
     };
@@ -121,7 +116,7 @@ export const authRouter = router({
             hasJoinedBot: true,
             name: data.username,
             image: data.avatar,
-            role, // Обновляем роль
+            role,
           },
           include: { stats: true },
         });
@@ -132,7 +127,7 @@ export const authRouter = router({
             id: data.userId,
             name: data.username,
             image: data.avatar,
-            role, // Устанавливаем роль
+            role,
             hasJoinedBot: true,
             stats: {
               create: {

@@ -25,12 +25,32 @@ export const usersRouter = router({
     return user;
   }),
 
-  // Получить список всех пользователей (только для админов)
-  list: adminProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.user.findMany({
-      include: { stats: true },
-      orderBy: { stats: { rating: "desc" } },
-    });
+  list: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const users = await ctx.prisma.user.findMany({
+        where: {
+          hasJoinedBot: true, // Только присоединившиеся к боту
+        },
+        include: {
+          stats: true,
+        },
+        orderBy: {
+          name: "asc",
+        },
+      });
+
+      if (!users || users.length === 0) {
+        return [];
+      }
+
+      return users;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch users",
+      });
+    }
   }),
 
   // Получить пользователя по ID
@@ -70,6 +90,31 @@ export const usersRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { id, stats, ...userData } = input;
 
+      // Проверяем, существует ли пользователь
+      const existingUser = await ctx.prisma.user.findUnique({
+        where: { id },
+        select: { role: true },
+      });
+
+      if (!existingUser) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Пользователь не найден",
+        });
+      }
+
+      // Проверяем, не пытаемся ли мы изменить роль администратора
+      if (
+        existingUser.role === "ADMIN" &&
+        userData.role &&
+        userData.role !== "ADMIN"
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Нельзя изменить роль администратора",
+        });
+      }
+
       const user = await ctx.prisma.user.update({
         where: { id },
         data: {
@@ -85,4 +130,35 @@ export const usersRouter = router({
 
       return user;
     }),
+
+  // Удалить пользователя (только для админов)
+  delete: adminProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+    // Проверяем, существует ли пользователь
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: input },
+      select: { role: true },
+    });
+
+    if (!user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Пользователь не найден",
+      });
+    }
+
+    // Проверяем, не пытаемся ли мы удалить администратора
+    if (user.role === "ADMIN") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Нельзя удалить администратора",
+      });
+    }
+
+    // Удаляем пользователя
+    await ctx.prisma.user.delete({
+      where: { id: input },
+    });
+
+    return { success: true };
+  }),
 });

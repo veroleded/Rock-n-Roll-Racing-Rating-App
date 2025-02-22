@@ -1,7 +1,9 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { trpc } from "@/utils/trpc";
 import { DiscordLogoIcon } from "@radix-ui/react-icons";
+import { Loader2 } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -40,14 +42,6 @@ export default function LoginPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white">Загрузка...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <div className="max-w-md w-full space-y-8 p-8 bg-gray-800 rounded-lg shadow-lg">
@@ -68,16 +62,26 @@ export default function LoginPage() {
           </div>
         )}
         <div className="mt-8">
-          <button
+          <Button
             onClick={handleSignIn}
             disabled={isLoading}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="group relative w-full flex justify-center py-6 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            size="lg"
           >
-            <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-              <DiscordLogoIcon className="h-5 w-5" />
-            </span>
-            {isLoading ? "Вход..." : "Войти через Discord"}
-          </button>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Вход...
+              </>
+            ) : (
+              <>
+                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                  <DiscordLogoIcon className="h-5 w-5" />
+                </span>
+                Войти через Discord
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </div>
