@@ -14,9 +14,7 @@ export default function UsersPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-muted-foreground">
-          Загрузка списка пользователей...
-        </div>
+        <div className="text-muted-foreground">Загрузка списка игроков...</div>
       </div>
     );
   }
@@ -24,7 +22,7 @@ export default function UsersPage() {
   if (!users) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-destructive">Ошибка загрузки пользователей</div>
+        <div className="text-destructive">Ошибка загрузки игроков</div>
       </div>
     );
   }
@@ -35,10 +33,12 @@ export default function UsersPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-4">
             <BackButton />
-            <h1 className="text-3xl font-bold tracking-tight">Пользователи</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Таблица игроков
+            </h1>
           </div>
           <p className="text-muted-foreground">
-            Управление пользователями и их статистикой
+            Просмотр игроков и их статистики
           </p>
         </div>
       </div>
@@ -46,7 +46,7 @@ export default function UsersPage() {
       <div className="flex-1 min-h-0 py-6">
         <Card className="border-border/40 shadow-sm h-full flex flex-col">
           <CardHeader>
-            <CardTitle>Список пользователей</CardTitle>
+            <CardTitle>Список игроков</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 min-h-0">
             <ScrollArea className="h-full rounded-md border">
@@ -54,6 +54,7 @@ export default function UsersPage() {
                 <UsersTable
                   users={users}
                   currentUserRole={session?.user.role as Role | undefined}
+                  currentUserId={session?.user.id}
                 />
               </div>
             </ScrollArea>
