@@ -1,60 +1,52 @@
 "use client";
 
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
 import { trpc } from "@/utils/trpc";
 import { Home } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { MainNav } from "./MainNav";
+import { MobileNav } from "./MobileNav";
 import { SignOutButton } from "./SignOutButton";
 
 export function Header() {
   const { data: session } = trpc.auth.getSession.useQuery();
-  const pathname = usePathname();
-  const isAdmin =
-    session?.user?.role === "ADMIN" || session?.user?.role === "MODERATOR";
-  const isAdminPage = pathname?.startsWith("/admin");
 
   return (
-    <header className="bg-background border-b">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link
-                href="/dashboard"
-                className="flex items-center text-foreground hover:text-foreground/80"
-              >
-                <Home className="h-6 w-6" />
-                <span className="ml-2 text-lg font-semibold">
-                  {"Rock'n'Roll Racing"}
-                </span>
-              </Link>
+        <div className="flex h-16 items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/dashboard"
+              className="flex items-center text-foreground hover:text-foreground/80"
+            >
+              <Home className="h-6 w-6" />
+              <span className="ml-2 text-lg font-semibold hidden md:block">
+                {"Rock'n'Roll Racing"}
+              </span>
+            </Link>
+            <div className="hidden md:block">
+              <MainNav />
             </div>
-            {isAdmin && (
-              <div className="hidden sm:ml-6 sm:flex sm:items-center">
-                <Button variant="ghost" asChild>
-                  <Link href={isAdminPage ? "/dashboard" : "/admin"}>
-                    {isAdminPage
-                      ? "Вернуться к статистике"
-                      : "Панель управления"}
-                  </Link>
-                </Button>
-              </div>
-            )}
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-muted-foreground">
-              {session?.user?.name}
-              {session?.user?.role && (
-                <span className="ml-2 text-xs opacity-70">
-                  ({session.user.role.toLowerCase()})
-                </span>
-              )}
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex md:items-center md:gap-4">
+              <div className="text-sm text-muted-foreground">
+                {session?.user?.name}
+                {session?.user?.role && (
+                  <span className="ml-2 text-xs opacity-70">
+                    ({session.user.role.toLowerCase()})
+                  </span>
+                )}
+              </div>
+              <ThemeToggle />
+              <SignOutButton />
             </div>
-            <ThemeToggle />
-            <SignOutButton />
+            <MobileNav
+              userName={session?.user?.name}
+              userRole={session?.user?.role}
+            />
           </div>
         </div>
       </div>

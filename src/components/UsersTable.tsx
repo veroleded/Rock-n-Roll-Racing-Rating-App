@@ -43,11 +43,7 @@ interface UsersTableProps {
   currentUserRole?: Role;
 }
 
-export function UsersTable({
-  users,
-  isAdminView = false,
-  currentUserRole,
-}: UsersTableProps) {
+export function UsersTable({ users, currentUserRole }: UsersTableProps) {
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: "asc" | "desc";
@@ -107,9 +103,7 @@ export function UsersTable({
     }
   });
 
-  const canEditUser =
-    isAdminView &&
-    (currentUserRole === "ADMIN" || currentUserRole === "MODERATOR");
+  const canEditUser = currentUserRole === "ADMIN";
 
   return (
     <div className="rounded-md border">
@@ -185,7 +179,7 @@ export function UsersTable({
               {canEditUser && (
                 <TableCell>
                   <Button variant="ghost" size="icon" asChild>
-                    <Link href={`/admin/users/${user.id}`}>
+                    <Link href={`/users/${user.id}/edit`}>
                       <Pencil className="h-4 w-4" />
                       <span className="sr-only">Редактировать</span>
                     </Link>

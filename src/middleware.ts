@@ -4,21 +4,13 @@ import { NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
-  
-  console.log("Token in middleware:", {
-    path: request.nextUrl.pathname,
-    token: {
-      id: token?.id,
-      role: token?.role,
-      hasJoinedBot: token?.hasJoinedBot,
-    },
-  });
 
   // Если пользователь не авторизован, перенаправляем на страницу входа
   if (!token) {
     if (
-      request.nextUrl.pathname.startsWith("/admin") ||
-      request.nextUrl.pathname.startsWith("/dashboard")
+      request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/matches") ||
+      request.nextUrl.pathname.startsWith("/users")
     ) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
@@ -34,10 +26,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/join-bot", request.url));
   }
 
-  // Проверяем доступ к админке
-  if (request.nextUrl.pathname.startsWith("/admin")) {
-    if (token.role !== "ADMIN" && token.role !== "MODERATOR") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Проверяем доступ к странице добавления матчей
+  if (request.nextUrl.pathname.startsWith("/matches/add")) {
+    if (token.role === "PLAYER") {
+      return NextResponse.redirect(new URL("/matches", request.url));
+    }
+  }
+
+  if (request.nextUrl.pathname.startsWith("/users/[id]/edit")) {
+    if (token.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/users", request.url));
     }
   }
 
@@ -45,5 +43,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/matches/:path*", "/users/:path*"],
 };

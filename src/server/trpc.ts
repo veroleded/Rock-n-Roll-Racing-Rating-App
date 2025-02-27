@@ -44,6 +44,23 @@ const isAuthed = t.middleware(({ ctx, next }) => {
   });
 });
 
+const isModeratorOrAdmin = t.middleware(({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  if (
+    ctx.session.user.role !== "ADMIN" &&
+    ctx.session.user.role !== "MODERATOR"
+  ) {
+    throw new TRPCError({ code: "FORBIDDEN" });
+  }
+  return next({
+    ctx: {
+      session: ctx.session,
+    },
+  });
+});
+
 // Базовый middleware для проверки роли администратора
 const isAdmin = t.middleware(({ ctx, next }) => {
   if (!ctx.session?.user) {
@@ -63,3 +80,4 @@ export const router = t.router;
 export const publicProcedure = t.procedure;
 export const protectedProcedure = t.procedure.use(isAuthed);
 export const adminProcedure = t.procedure.use(isAdmin);
+export const moderatorOrAdminProcedure = t.procedure.use(isModeratorOrAdmin);

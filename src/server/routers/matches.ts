@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { adminProcedure, protectedProcedure, router } from "../trpc";
+import { moderatorOrAdminProcedure, protectedProcedure, router } from "../trpc";
 
 export const matchesRouter = router({
   // Получить список всех матчей
@@ -45,8 +45,8 @@ export const matchesRouter = router({
       };
     }),
 
-  // Создать новый матч (только для админов)
-  create: adminProcedure
+  // Создать новый матч (только для админов и модераторов)
+  create: moderatorOrAdminProcedure
     .input(
       z.object({
         mode: z.enum(["TWO_VS_TWO", "THREE_VS_THREE", "TWO_VS_TWO_VS_TWO"]),
@@ -90,9 +90,6 @@ export const matchesRouter = router({
           where: { userId: player.userId },
           data: {
             gamesPlayed: { increment: 1 },
-            totalDamage: { increment: player.damage },
-            totalMoney: { increment: player.money },
-            wipeouts: { increment: player.wipeouts },
           },
         });
       }

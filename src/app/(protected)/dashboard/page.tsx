@@ -4,6 +4,7 @@ import { UsersTable } from "@/components/UsersTable";
 import { trpc } from "@/utils/trpc";
 import { Role } from "@prisma/client";
 
+
 export default function DashboardPage() {
   const { data: session } = trpc.auth.getSession.useQuery();
   const { data: users, isLoading } = trpc.users.list.useQuery();
