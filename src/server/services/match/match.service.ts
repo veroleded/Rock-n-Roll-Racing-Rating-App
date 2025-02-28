@@ -1,5 +1,23 @@
-import { GameMode, PrismaClient } from "@prisma/client";
+import {
+  GameMode,
+  Match,
+  MatchPlayer,
+  PrismaClient,
+  User,
+} from "@prisma/client";
 import { CreateMatchData, MatchResultData, StatsData } from "./schemas";
+
+type MatchWithRelations = Match & {
+  players: (MatchPlayer & {
+    user: User;
+  })[];
+  creator: User;
+};
+
+interface FindManyResult {
+  matches: MatchWithRelations[];
+  total: number;
+}
 
 export class MatchService {
   constructor(private prisma: PrismaClient) {}
@@ -214,39 +232,55 @@ export class MatchService {
 
   async findMany(options: {
     limit?: number;
-    cursor?: string;
-    userId?: string;
-  }) {
-    const { limit = 50, cursor, userId } = options;
+    offset?: number;
+    filters?: {
+      userId?: string;
+      onlyRated?: boolean;
+      gameMode?: GameMode;
+    };
+  }): Promise<FindManyResult> {
+    const { limit = 50, offset = 0, filters } = options;
 
-    return this.prisma.match.findMany({
-      take: limit + 1,
-      ...(cursor && {
-        cursor: {
-          id: cursor,
+    const where = {
+      AND: [
+        filters?.userId
+          ? {
+              players: {
+                some: {
+                  userId: filters.userId,
+                },
+              },
+            }
+          : {},
+        filters?.onlyRated ? { isRated: true } : {},
+        filters?.gameMode ? { mode: filters.gameMode } : {},
+      ],
+    };
+
+    const [total, matches] = await Promise.all([
+      this.prisma.match.count({ where }),
+      this.prisma.match.findMany({
+        take: limit,
+        skip: offset,
+        where,
+        orderBy: {
+          createdAt: "desc",
         },
-      }),
-      ...(userId && {
-        where: {
+        include: {
           players: {
-            some: {
-              userId,
+            include: {
+              user: true,
             },
           },
+          creator: true,
         },
       }),
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        players: {
-          include: {
-            user: true,
-          },
-        },
-        creator: true,
-      },
-    });
+    ]);
+
+    return {
+      matches,
+      total,
+    };
   }
 
   async delete(id: string) {

@@ -1,20 +1,24 @@
 {
   "damage": {
     "player1": {
+      "player2": 200,
       "player3": 1200,
       "player4": 950
     },
     "player2": {
-      "player3": 850,
-      "player4": 1100
+      "player1": 850,
+      "player3": 1100,
+      "player4": 950
     },
     "player3": {
       "player1": 750,
-      "player2": 900
+      "player2": 900,
+      "player4": 1050
     },
     "player4": {
       "player1": 850,
-      "player2": 700
+      "player2": 700,
+      "player3": 1050
     }
   },
   "scores": {

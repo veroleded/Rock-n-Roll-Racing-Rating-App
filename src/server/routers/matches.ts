@@ -1,3 +1,4 @@
+import { GameMode } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { MatchService, createMatchDataSchema } from "../services/match";
@@ -11,26 +12,23 @@ export const matchesRouter = router({
     .input(
       z.object({
         limit: z.number().min(1).max(100).default(50),
-        cursor: z.string().optional(),
+        offset: z.number().min(0).default(0),
+        filters: z
+          .object({
+            userId: z.string().optional(),
+            onlyRated: z.boolean().optional(),
+            gameMode: z.nativeEnum(GameMode).optional(),
+          })
+          .optional(),
       })
     )
     .query(async ({ ctx, input }) => {
       const matchService = new MatchService(ctx.prisma);
-      const matches = await matchService.findMany({
+      return matchService.findMany({
         limit: input.limit,
-        cursor: input.cursor,
+        offset: input.offset,
+        filters: input.filters,
       });
-
-      let nextCursor: typeof input.cursor | undefined = undefined;
-      if (matches.length > input.limit) {
-        const nextItem = matches.pop();
-        nextCursor = nextItem?.id;
-      }
-
-      return {
-        matches,
-        nextCursor,
-      };
     }),
 
   create: moderatorOrAdminProcedure
@@ -66,7 +64,9 @@ export const matchesRouter = router({
   getMy: protectedProcedure.query(async ({ ctx }) => {
     const matchService = new MatchService(ctx.prisma);
     return matchService.findMany({
-      userId: ctx.session.user.id,
+      filters: {
+        userId: ctx.session.user.id,
+      },
     });
   }),
 
