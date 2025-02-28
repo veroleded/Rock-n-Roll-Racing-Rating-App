@@ -17,16 +17,12 @@ const navItems = [
     href: "/dashboard",
   },
   {
-    title: "Матчи",
-    href: "/matches",
-  },
-  {
-    title: "Статистика",
-    href: "/stats",
-  },
-  {
     title: "Таблица игроков",
     href: "/users",
+  },
+  {
+    title: "Матчи",
+    href: "/matches",
   },
 ];
 
