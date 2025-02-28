@@ -1,0 +1,121 @@
+{
+  "damage": {
+    "player1": {
+      "player3": 950,
+      "player4": 850,
+      "player5": 1200,
+      "player6": 750
+    },
+    "player2": {
+      "player3": 800,
+      "player4": 1100,
+      "player5": 650,
+      "player6": 900
+    },
+    "player3": {
+      "player1": 750,
+      "player2": 850,
+      "player5": 1000,
+      "player6": 600
+    },
+    "player4": {
+      "player1": 900,
+      "player2": 700,
+      "player5": 850,
+      "player6": 950
+    },
+    "player5": {
+      "player1": 800,
+      "player2": 950,
+      "player3": 700,
+      "player4": 850
+    },
+    "player6": {
+      "player1": 650,
+      "player2": 750,
+      "player3": 900,
+      "player4": 800
+    }
+  },
+  "scores": {
+    "player1": 2200,
+    "player2": 1900,
+    "player3": 1800,
+    "player4": 2000,
+    "player5": 1700,
+    "player6": 1500
+  },
+  "mines_damage": {
+    "player1": 200,
+    "player2": 150,
+    "player3": 180,
+    "player4": 160,
+    "player5": 140,
+    "player6": 120
+  },
+  "money_taken": {
+    "player1": 12,
+    "player2": 10,
+    "player3": 8,
+    "player4": 11,
+    "player5": 7,
+    "player6": 6
+  },
+  "armor_taken": {
+    "player1": 6,
+    "player2": 5,
+    "player3": 4,
+    "player4": 5,
+    "player5": 3,
+    "player6": 2
+  },
+  "wipeouts": {
+    "player1": 2,
+    "player2": 1,
+    "player3": 1,
+    "player4": 2,
+    "player5": 1,
+    "player6": 0
+  },
+  "chem_vi_b": {
+    "player1": 800,
+    "player2": 700,
+    "player3": 650,
+    "player4": 750,
+    "player5": 600,
+    "player6": 550
+  },
+  "chem_vi_a": {
+    "player1": 850,
+    "player2": 750,
+    "player3": 700,
+    "player4": 800,
+    "player5": 650,
+    "player6": 600
+  },
+  "chem_vi_s": {
+    "player1": 550,
+    "player2": 450,
+    "player3": 450,
+    "player4": 450,
+    "player5": 400,
+    "player6": 350
+  },
+  "mech_vi_a": {
+    "player1": 920,
+    "player2": 850,
+    "player3": 780,
+    "player4": 890,
+    "player5": 720,
+    "player6": 680
+  },
+  "mech_vi_b": {
+    "player1": 870,
+    "player2": 790,
+    "player3": 740,
+    "player4": 830,
+    "player5": 680,
+    "player6": 650
+  },
+  "total_score": "2 - 5 - 3"
+}

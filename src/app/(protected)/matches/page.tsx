@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/utils/trpc";
 import { Plus } from "lucide-react";
 import Link from "next/link";
@@ -44,22 +44,50 @@ export default function MatchesPage() {
       </div>
 
       <div className="flex-1 min-h-0 py-6">
-        <Card className="border-border/40 shadow-sm h-full flex flex-col">
-          <CardHeader>
-            <CardTitle>Список матчей</CardTitle>
-            <CardDescription>
-              История всех проведенных матчей с результатами
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 min-h-0">
-            <ScrollArea className="h-full rounded-md border">
-              {/* Здесь будет таблица с историей матчей */}
-              <div className="p-4 text-sm text-muted-foreground">
-                Таблица с историей матчей будет добавлена позже
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="my" className="h-full flex flex-col">
+          <div className="border-b">
+            <TabsList className="w-full">
+              <TabsTrigger value="my" className="flex-1">
+                Мои матчи
+              </TabsTrigger>
+              <TabsTrigger value="all" className="flex-1">
+                Все матчи
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <div className="flex-1 min-h-0 pt-6">
+            <TabsContent value="all" className="h-full m-0">
+              <Card className="h-full border-border/40 shadow-sm">
+                <CardHeader>
+                  <CardTitle>Все матчи</CardTitle>
+                  <CardDescription>
+                    История всех проведенных матчей
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-muted-foreground">
+                    Таблица матчей будет добавлена позже
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="my" className="h-full m-0">
+              <Card className="h-full border-border/40 shadow-sm">
+                <CardHeader>
+                  <CardTitle>Мои матчи</CardTitle>
+                  <CardDescription>История ваших матчей</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-muted-foreground">
+                    Таблица ваших матчей будет добавлена позже
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </div>
   );

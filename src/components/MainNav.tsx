@@ -21,7 +21,7 @@ const navItems = [
     href: "/users",
   },
   {
-    title: "Матчи",
+    title: "История матчей",
     href: "/matches",
   },
 ];

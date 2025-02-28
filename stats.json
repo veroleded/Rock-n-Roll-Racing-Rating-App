@@ -1,0 +1,61 @@
+{
+  "damage": {
+    "player1": {
+      "player2": 6,
+      "player3": 26,
+      "player4": 51
+    },
+    "player2": {
+      "player1": 2,
+      "player3": 29,
+      "player4": 32
+    },
+    "player3": {
+      "player1": 14,
+      "player2": 31,
+      "player4": 2
+    },
+    "player4": {
+      "player1": 18,
+      "player2": 2,
+      "player3": 2
+    }
+  },
+  "scores": {
+    "player1": 1100,
+    "player2": 900,
+    "player3": 400,
+    "player4": 0
+  },
+  "mines_damage": {
+    "player1": 6,
+    "player2": 0,
+    "player3": 2,
+    "player4": 4
+  },
+  "money_taken": {
+    "player1": 4,
+    "player2": 5,
+    "player3": 1,
+    "player4": 2
+  },
+  "armor_taken": {
+    "player1": 0,
+    "player2": 0,
+    "player3": 0,
+    "player4": 0
+  },
+  "wipeouts": {
+    "player1": 0,
+    "player2": 1,
+    "player3": 1,
+    "player4": 0
+  },
+  "chem_vi_b": {
+    "player1": 1100,
+    "player2": 900,
+    "player3": 400,
+    "player4": 0
+  },
+  "total_score": "2 - 0"
+}

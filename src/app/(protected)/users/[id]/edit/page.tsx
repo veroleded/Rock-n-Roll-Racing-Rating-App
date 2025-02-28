@@ -69,8 +69,8 @@ function EditUserContent({ userId }: { userId: string }) {
 
   const { mutate: updateUser, isLoading: isUpdating } =
     trpc.users.update.useMutation({
-      onSuccess: () => {
-        router.push("/admin/users");
+      onSuccess: (user) => {
+        router.push(`/users/${user.id}`);
       },
       onError: (error) => {
         form.setError("root", {

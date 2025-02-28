@@ -44,12 +44,6 @@ async function main() {
     const bg = getRandomItem(backgrounds);
     const avatarUrl = `https://robohash.org/${user.discordId}?set=${set}&bgset=${bg}&size=300x300`;
 
-    // Генерируем более реалистичную статистику
-    const gamesPlayed = Math.floor(Math.random() * 50); // От 0 до 50 игр
-    const wins = Math.floor(Math.random() * gamesPlayed); // Победы не могут превышать количество игр
-    const losses = Math.floor(Math.random() * (gamesPlayed - wins)); // Поражения из оставшихся игр
-    const draws = gamesPlayed - wins - losses; // Остаток - ничьи
-
     const createdUser = await prisma.user.create({
       data: {
         id: user.discordId,
@@ -59,11 +53,11 @@ async function main() {
         image: avatarUrl,
         stats: {
           create: {
-            rating: 1000 + Math.floor(Math.random() * 500), // Рейтинг от 1000 до 1500
-            gamesPlayed,
-            wins,
-            losses,
-            draws,
+            rating: 1000,
+            gamesPlayed: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0,
           },
         },
       },

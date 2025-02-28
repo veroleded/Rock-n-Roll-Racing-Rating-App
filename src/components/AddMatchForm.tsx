@@ -28,6 +28,7 @@ import { trpc } from "@/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GameMode } from "@prisma/client";
 import { Bot, Check, ChevronsUpDown, Loader2, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -53,15 +54,22 @@ const formSchema = z.object({
   mode: z.enum(["TWO_VS_TWO", "THREE_VS_THREE", "TWO_VS_TWO_VS_TWO"], {
     required_error: "Выберите режим игры",
   }),
-  gameFile: z
-    .string({
-      required_error: "Загрузите файл игры",
-    })
-    .min(1, "Загрузите файл игры"),
+  statsData: z.any(),
   teams: z.array(teamSchema).min(2, "Добавьте как минимум две команды"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+type StatsData = {
+  damage: Record<string, Record<string, number>>;
+  scores: Record<string, number>;
+  mines_damage: Record<string, number>;
+  money_taken: Record<string, number>;
+  armor_taken: Record<string, number>;
+  wipeouts: Record<string, number>;
+  total_score: string;
+  divisions?: Record<string, Record<string, number>>;
+};
 
 const botNames = [
   "Bot Ivan",
@@ -73,14 +81,29 @@ const botNames = [
 ];
 
 export function AddMatchForm() {
+  const router = useRouter();
   const {
     data: users = [],
     isLoading: isLoadingUsers,
     error: usersError,
   } = trpc.users.list.useQuery();
+  const { mutate: createMatch } = trpc.matches.create.useMutation({
+    onSuccess: (match) => {
+      router.push(`/matches/${match.id}`);
+    },
+    onError: (error) => {
+      form.setError("root", {
+        type: "manual",
+        message: error.message,
+      });
+    },
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [statsData, setStatsData] = useState<StatsData | null>(null);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -187,6 +210,54 @@ export function AddMatchForm() {
     return [...filteredUsers, ...filteredBots];
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const text = await file.text();
+        const jsonData = JSON.parse(text);
+
+        // Выделяем основные поля и дивизионы
+        const {
+          damage,
+          scores,
+          mines_damage,
+          money_taken,
+          armor_taken,
+          wipeouts,
+          total_score,
+          ...divisions
+        } = jsonData;
+
+        const processedData = {
+          damage,
+          scores,
+          mines_damage,
+          money_taken,
+          armor_taken,
+          wipeouts,
+          total_score,
+          divisions,
+        };
+
+        setStatsData(processedData);
+        setStatsError(null);
+        form.setValue("statsData", processedData);
+      } catch (error) {
+        console.error("Ошибка при чтении файла:", error);
+        setStatsError(
+          "Ошибка при чтении файла. Убедитесь, что это валидный JSON файл."
+        );
+        setStatsData(null);
+        form.setValue("statsData", null);
+      }
+    } else {
+      setStatsData(null);
+      setStatsError(null);
+      form.setValue("statsData", null);
+    }
+  };
+
   const onSubmit = async (data: FormValues) => {
     try {
       setIsSubmitting(true);
@@ -233,8 +304,34 @@ export function AddMatchForm() {
         return;
       }
 
-      console.log("Отправка данных:", data);
-      // TODO: Добавить обработку данных и отправку на сервер
+      // Проверяем наличие файла статистики
+      if (!statsData) {
+        setSubmitError("Загрузите файл статистики матча");
+        return;
+      }
+
+      // Преобразуем данные для отправки
+      const players = data.teams.flatMap((team, teamIndex) =>
+        team.players.map((player, playerIndex) => ({
+          userId: player.id,
+          team: teamIndex + 1,
+          position: teamIndex * teamSize + playerIndex + 1,
+          hasLeft: player.hasLeft,
+        }))
+      );
+
+      console.log({
+        mode: data.mode,
+        players,
+        statsData: data.statsData,
+      });
+
+      // Отправляем данные на сервер
+      createMatch({
+        mode: data.mode,
+        players,
+        statsData: data.statsData,
+      });
     } catch (error) {
       console.error("Ошибка при отправке формы:", error);
       setSubmitError(
@@ -462,34 +559,26 @@ export function AddMatchForm() {
 
           {mode && (
             <>
-              <FormField
-                control={form.control}
-                name="gameFile"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base">Файл игры</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="file"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              field.onChange(file.name);
-                            } else {
-                              field.onChange("");
-                            }
-                          }}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                          accept=".json"
-                          required
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel className="text-base">Файл статистики</FormLabel>
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    accept=".json"
+                    required
+                  />
+                  {statsError && (
+                    <div className="text-sm text-destructive">{statsError}</div>
+                  )}
+                  {statsData && !statsError && (
+                    <div className="text-sm text-muted-foreground">
+                      Файл успешно загружен
+                    </div>
+                  )}
+                </div>
+              </FormItem>
 
               <div className="grid gap-6">
                 {form.watch("teams").map((team, teamIndex) => {

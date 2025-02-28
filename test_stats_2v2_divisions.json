@@ -1,0 +1,105 @@
+{
+  "damage": {
+    "player1": {
+      "player3": 1200,
+      "player4": 950
+    },
+    "player2": {
+      "player3": 850,
+      "player4": 1100
+    },
+    "player3": {
+      "player1": 750,
+      "player2": 900
+    },
+    "player4": {
+      "player1": 850,
+      "player2": 700
+    }
+  },
+  "scores": {
+    "player1": 2400,
+    "player2": 2100,
+    "player3": 1800,
+    "player4": 1600
+  },
+  "mines_damage": {
+    "player1": 180,
+    "player2": 150,
+    "player3": 120,
+    "player4": 90
+  },
+  "money_taken": {
+    "player1": 14,
+    "player2": 12,
+    "player3": 8,
+    "player4": 6
+  },
+  "armor_taken": {
+    "player1": 7,
+    "player2": 5,
+    "player3": 4,
+    "player4": 3
+  },
+  "wipeouts": {
+    "player1": 2,
+    "player2": 2,
+    "player3": 1,
+    "player4": 0
+  },
+  "chem_vi_b": {
+    "player1": 850,
+    "player2": 750,
+    "player3": 600,
+    "player4": 550
+  },
+  "chem_vi_a": {
+    "player1": 920,
+    "player2": 800,
+    "player3": 650,
+    "player4": 580
+  },
+  "chem_vi_s": {
+    "player1": 630,
+    "player2": 550,
+    "player3": 450,
+    "player4": 420
+  },
+  "mech_vi_a": {
+    "player1": 880,
+    "player2": 820,
+    "player3": 680,
+    "player4": 620
+  },
+  "mech_vi_b": {
+    "player1": 840,
+    "player2": 780,
+    "player3": 650,
+    "player4": 590
+  },
+  "mech_vi_s": {
+    "player1": 760,
+    "player2": 700,
+    "player3": 580,
+    "player4": 520
+  },
+  "phys_vi_a": {
+    "player1": 900,
+    "player2": 850,
+    "player3": 700,
+    "player4": 650
+  },
+  "phys_vi_b": {
+    "player1": 850,
+    "player2": 800,
+    "player3": 650,
+    "player4": 600
+  },
+  "phys_vi_s": {
+    "player1": 780,
+    "player2": 730,
+    "player3": 590,
+    "player4": 540
+  },
+  "total_score": "13 - 5"
+}

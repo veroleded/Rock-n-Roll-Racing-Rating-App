@@ -1,6 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { MatchService, createMatchDataSchema } from "../services/match";
 import { moderatorOrAdminProcedure, protectedProcedure, router } from "../trpc";
+
+// Схема для валидации данных из файла stats.json
 
 export const matchesRouter = router({
   // Получить список всех матчей
@@ -12,25 +15,10 @@ export const matchesRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const limit = input.limit + 1;
-      const matches = await ctx.prisma.match.findMany({
-        take: limit,
-        ...(input.cursor && {
-          cursor: {
-            id: input.cursor,
-          },
-        }),
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          players: {
-            include: {
-              user: true,
-            },
-          },
-          creator: true,
-        },
+      const matchService = new MatchService(ctx.prisma);
+      const matches = await matchService.findMany({
+        limit: input.limit,
+        cursor: input.cursor,
       });
 
       let nextCursor: typeof input.cursor | undefined = undefined;
@@ -45,71 +33,25 @@ export const matchesRouter = router({
       };
     }),
 
-  // Создать новый матч (только для админов и модераторов)
   create: moderatorOrAdminProcedure
     .input(
       z.object({
-        mode: z.enum(["TWO_VS_TWO", "THREE_VS_THREE", "TWO_VS_TWO_VS_TWO"]),
-        players: z.array(
-          z.object({
-            userId: z.string(),
-            team: z.number(),
-            position: z.number(),
-            damage: z.number(),
-            money: z.number(),
-            wipeouts: z.number(),
-          })
-        ),
-        gameFile: z.string().optional(),
+        mode: createMatchDataSchema.shape.mode,
+        players: createMatchDataSchema.shape.players,
+        statsData: createMatchDataSchema.shape.statsData,
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const match = await ctx.prisma.match.create({
-        data: {
-          mode: input.mode,
-          gameFile: input.gameFile,
-          creatorId: ctx.session.user.id,
-          status: "COMPLETED",
-          players: {
-            create: input.players,
-          },
-        },
-        include: {
-          players: {
-            include: {
-              user: true,
-            },
-          },
-          creator: true,
-        },
+      const matchService = new MatchService(ctx.prisma);
+      return matchService.create({
+        ...input,
+        creatorId: ctx.session.user.id,
       });
-
-      // Обновляем статистику игроков
-      for (const player of input.players) {
-        await ctx.prisma.stats.update({
-          where: { userId: player.userId },
-          data: {
-            gamesPlayed: { increment: 1 },
-          },
-        });
-      }
-
-      return match;
     }),
 
-  // Получить детали матча
   byId: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
-    const match = await ctx.prisma.match.findUnique({
-      where: { id: input },
-      include: {
-        players: {
-          include: {
-            user: true,
-          },
-        },
-        creator: true,
-      },
-    });
+    const matchService = new MatchService(ctx.prisma);
+    const match = await matchService.findById(input);
 
     if (!match) {
       throw new TRPCError({
@@ -120,4 +62,27 @@ export const matchesRouter = router({
 
     return match;
   }),
+
+  getMy: protectedProcedure.query(async ({ ctx }) => {
+    const matchService = new MatchService(ctx.prisma);
+    return matchService.findMany({
+      userId: ctx.session.user.id,
+    });
+  }),
+
+  delete: moderatorOrAdminProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const matchService = new MatchService(ctx.prisma);
+      const match = await matchService.delete(input);
+
+      if (!match) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Матч не найден",
+        });
+      }
+
+      return match;
+    }),
 });
