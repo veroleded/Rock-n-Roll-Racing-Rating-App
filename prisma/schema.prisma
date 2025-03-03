@@ -38,18 +38,18 @@ model Session {
 }
 
 model User {
-  id            String        @id
-  name          String?
-  email         String?       @unique
-  emailVerified DateTime?     @map("email_verified")
-  image         String?
-  role          Role          @default(PLAYER)
-  hasJoinedBot  Boolean       @default(false)     @map("has_joined_bot")
-  accounts      Account[]
-  sessions      Session[]
-  stats         Stats?
-  matchPlayers  MatchPlayer[]
-  createdMatches Match[]      @relation("MatchCreator")
+  id             String        @id
+  name           String?
+  email          String?       @unique
+  emailVerified  DateTime?     @map("email_verified")
+  image          String?
+  role           Role          @default(PLAYER)
+  hasJoinedBot   Boolean       @default(false) @map("has_joined_bot")
+  accounts       Account[]
+  sessions       Session[]
+  stats          Stats?
+  matchPlayers   MatchPlayer[]
+  createdMatches Match[]       @relation("MatchCreator")
 
   @@map("users")
 }
@@ -64,61 +64,62 @@ model VerificationToken {
 }
 
 model Stats {
-  id            String   @id @default(cuid())
-  userId        String   @unique @map("user_id")
-  rating        Int      @default(1000)
-  gamesPlayed   Int      @default(0) @map("games_played")
-  wins          Int      @default(0)
-  losses        Int      @default(0)
-  draws         Int      @default(0)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  rating          Int      @default(1000)
+  maxRating       Int      @default(1000) @map("max_rating")
+  minRating       Int      @default(0) @map("min_rating")
+  totalScore      Int      @default(0) @map("total_score")
+  gamesPlayed     Int      @default(0) @map("games_played")
+  wins            Int      @default(0)
+  losses          Int      @default(0)
+  draws           Int      @default(0)
+  totalDivisions  Int      @default(0) @map("total_divisions")
+  winsDivisions   Int      @default(0) @map("wins_divisions")
+  lossesDivisions Int      @default(0) @map("losses_divisions")
+  drawsDivisions  Int      @default(0) @map("draws_divisions")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("stats")
 }
 
 model Match {
-  id            String        @id @default(cuid())
-  mode          GameMode
-  createdAt     DateTime     @default(now()) @map("created_at")
-  updatedAt     DateTime     @updatedAt @map("updated_at")
-  creatorId     String       @map("creator_id")
-  creator       User         @relation("MatchCreator", fields: [creatorId], references: [id])
-  players       MatchPlayer[]
-  isRated       Boolean      @default(false) @map("is_rated")
-  totalScore    String       @default("0 - 0") @map("total_score")
+  id         String        @id @default(cuid())
+  mode       GameMode
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+  creatorId  String        @map("creator_id")
+  creator    User          @relation("MatchCreator", fields: [creatorId], references: [id])
+  players    MatchPlayer[]
+  isRated    Boolean       @default(false) @map("is_rated")
+  totalScore String        @default("0 - 0") @map("total_score")
 
   @@map("matches")
 }
 
-enum MatchResult {
-  WIN
-  LOSS
-  DRAW
-}
-
 model MatchPlayer {
-  id          String      @id @default(cuid())
-  matchId     String      @map("match_id")
-  userId      String      @map("user_id")
-  team        Int
-  position    Int
-  damage      Int         @default(0)
-  damageDealt Json        @default("{}") @map("damage_dealt")
-  score       Int         @default(0)
-  minesDamage Int         @default(0) @map("mines_damage")
-  moneyTaken  Int         @default(0) @map("money_taken")
-  armorTaken  Int         @default(0) @map("armor_taken")
-  wipeouts    Int         @default(0)
-  hasLeft     Boolean     @default(false) @map("has_left")
-  result      MatchResult @default(LOSS) @map("result")
-  divisions   Json        @default("{}") @map("divisions")
-  ratingChange Int        @default(0) @map("rating_change")
-  match       Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
+  id           String      @id @default(cuid())
+  matchId      String      @map("match_id")
+  userId       String      @map("user_id")
+  team         Int
+  position     Int
+  damage       Int         @default(0)
+  damageDealt  Json        @default("{}") @map("damage_dealt")
+  score        Int         @default(0)
+  minesDamage  Int         @default(0) @map("mines_damage")
+  moneyTaken   Int         @default(0) @map("money_taken")
+  armorTaken   Int         @default(0) @map("armor_taken")
+  wipeouts     Int         @default(0)
+  hasLeft      Boolean     @default(false) @map("has_left")
+  result       MatchResult @default(LOSS) @map("result")
+  divisions    Json        @default("{}") @map("divisions")
+  ratingChange Int         @default(0) @map("rating_change")
+  match        Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
 
   @@unique([matchId, userId])
   @@map("match_players")
@@ -134,4 +135,10 @@ enum GameMode {
   TWO_VS_TWO
   THREE_VS_THREE
   TWO_VS_TWO_VS_TWO
-} 
+}
+
+enum MatchResult {
+  WIN
+  LOSS
+  DRAW
+}

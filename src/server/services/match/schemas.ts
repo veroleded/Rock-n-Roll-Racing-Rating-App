@@ -9,7 +9,7 @@ export const statsDataSchema = z.object({
   armor_taken: z.record(z.string(), z.number()),
   wipeouts: z.record(z.string(), z.number()),
   total_score: z.string(),
-  divisions: z.record(z.string(), z.record(z.string(), z.number())),
+  divisions: z.record(z.string(), z.nativeEnum(MatchResult)),
 });
 
 export type StatsData = z.infer<typeof statsDataSchema>;
