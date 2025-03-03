@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { StatsData } from "@/server/services/match/schemas";
 import { trpc } from "@/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GameMode } from "@prisma/client";
@@ -60,25 +61,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-type StatsData = {
-  damage: Record<string, Record<string, number>>;
-  scores: Record<string, number>;
-  mines_damage: Record<string, number>;
-  money_taken: Record<string, number>;
-  armor_taken: Record<string, number>;
-  wipeouts: Record<string, number>;
-  total_score: string;
-  divisions?: Record<string, Record<string, number>>;
-};
 
-const botNames = [
-  "Bot Ivan",
-  "Bot Olga",
-  "Bot Alex",
-  "Bot Maria",
-  "Bot Sergey",
-  "Bot Anna",
-];
 
 type MatchFormProps = {
   editMatchId?: string;
@@ -91,6 +74,12 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
     isLoading: isLoadingUsers,
     error: usersError,
   } = trpc.users.list.useQuery();
+
+  const {
+    data: bots = [],
+    isLoading: isLoadingBots,
+  } = trpc.users.botList.useQuery();
+
   const { mutate: createMatch } = trpc.matches.create.useMutation({
     onSuccess: (match) => {
       router.push(`/matches/${match.id}`);
@@ -201,8 +190,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
   // Функция для получения списка доступных ботов
   const getAvailableBots = (teamIndex: number, playerIndex: number) => {
     const selectedPlayers = getSelectedPlayers(teamIndex, playerIndex);
-    return botNames
-      .map((name) => ({ id: `bot_${name}`, name, isBot: true }))
+    return bots
       .filter((bot) => !selectedPlayers.includes(bot.id));
   };
 
@@ -220,7 +208,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
     );
 
     const filteredBots = getAvailableBots(teamIndex, playerIndex).filter(
-      (bot) => bot.name.toLowerCase().includes(searchTerm.toLowerCase())
+      (bot) => bot.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return [...filteredUsers, ...filteredBots];
@@ -398,7 +386,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                       )}
                       <span>
                         {field.value.startsWith("bot_")
-                          ? field.value.replace("bot_", "")
+                          ? <span><span className="text-muted-foreground">[БОТ]</span> {bots.find((bot) => bot.id === field.value)?.name || field.value.replace("bot_", "")}</span>
                           : users.find((user) => user.id === field.value)
                             ?.name || "Выберите игрока"}
                       </span>
@@ -448,7 +436,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                             );
                             form.setValue(
                               `teams.${teamIndex}.players.${playerIndex}.isBot`,
-                              "isBot" in player ? player.isBot : false
+                              player.id.startsWith("bot_")
                             );
                             setSearchTerm("");
                           }}
@@ -462,7 +450,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                             )}
                           />
                           <div className="flex items-center gap-2">
-                            {"isBot" in player ? (
+                            {player.id.startsWith("bot_") ? (
                               <Bot className="h-4 w-4" />
                             ) : (
                               <Avatar className="h-6 w-6">
@@ -475,7 +463,11 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                                 </AvatarFallback>
                               </Avatar>
                             )}
-                            <span>{player.name}</span>
+                            <span>
+                              {player.id.startsWith("bot_") 
+                                ? <span><span className="text-muted-foreground">[БОТ]</span> {player.name}</span> 
+                                : player.name}
+                            </span>
                           </div>
                         </button>
                       ))}

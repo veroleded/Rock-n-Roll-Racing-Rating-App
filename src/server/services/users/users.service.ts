@@ -53,6 +53,14 @@ export class UsersService {
     return users;
   }
 
+  async getBotList() {
+    const bots = await this.prisma.user.findMany({
+      where: { id: { startsWith: "bot_" } },
+    });
+
+    return bots;
+  }
+
   async getUserById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },

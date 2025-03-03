@@ -1,15 +1,25 @@
 import { GameMode, MatchResult } from "@prisma/client";
 import { z } from "zod";
 
-export const statsDataSchema = z.object({
-  damage: z.record(z.string(), z.record(z.string(), z.number())),
+const playerKeySchema = z.enum(["player1", "player2", "player3", "player4", "player5", "player6"]);
+
+// Создаем новую схему для данных дивизиона
+const divisionDataSchema = z.object({
   scores: z.record(z.string(), z.number()),
-  mines_damage: z.record(z.string(), z.number()),
-  money_taken: z.record(z.string(), z.number()),
-  armor_taken: z.record(z.string(), z.number()),
-  wipeouts: z.record(z.string(), z.number()),
+  result: z.nativeEnum(MatchResult),
+});
+
+export type DivisionData = z.infer<typeof divisionDataSchema>;
+
+export const statsDataSchema = z.object({
+  damage: z.record(playerKeySchema, z.record(playerKeySchema, z.number())),
+  scores: z.record(playerKeySchema, z.number()),
+  mines_damage: z.record(playerKeySchema, z.number()),
+  money_taken: z.record(playerKeySchema, z.number()),
+  armor_taken: z.record(playerKeySchema, z.number()),
+  wipeouts: z.record(playerKeySchema, z.number()),
   total_score: z.string(),
-  divisions: z.record(z.string(), z.nativeEnum(MatchResult)),
+  divisions: z.record(playerKeySchema, divisionDataSchema),
 });
 
 export type StatsData = z.infer<typeof statsDataSchema>;

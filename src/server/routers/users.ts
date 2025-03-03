@@ -26,6 +26,11 @@ export const usersRouter = router({
     }
   }),
 
+  botList: protectedProcedure.query(async ({ ctx }) => {
+    const usersService = new UsersService(ctx.prisma);
+    return usersService.getBotList();
+  }),
+
   byId: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const usersService = new UsersService(ctx.prisma);
     return usersService.getUserById(input);
