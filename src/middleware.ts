@@ -39,6 +39,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (request.nextUrl.pathname.startsWith("/matches/[id]/edit")) {
+    if (token.role === 'PLAYER') {
+      return NextResponse.redirect(new URL("/matches", request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 

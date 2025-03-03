@@ -9,18 +9,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useParams } from "next/navigation";
 
-export default function AddMatchPage() {
+export default function EditMatchPage() {
+  const params = useParams();
+
   return (
     <div className="py-6 space-y-6">
       <div className="flex items-center justify-between border-b pb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-4">
             <BackButton />
-            <h1 className="text-3xl font-bold tracking-tight">Добавить матч</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Изменить матч <span className="text-sm"># {params.id}</span></h1>
           </div>
           <p className="text-muted-foreground">
-            Заполните форму для добавления нового матча в систему
+            Заполните форму для изменеия матча
           </p>
         </div>
       </div>
@@ -34,14 +37,14 @@ export default function AddMatchPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <MatchForm />
+          <MatchForm editMatchId={params.id as string} />
         </CardContent>
       </Card>
 
       <div className="rounded-lg border border-border/40 bg-card p-4 shadow-sm">
         <h2 className="font-medium mb-2">Примечание</h2>
         <p className="text-sm text-muted-foreground">
-          После добавления матча, статистика игроков будет автоматически
+          После изменения матча, статистика игроков будет автоматически
           обновлена. Убедитесь, что все данные введены корректно перед отправкой
           формы.
         </p>

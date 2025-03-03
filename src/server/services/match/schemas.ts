@@ -32,6 +32,16 @@ export const createMatchDataSchema = z.object({
 
 export type CreateMatchData = z.infer<typeof createMatchDataSchema>;
 
+export const editMatchDataSchema = z.object({
+  mode: z.nativeEnum(GameMode),
+  players: z.array(createMatchPlayerSchema),
+  statsData: statsDataSchema,
+  creatorId: z.string(),
+  editMatchId: z.string()
+});
+
+export type EditMatchDataSchema = z.infer<typeof editMatchDataSchema>
+
 export const matchResultDataSchema = z.object({
   result: z.nativeEnum(MatchResult),
   ratingChange: z.number(),

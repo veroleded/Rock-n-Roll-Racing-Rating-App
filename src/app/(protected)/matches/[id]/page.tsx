@@ -1,5 +1,6 @@
 "use client";
 
+import { BackButton } from "@/components/BackButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -120,14 +121,19 @@ export default function MatchPage() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-4">
+            <BackButton />
             <h1 className="text-3xl font-bold">Матч #{match.id}</h1>
             {canDelete && (
+              <>
+                <Button size='sm'>
+                  <Link onClick={(e) => { e.stopPropagation(); }} href={`${match.id}/edit`}>Изменить</Link>
+                </Button>
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleDelete}
                 disabled={isDeleting}
-              >
+                >
                 {isDeleting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -135,6 +141,7 @@ export default function MatchPage() {
                 )}
                 <span className="ml-2">Удалить матч</span>
               </Button>
+              </>
             )}
           </div>
           <div className="flex items-center gap-2 mt-2 text-muted-foreground">

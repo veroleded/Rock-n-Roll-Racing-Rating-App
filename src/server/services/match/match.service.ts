@@ -5,7 +5,7 @@ import {
   PrismaClient,
   User,
 } from "@prisma/client";
-import { CreateMatchData, MatchResultData, StatsData } from "./schemas";
+import { CreateMatchData, EditMatchDataSchema, MatchResultData, StatsData } from "./schemas";
 
 type MatchWithRelations = Match & {
   players: (MatchPlayer & {
@@ -216,6 +216,22 @@ export class MatchService {
     }
   }
 
+  async edit(editData: EditMatchDataSchema) {
+    try {
+      const { editMatchId, ...matchData } = editData;
+      const editedMatch = await this.delete(editMatchId);
+      const newMatch = await this.create(matchData);
+      return await this.prisma.match.update({
+        where: {
+          id: newMatch.id
+        },
+        data: { createdAt: editedMatch?.createdAt }
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async findById(id: string) {
     return this.prisma.match.findUnique({
       where: { id },
@@ -229,6 +245,7 @@ export class MatchService {
       },
     });
   }
+
 
   async findMany(options: {
     limit?: number;

@@ -1,7 +1,7 @@
 import { GameMode } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { MatchService, createMatchDataSchema } from "../services/match";
+import { MatchService, createMatchDataSchema, editMatchDataSchema } from "../services/match";
 import { moderatorOrAdminProcedure, protectedProcedure, router } from "../trpc";
 
 // Схема для валидации данных из файла stats.json
@@ -45,6 +45,18 @@ export const matchesRouter = router({
         ...input,
         creatorId: ctx.session.user.id,
       });
+    }),
+
+  edit: moderatorOrAdminProcedure
+    .input(z.object({
+      mode: editMatchDataSchema.shape.mode,
+      players: editMatchDataSchema.shape.players,
+      statsData: editMatchDataSchema.shape.statsData,
+      editMatchId: editMatchDataSchema.shape.editMatchId
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const matchService = new MatchService(ctx.prisma);
+      return matchService.edit({ ...input, creatorId: ctx.session.user.id });
     }),
 
   byId: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {

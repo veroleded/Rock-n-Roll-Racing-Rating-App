@@ -80,7 +80,11 @@ const botNames = [
   "Bot Anna",
 ];
 
-export function AddMatchForm() {
+type MatchFormProps = {
+  editMatchId?: string;
+};
+
+export function MatchForm({ editMatchId }: MatchFormProps) {
   const router = useRouter();
   const {
     data: users = [],
@@ -98,6 +102,18 @@ export function AddMatchForm() {
       });
     },
   });
+  const { mutate: editMatch } = trpc.matches.edit.useMutation({
+    onSuccess: (match) => {
+      router.push(`/matches/${match.id}`);
+    },
+    onError: (error) => {
+      form.setError("root", {
+        type: "manual",
+        message: error.message,
+      });
+    },
+  });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -320,18 +336,21 @@ export function AddMatchForm() {
         }))
       );
 
-      console.log({
-        mode: data.mode,
-        players,
-        statsData: data.statsData,
-      });
-
       // Отправляем данные на сервер
-      createMatch({
-        mode: data.mode,
-        players,
-        statsData: data.statsData,
-      });
+      if (editMatchId) {
+        editMatch({
+          mode: data.mode,
+          players,
+          statsData: data.statsData,
+          editMatchId
+        });
+      } else {
+        createMatch({
+          mode: data.mode,
+          players,
+          statsData: data.statsData,
+        });
+      }
     } catch (error) {
       console.error("Ошибка при отправке формы:", error);
       setSubmitError(
@@ -381,7 +400,7 @@ export function AddMatchForm() {
                         {field.value.startsWith("bot_")
                           ? field.value.replace("bot_", "")
                           : users.find((user) => user.id === field.value)
-                              ?.name || "Выберите игрока"}
+                            ?.name || "Выберите игрока"}
                       </span>
                     </div>
                   ) : (
@@ -649,7 +668,7 @@ export function AddMatchForm() {
                 Сохранение...
               </>
             ) : (
-              "Добавить матч"
+              editMatchId ? 'Изименить матч' : 'Добавить матч'
             )}
           </Button>
         </div>
