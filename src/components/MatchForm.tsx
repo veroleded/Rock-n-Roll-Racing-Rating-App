@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { StatsData } from "@/server/services/match/schemas";
+import { CreateStatsData } from "@/server/services/match/schemas";
 import { trpc } from "@/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GameMode } from "@prisma/client";
@@ -78,6 +78,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
   const {
     data: bots = [],
     isLoading: isLoadingBots,
+    error: botsError,
   } = trpc.users.botList.useQuery();
 
   const { mutate: createMatch } = trpc.matches.create.useMutation({
@@ -107,7 +108,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const [statsData, setStatsData] = useState<StatsData | null>(null);
+  const [statsData, setStatsData] = useState<CreateStatsData | null>(null);
   const [statsError, setStatsError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
@@ -492,7 +493,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
     />
   );
 
-  if (isLoadingUsers) {
+  if (isLoadingUsers || isLoadingBots) {
     return (
       <div className="flex items-center justify-center h-48">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -500,7 +501,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
     );
   }
 
-  if (usersError || !users) {
+  if (usersError || !users || botsError || !bots) {
     return (
       <div className="flex items-center justify-center h-48 text-destructive">
         Ошибка загрузки списка игроков
