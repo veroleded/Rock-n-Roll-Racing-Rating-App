@@ -128,6 +128,8 @@ export class MatchService {
 
 
 
+
+
   private calculatePlayerDamage(userId: string, normalizedDamage: Record<string, Record<string, number>>, players: CreateMatchPlayer[]) {
     const playerTeams = new Map<string, number>();
     players.forEach(player => {
@@ -284,48 +286,79 @@ export class MatchService {
     return totalResult;
   }
 
+  private getElo (
+    players: CreateMatchPlayer[],
+    totalScore: string,
+    totalPoints: Record<string, { points: number, result: MatchResult; }>,
+    teamResult: Record<string, { points: number, result: MatchResult; }>) {
 
+      const [team1, team2] = totalScore.split(' - ');
+      const OKO = (Number(team1) + Number(team2)) / 2;
+      const P1 = Number(team1) - Number(team2);
+      const P2 = Number(team2) - Number(team1);
+      
+      let kef1 = 0;
+      let kef2 = 0;
+
+      if (P1 <= OKO) {
+        kef1 = P1 * 3;
+        kef2 = P2 * 3;
+      } else {
+        kef1 = (OKO * 3) + ((P1 - OKO) * 1.5);
+        kef2 = (OKO * 3) + ((P2 - OKO) * 1.5);
+      }
+      
+      
+
+
+
+    }
+  
+    
   async create(data: CreateMatchData) {
     try {
 
 
       const normalizedStatsData = this.normalizeStatsData(data.statsData, data.players);
       const teamsResult = this.calculateTeamResultDivisions(normalizedStatsData.divisions, data.players);
+      
       const totalPoints = this.calculateTotalPoints(teamsResult);
+      
       const totalScore = Object.values(totalPoints).map(team => team.points).join(' - ');
+
       const isRated = this.isRated(data.mode, data.players);
       console.log(totalScore);
       const matchPlayers = data.players.map(player => {
-      const { userId } = player;
-      const damages = this.calculatePlayerDamage(player.userId, normalizedStatsData.damage, data.players);
-        const score = normalizedStatsData.scores[userId];
-      const minesDamage = normalizedStatsData.mines_damage[userId];
-      const moneyTaken = normalizedStatsData.money_taken[userId];
-      const armorTaken = normalizedStatsData.armor_taken[userId];
-      const wipeouts = normalizedStatsData.wipeouts[userId];
-        const result = totalPoints[player.team.toString()].result;
+        const { userId } = player;
+        const damages = this.calculatePlayerDamage(player.userId, normalizedStatsData.damage, data.players);
+          const score = normalizedStatsData.scores[userId];
+        const minesDamage = normalizedStatsData.mines_damage[userId];
+        const moneyTaken = normalizedStatsData.money_taken[userId];
+        const armorTaken = normalizedStatsData.armor_taken[userId];
+        const wipeouts = normalizedStatsData.wipeouts[userId];
+          const result = totalPoints[player.team.toString()].result;
 
-        const ratingChange = isRated ? (result === "WIN" ? 10 : result === "LOSS" ? -10 : 0) : 0;
+          const ratingChange = isRated ? (result === "WIN" ? 10 : result === "LOSS" ? -10 : 0) : 0;
 
-      const divisions = Object.entries(normalizedStatsData.divisions).reduce((acc,[key, value]) => {
-        if (value[userId]) {
-          acc[key] = value[userId];
+        const divisions = Object.entries(normalizedStatsData.divisions).reduce((acc,[key, value]) => {
+          if (value[userId]) {
+            acc[key] = value[userId];
+          }
+          return acc;
+        }, {} as Record<string, {scores: number, result: MatchResult}>);
+
+        return {
+          ...player,
+          ...damages,
+          score,
+          minesDamage,
+          moneyTaken,
+          armorTaken,
+          wipeouts,
+          divisions,
+          result,
+          ratingChange
         }
-        return acc;
-      }, {} as Record<string, {scores: number, result: MatchResult}>);
-
-      return {
-        ...player,
-        ...damages,
-        score,
-        minesDamage,
-        moneyTaken,
-        armorTaken,
-        wipeouts,
-        divisions,
-        result,
-        ratingChange
-      }
 
       });
 

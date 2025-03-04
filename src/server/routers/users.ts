@@ -36,6 +36,16 @@ export const usersRouter = router({
     return usersService.getUserById(input);
   }),
 
+  getTop: publicProcedure.input(z.enum(['start', 'end'])).query(async ({ ctx, input }) => {
+    const usersService = new UsersService(ctx.prisma);
+    return usersService.getTopUsers(input);
+  }),
+
+  getUserWithNeighbors: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    const usersService = new UsersService(ctx.prisma);
+    return usersService.getUserWithNeighbors(input);
+  }),
+
   update: adminProcedure
     .input(
       z.object({

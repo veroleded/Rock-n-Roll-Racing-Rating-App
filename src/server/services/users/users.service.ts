@@ -119,6 +119,86 @@ export class UsersService {
     return user;
   }
 
+  async getTopUsers(type: 'start' | 'end') {
+    const users = await this.prisma.user.findMany({
+      where: { hasJoinedBot: true, id: { not: { startsWith: "bot_" } } },
+      include: { stats: true },
+      orderBy: [
+        {
+          stats: {
+            rating: type === 'start' ? 'desc' : 'asc',
+          },
+        },
+        {
+          stats: {
+            totalScore: type === 'start' ? 'desc' : 'asc',
+          },
+        }
+      ],
+      take: 10,
+    });
+
+    return users;
+  }
+
+  async getUserWithNeighbors(userId: string) {
+    // Получаем всех игроков в отсортированном порядке
+    const allUsers = await this.prisma.user.findMany({
+      where: { 
+        hasJoinedBot: true, 
+        id: { not: { startsWith: "bot_" } } 
+      },
+      include: { stats: true },
+      orderBy: [
+        { stats: { rating: 'desc' } },
+        { stats: { totalScore: 'desc' } }
+      ],
+    });
+
+    // Находим индекс текущего игрока
+    const userIndex = allUsers.findIndex(user => user.id === userId);
+    
+    if (userIndex === -1) {
+      throw new Error('Пользователь не найден');
+    }
+
+    // Определяем границы для выборки соседей
+    let startIndex: number;
+    let endIndex: number;
+
+    if (userIndex < 5) {
+      // Если игрок близко к началу списка
+      startIndex = 0;
+      endIndex = Math.min(10, allUsers.length);
+    } else if (userIndex >= allUsers.length - 5) {
+      // Если игрок близко к концу списка
+      endIndex = allUsers.length;
+      startIndex = Math.max(0, endIndex - 10);
+    } else {
+      // Игрок где-то в середине
+      startIndex = userIndex - 5;
+      endIndex = userIndex + 5;
+    }
+
+    // Выбираем 10 игроков
+    const neighbors = allUsers.slice(startIndex, endIndex);
+    
+    // Если получилось меньше 10 (маловероятно, но на всякий случай)
+    while (neighbors.length < 10 && allUsers.length >= 10) {
+      if (startIndex > 0) {
+        startIndex--;
+        neighbors.unshift(allUsers[startIndex]);
+      } else if (endIndex < allUsers.length) {
+        neighbors.push(allUsers[endIndex]);
+        endIndex++;
+      } else {
+        break; // Невозможно добавить больше игроков
+      }
+    }
+
+    return neighbors;
+  }
+
   async deleteUser(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },

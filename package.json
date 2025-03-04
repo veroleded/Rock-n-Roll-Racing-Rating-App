@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "bot": "tsx src/bot/index.ts",
+    "bot": "tsx --watch src/bot/index.ts",
     "seed": "tsx prisma/seed.ts",
     "clean": "tsx prisma/clean.ts",
     "init-bots": "tsx prisma/init-bots.ts"
