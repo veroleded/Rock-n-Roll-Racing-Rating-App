@@ -5,6 +5,7 @@ import {
   MatchPlayer,
   MatchResult,
   PrismaClient,
+  Stats,
   User,
 } from "@prisma/client";
 import { CreateMatchData, CreateMatchPlayer, CreateStatsData, Damages, EditMatchDataSchema, NormalizedDivisionData, NormalizedStatsData } from "./schemas";
@@ -351,8 +352,9 @@ export class MatchService {
       await Promise.all(
         match.players
           .filter((player) => !player.userId.startsWith("bot_"))
-          .map((player) =>
-            this.prisma.stats.update({
+          .map(async (player) => {
+            const stats = await this.prisma.stats.findUnique({ where: { userId: player.userId } }) as Stats;
+            return this.prisma.stats.update({
               where: { userId: player.userId },
               data: {
                 gamesPlayed: { increment: 1 },
@@ -362,6 +364,16 @@ export class MatchService {
                 draws: player.result === "DRAW" ? { increment: 1 } : undefined,
                 totalScore: { increment: player.score },
                 totalDivisions: { increment: Object.keys(player.divisions as Divisions).length },
+                maxRating: {
+                  set: player.ratingChange > 0
+                    ? Math.max(stats.rating + player.ratingChange, stats.maxRating)
+                    : stats.maxRating
+                },
+                minRating: {
+                  set: player.ratingChange < 0
+                    ? Math.min(stats.rating + player.ratingChange, stats.minRating)
+                    : stats.minRating
+                },
                 winsDivisions: {
                   increment: Object.values(player.divisions as Divisions)
                     .filter(division => division.result === "WIN").length
@@ -376,7 +388,7 @@ export class MatchService {
                 },
               },
             })
-          )
+          })
       );
 
       return match;
@@ -487,8 +499,9 @@ export class MatchService {
     await Promise.all(
       match.players
         .filter((player) => !player.userId.startsWith("bot_"))
-        .map((player) =>
-          this.prisma.stats.update({
+        .map(async (player) => {
+          const stats = await this.prisma.stats.findUnique({ where: { userId: player.userId } }) as Stats;
+          return this.prisma.stats.update({
             where: { userId: player.userId },
             data: {
               gamesPlayed: { decrement: 1 },
@@ -510,9 +523,19 @@ export class MatchService {
                 decrement: Object.values(player.divisions as Divisions)
                   .filter(division => division.result === "DRAW").length
               },
+              maxRating: {
+                set: player.ratingChange > 0 && stats.maxRating === stats.rating
+                  ? stats.maxRating - player.ratingChange
+                  : stats.maxRating
+              },
+              minRating: {
+                set: player.ratingChange < 0 && stats.minRating === stats.rating
+                  ? stats.minRating - player.ratingChange// Используем 1000 как начальное значение рейтинга
+                  : stats.minRating
+              },
             },
           })
-        )
+        })
     );
 
     return this.prisma.match.delete({

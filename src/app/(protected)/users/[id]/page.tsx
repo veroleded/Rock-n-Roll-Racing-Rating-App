@@ -1,5 +1,6 @@
 "use client";
 
+import { BackButton } from "@/components/BackButton";
 import { MatchesTable } from "@/components/matches/MatchesTable";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -11,13 +12,13 @@ import { Role } from "@prisma/client";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ChartPie, Edit, Loader2, Trophy, User } from "lucide-react";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
-export default function DashboardPage() {
-  const { data: user, isLoading } = trpc.users.me.useQuery();
-  const { data: session } = useSession();
-  const isAdmin = session?.user.role === "ADMIN";
+export default function UserPage() {
+  const params = useParams();
+  const { data: session } = trpc.auth.getSession.useQuery();
+  const { data: user, isLoading } = trpc.users.byId.useQuery(params.id as string);
 
   if (isLoading) {
     return (
@@ -30,10 +31,13 @@ export default function DashboardPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-destructive">Не удалось загрузить данные пользователя</div>
+        <div className="text-destructive">Пользователь не найден</div>
       </div>
     );
   }
+
+  const isAdmin = session?.user.role === "ADMIN";
+  const canEdit = isAdmin;
 
   const getRoleText = (role: Role) => {
     switch (role) {
@@ -57,18 +61,21 @@ export default function DashboardPage() {
     <div className="h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex items-center justify-between border-b pb-4 pt-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Мой профиль
-          </h1>
+          <div className="flex items-center gap-4">
+            <BackButton />
+            <h1 className="text-3xl font-bold tracking-tight">
+              Профиль пользователя
+            </h1>
+          </div>
           <p className="text-muted-foreground">
-            Ваша личная информация и статистика
+            Информация и статистика пользователя
           </p>
         </div>
-        {isAdmin && (
+        {canEdit && (
           <Button asChild>
             <Link href={`/users/${user.id}/edit`}>
               <Edit className="h-4 w-4 mr-2" />
-              Редактировать профиль
+              Редактировать
             </Link>
           </Button>
         )}
