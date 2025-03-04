@@ -54,8 +54,8 @@
   "chem_vi_b": {
     "player1": 850,
     "player2": 750,
-    "player3": 600,
-    "player4": 550
+    "player3": 850,
+    "player4": 750
   },
   "chem_vi_a": {
     "player1": 920,

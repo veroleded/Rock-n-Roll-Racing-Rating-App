@@ -1,3 +1,4 @@
+import { Divisions } from "@/types/json-types";
 import {
   GameMode,
   Match,
@@ -6,7 +7,7 @@ import {
   PrismaClient,
   User,
 } from "@prisma/client";
-import { CreateMatchData, CreateMatchPlayer, CreateStatsData, Damages, EditMatchDataSchema, NormalizedStatsData } from "./schemas";
+import { CreateMatchData, CreateMatchPlayer, CreateStatsData, Damages, EditMatchDataSchema, NormalizedDivisionData, NormalizedStatsData } from "./schemas";
 
 // Локальное определение типа StatsData
 
@@ -121,60 +122,8 @@ export class MatchService {
         }
       }
     }
-
     return normalizedStatsData;
   }
-
-
-  
-
-  // private calculateResult(
-  //   mode: GameMode,
-  //   team: number,
-  //   scores: number[],
-  //   isRated: boolean
-  // ): MatchResultData {
-  //   let result: "WIN" | "LOSS" | "DRAW";
-  //   let ratingChange = 0;
-
-  //   if (mode === "TWO_VS_TWO_VS_TWO") {
-  //     const teamScores = [scores[0], scores[1], scores[2]];
-  //     const playerTeamScore = teamScores[team - 1];
-  //     const maxScore = Math.max(...teamScores);
-
-  //     if (playerTeamScore === maxScore) {
-  //       const winners = teamScores.filter((score) => score === maxScore).length;
-  //       result = winners > 1 ? "DRAW" : "WIN";
-  //       ratingChange = winners > 1 ? 0 : 1;
-  //     } else {
-  //       result = "LOSS";
-  //       ratingChange = -1;
-  //     }
-  //   } else {
-  //     const [team1Score, team2Score] = scores;
-  //     if (team1Score === team2Score) {
-  //       result = "DRAW";
-  //       ratingChange = 0;
-  //     } else if (
-  //       (team === 1 && team1Score > team2Score) ||
-  //       (team === 2 && team2Score > team1Score)
-  //     ) {
-  //       result = "WIN";
-  //       ratingChange = 1;
-  //     } else {
-  //       result = "LOSS";
-  //       ratingChange = -1;
-  //     }
-  //   }
-
-  //   return {
-  //     result,
-  //     ratingChange: isRated ? ratingChange : 0,
-  //   };
-  // }
-
-
-
 
 
 
@@ -221,7 +170,6 @@ export class MatchService {
     
     
     return {
-      userId,
       totalDamageDealt,
       totalDamageReceived,
       damageDealt,
@@ -229,31 +177,60 @@ export class MatchService {
     };
   }
 
-
-  private calculateResult(scores: Record<string, number>, player: CreateMatchPlayer, players: CreateMatchPlayer[]) {
-
-
-
-    const teamScores = players.reduce((acc, player) => {
-      if (acc[player.team]) {
-        acc[player.team] += scores[player.userId];
-      } else {
-        acc[player.team] = scores[player.userId];
-      }
+  private calculateTeamResultDivisions(divisions: NormalizedDivisionData, players: CreateMatchPlayer[]) {
+    // Сначала собираем информацию о очках пользователей по дивизиям и командам
+    const teamsScores = Object.entries(divisions).reduce((acc, [divisionName, playersResult]) => {
+      players.forEach(player => {
+        if (!acc[divisionName]) {
+          acc[divisionName] = {};
+        }
+        if (!acc[divisionName][player.team]) {
+          acc[divisionName][player.team] = { scoresSum: 0, userScores: {} };
+        }
+        const playerScore = playersResult[player.userId].scores;
+        acc[divisionName][player.team].scoresSum += playerScore;
+        acc[divisionName][player.team].userScores[player.userId] = playerScore;
+      });
       return acc;
-    }, {} as Record<number, number>);
+    }, {} as Record<string, Record<number, { scoresSum: number; userScores: Record<string, number>; }>>);
 
-    const maxScore = Math.max(...Object.values(teamScores));
-    const isDraw = Object.values(teamScores).filter(score => score === maxScore).length === Object.values(teamScores).length;
-    if (isDraw) {
-      return "DRAW";
-    } else if (teamScores[player.team] === maxScore) {
-      return "WIN";
-    } else {
-      return "LOSS";
-    }
-    
+    // Теперь определяем результаты для каждой команды
+    const teamsResult = Object.entries(teamsScores).reduce((acc, [divisionName, teams]) => {
+      const maxScore = Math.max(...Object.values(teams).map(team => team.scoresSum));
+      const isDraw = Object.values(teams).filter(team => team.scoresSum === maxScore).length === Object.values(teams).length;
 
+      const divisionTeamsResult = Object.entries(teams).reduce((teamAcc, [teamStr, teamData]) => {
+        const team = Number(teamStr);
+        if (isDraw) {
+          teamAcc[team] = {
+            scoresSum: teamData.scoresSum,
+            result: "DRAW",
+            points: 1,
+            userScores: teamData.userScores
+          };
+        } else if (teamData.scoresSum === maxScore) {
+          teamAcc[team] = {
+            scoresSum: teamData.scoresSum,
+            result: "WIN",
+            points: 2,
+            userScores: teamData.userScores
+          };
+        } else {
+          teamAcc[team] = {
+            scoresSum: teamData.scoresSum,
+            result: "LOSS",
+            points: 0,
+            userScores: teamData.userScores
+          };
+        }
+        return teamAcc;
+      }, {} as Record<number, { scoresSum: number, result: MatchResult, points: 0 | 1 | 2, userScores: Record<string, number>; }>);
+
+      acc[divisionName] = divisionTeamsResult;
+      return acc;
+    }, {} as Record<string, Record<number, { scoresSum: number, result: MatchResult, points: 0 | 1 | 2, userScores: Record<string, number>; }>>);
+
+    return teamsResult;
   }
 
   private isRated(mode: GameMode, players: CreateMatchPlayer[]) {
@@ -265,17 +242,69 @@ export class MatchService {
     }
   }
 
+  private calculateTotalPoints(divisions: Record<string, Record<number, {
+    scoresSum: number;
+    result: MatchResult;
+    points: 0 | 1 | 2;
+    userScores: Record<string, number>;
+  }>>) {
+    const totalPoints = Object.entries(divisions).reduce((acc, [, teams]) => {
+      Object.entries(teams).forEach(([team, data]) => {
+        if (!acc[team]) {
+          acc[team] = 0;
+        }
+        acc[team] += data.points;
+      });
+      return acc;
+    }, {} as Record<string, number>);
+
+    const maxPoints = Math.max(...Object.values(totalPoints));
+    const isDraw = Object.values(totalPoints).filter(points => points === maxPoints).length === Object.values(totalPoints).length;
+    const totalResult = Object.entries(totalPoints).reduce((acc, [team, points]) => {
+      if (isDraw) {
+        acc[team] = {
+          points,
+          result: "DRAW"
+        };
+      } else if (points === maxPoints) {
+        acc[team] = {
+          points,
+          result: "WIN"
+        };
+      } else {
+        acc[team] = {
+          points,
+          result: "LOSS"
+        };
+      }
+      return acc;
+    }, {} as Record<string, { points: number, result: MatchResult; }>);
+
+    return totalResult;
+  }
+
+
   async create(data: CreateMatchData) {
-    const normalizedStatsData = this.normalizeStatsData(data.statsData, data.players);
-    const realPlayers = data.players.filter(player => !player.userId.startsWith("bot_"));
-    realPlayers.map(player => {
+    try {
+
+
+      const normalizedStatsData = this.normalizeStatsData(data.statsData, data.players);
+      const teamsResult = this.calculateTeamResultDivisions(normalizedStatsData.divisions, data.players);
+      const totalPoints = this.calculateTotalPoints(teamsResult);
+      const totalScore = Object.values(totalPoints).map(team => team.points).join(' - ');
+      const isRated = this.isRated(data.mode, data.players);
+      console.log(totalScore);
+      const matchPlayers = data.players.map(player => {
       const { userId } = player;
       const damages = this.calculatePlayerDamage(player.userId, normalizedStatsData.damage, data.players);
-      const scores = normalizedStatsData.scores[userId];
+        const score = normalizedStatsData.scores[userId];
       const minesDamage = normalizedStatsData.mines_damage[userId];
       const moneyTaken = normalizedStatsData.money_taken[userId];
       const armorTaken = normalizedStatsData.armor_taken[userId];
       const wipeouts = normalizedStatsData.wipeouts[userId];
+        const result = totalPoints[player.team.toString()].result;
+
+        const ratingChange = isRated ? (result === "WIN" ? 10 : result === "LOSS" ? -10 : 0) : 0;
 
       const divisions = Object.entries(normalizedStatsData.divisions).reduce((acc,[key, value]) => {
         if (value[userId]) {
@@ -284,22 +313,78 @@ export class MatchService {
         return acc;
       }, {} as Record<string, {scores: number, result: MatchResult}>);
 
-      const result = this.calculateResult(normalizedStatsData.scores, player, data.players);
-
       return {
         ...player,
         ...damages,
-        scores,
+        score,
         minesDamage,
         moneyTaken,
         armorTaken,
         wipeouts,
         divisions,
-        result
+        result,
+        ratingChange
       }
 
       });
 
+      const match = await this.prisma.match.create({
+        data: {
+          mode: data.mode,
+          creatorId: data.creatorId,
+          isRated,
+          totalScore,
+          players: {
+            create: matchPlayers
+          }
+        },
+        include: {
+          players: {
+            include: {
+              user: true,
+            },
+          },
+          creator: true,
+        },
+      });
+
+      await Promise.all(
+        match.players
+          .filter((player) => !player.userId.startsWith("bot_"))
+          .map((player) =>
+            this.prisma.stats.update({
+              where: { userId: player.userId },
+              data: {
+                gamesPlayed: { increment: 1 },
+                rating: { increment: player.ratingChange },
+                wins: player.result === "WIN" ? { increment: 1 } : undefined,
+                losses: player.result === "LOSS" ? { increment: 1 } : undefined,
+                draws: player.result === "DRAW" ? { increment: 1 } : undefined,
+                totalScore: { increment: player.score },
+                totalDivisions: { increment: Object.keys(player.divisions as Divisions).length },
+                winsDivisions: {
+                  increment: Object.values(player.divisions as Divisions)
+                    .filter(division => division.result === "WIN").length
+                },
+                lossesDivisions: {
+                  increment: Object.values(player.divisions as Divisions)
+                    .filter(division => division.result === "LOSS").length
+                },
+                drawsDivisions: {
+                  increment: Object.values(player.divisions as Divisions)
+                    .filter(division => division.result === "DRAW").length
+                },
+              },
+            })
+          )
+      );
+
+      return match;
+
+    } catch (error) {
+      console.error('Error create match.service', error);
+      throw error;
+    }
   }
 
 
@@ -411,6 +496,20 @@ export class MatchService {
               wins: player.result === "WIN" ? { decrement: 1 } : undefined,
               losses: player.result === "LOSS" ? { decrement: 1 } : undefined,
               draws: player.result === "DRAW" ? { decrement: 1 } : undefined,
+              totalScore: { decrement: player.score },
+              totalDivisions: { decrement: Object.keys(player.divisions as Divisions).length },
+              winsDivisions: {
+                decrement: Object.values(player.divisions as Divisions)
+                  .filter(division => division.result === "WIN").length
+              },
+              lossesDivisions: {
+                decrement: Object.values(player.divisions as Divisions)
+                  .filter(division => division.result === "LOSS").length
+              },
+              drawsDivisions: {
+                decrement: Object.values(player.divisions as Divisions)
+                  .filter(division => division.result === "DRAW").length
+              },
             },
           })
         )

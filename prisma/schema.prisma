@@ -105,8 +105,12 @@ model MatchPlayer {
   userId              String      @map("user_id")
   team                Int
   position            Int
+  /// Тип: DamageDealt из src/types/json-types.ts
+  /// Record<string, { isAlly: boolean, damage: number }>
   damageDealt         Json        @default("{}") @map("damage_dealt")
   totalDamageDealt    Int         @default(0) @map("total_damage_dealt")
+  /// Тип: DamageReceived из src/types/json-types.ts
+  /// Record<string, { isAlly: boolean, damage: number }>
   damageReceived      Json        @default("{}") @map("damage_received")
   totalDamageReceived Int         @default(0) @map("total_damage_received")
   score               Int         @default(0)
@@ -116,6 +120,8 @@ model MatchPlayer {
   wipeouts            Int         @default(0)
   hasLeft             Boolean     @default(false) @map("has_left")
   result              MatchResult @default(LOSS) @map("result")
+  /// Тип: Divisions из src/types/json-types.ts
+  /// Record<string, { scores: number, result: 'WIN' | 'LOSS' | 'DRAW' }>
   divisions           Json        @default("{}") @map("divisions")
   ratingChange        Int         @default(0) @map("rating_change")
   match               Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)

@@ -112,8 +112,8 @@ export function MatchesTable({
                   {player.result === "WIN"
                     ? "+"
                     : player.result === "LOSS"
-                    ? "-"
-                    : "="}
+                      ? ""
+                      : ""}
                   {player.ratingChange}
                 </span>
               )}

@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/utils/trpc";
-import { GameMode, Role } from "@prisma/client";
+import { GameMode, MatchResult, Role } from "@prisma/client";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { AnimatePresence, motion } from "framer-motion";
@@ -32,6 +32,11 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+
+// Типы для JSON полей
+type DamageDealt = Record<string, { isAlly: boolean; damage: number; }>;
+type DamageReceived = Record<string, { isAlly: boolean; damage: number; }>;
+type Divisions = Record<string, { scores: number; result: MatchResult; }>;
 
 const gameModeNames = {
   TWO_VS_TWO: "2 на 2",
@@ -55,6 +60,8 @@ export default function MatchPage() {
   const { data: match, isLoading } = trpc.matches.byId.useQuery(
     params.id as string
   );
+
+  console.dir(match);
 
   const { mutate: deleteMatch, isLoading: isDeleting } =
     trpc.matches.delete.useMutation({
@@ -472,7 +479,7 @@ export default function MatchPage() {
                                                 </div>
                                                 <div className="flex items-center gap-2 text-2xl font-bold mt-1">
                                                   <Target className="h-5 w-5 text-red-500" />
-                                                  {player.damage}
+                                                  {player.totalDamageDealt}
                                                 </div>
                                               </div>
                                               <div>
@@ -481,33 +488,21 @@ export default function MatchPage() {
                                                 </div>
                                                 <div className="space-y-2">
                                                   {Object.entries(
-                                                    player.damageDealt as Record<
-                                                      string,
-                                                      number
-                                                    >
+                                                    player.damageDealt as DamageDealt
                                                   ).map(
-                                                    ([targetId, damage]) => {
+                                                    ([targetId, damageInfo]) => {
                                                       const target =
                                                         match.players.find(
                                                           (p) =>
-                                                            p.position ===
-                                                            parseInt(
-                                                              targetId.replace(
-                                                                "player",
-                                                                ""
-                                                              )
-                                                            )
+                                                            p.userId === targetId
                                                         );
                                                       if (!target) return null;
-                                                      const isFriendlyFire =
-                                                        target.team ===
-                                                        player.team;
                                                       return (
                                                         <div
                                                           key={targetId}
                                                           className={cn(
                                                             "flex items-center gap-2 p-3 rounded-lg",
-                                                            isFriendlyFire
+                                                            damageInfo.isAlly
                                                               ? "bg-destructive/20 border-2 border-destructive"
                                                               : "bg-muted"
                                                           )}
@@ -547,7 +542,7 @@ export default function MatchPage() {
                                                                   : target.user
                                                                       .name}
                                                               </div>
-                                                              {isFriendlyFire && (
+                                                              {damageInfo.isAlly && (
                                                                 <Badge
                                                                   variant="destructive"
                                                                   className="text-xs"
@@ -558,7 +553,7 @@ export default function MatchPage() {
                                                               )}
                                                             </div>
                                                             <div className="text-sm text-muted-foreground mt-1">
-                                                              Нанесено {damage}{" "}
+                                                              Нанесено {damageInfo.damage}{" "}
                                                               урона
                                                             </div>
                                                           </div>
@@ -577,21 +572,7 @@ export default function MatchPage() {
                                                 </div>
                                                 <div className="flex items-center gap-2 text-2xl font-bold mt-1">
                                                   <Target className="h-5 w-5 text-orange-500" />
-                                                  {match.players.reduce(
-                                                    (total, attacker) => {
-                                                      const damage =
-                                                        (
-                                                          attacker.damageDealt as Record<
-                                                            string,
-                                                            number
-                                                          >
-                                                        )[
-                                                          `player${player.position}`
-                                                        ] || 0;
-                                                      return total + damage;
-                                                    },
-                                                    0
-                                                  )}
+                                                  {player.totalDamageReceived}
                                                 </div>
                                               </div>
                                               <div>
@@ -599,38 +580,22 @@ export default function MatchPage() {
                                                   Урон от игроков:
                                                 </div>
                                                 <div className="space-y-2">
-                                                  {match.players
-                                                    .filter((attacker) => {
-                                                      const damage = (
-                                                        attacker.damageDealt as Record<
-                                                          string,
-                                                          number
-                                                        >
-                                                      )[
-                                                        `player${player.position}`
-                                                      ];
-                                                      return (
-                                                        damage && damage > 0
-                                                      );
-                                                    })
-                                                    .map((attacker) => {
-                                                      const damage = (
-                                                        attacker.damageDealt as Record<
-                                                          string,
-                                                          number
-                                                        >
-                                                      )[
-                                                        `player${player.position}`
-                                                      ];
-                                                      const isFriendlyFire =
-                                                        attacker.team ===
-                                                        player.team;
+                                                  {Object.entries(
+                                                    player.damageReceived as DamageReceived
+                                                  ).map(
+                                                    ([attackerId, damageInfo]) => {
+                                                      const attacker =
+                                                        match.players.find(
+                                                          (p) =>
+                                                            p.userId === attackerId
+                                                        );
+                                                      if (!attacker) return null;
                                                       return (
                                                         <div
-                                                          key={attacker.id}
+                                                          key={attackerId}
                                                           className={cn(
                                                             "flex items-center gap-2 p-3 rounded-lg",
-                                                            isFriendlyFire
+                                                            damageInfo.isAlly
                                                               ? "bg-destructive/20 border-2 border-destructive"
                                                               : "bg-muted"
                                                           )}
@@ -672,7 +637,7 @@ export default function MatchPage() {
                                                                       .user
                                                                       .name}
                                                               </div>
-                                                              {isFriendlyFire && (
+                                                              {damageInfo.isAlly && (
                                                                 <Badge
                                                                   variant="destructive"
                                                                   className="text-xs"
@@ -683,13 +648,14 @@ export default function MatchPage() {
                                                               )}
                                                             </div>
                                                             <div className="text-sm text-muted-foreground mt-1">
-                                                              Получено {damage}{" "}
+                                                              Получено {damageInfo.damage}{" "}
                                                               урона
                                                             </div>
                                                           </div>
                                                         </div>
                                                       );
-                                                    })}
+                                                    }
+                                                  )}
                                                 </div>
                                               </div>
                                             </div>
@@ -701,20 +667,38 @@ export default function MatchPage() {
                                         >
                                           <div className="grid grid-cols-2 gap-2">
                                             {Object.entries(
-                                              player.divisions as Record<
-                                                string,
-                                                number
-                                              >
-                                            ).map(([division, score]) => (
+                                              player.divisions as Divisions
+                                            ).map(([division, divisionInfo]) => (
                                               <div
                                                 key={division}
-                                                className="p-2 rounded-lg bg-muted"
+                                                className={cn(
+                                                  "p-3 rounded-lg",
+                                                  divisionInfo.result === "WIN"
+                                                    ? "bg-green-500/20 border-2 border-green-500"
+                                                    : divisionInfo.result === "LOSS"
+                                                      ? "bg-red-500/20 border-2 border-red-500"
+                                                      : "bg-yellow-500/20 border-2 border-yellow-500"
+                                                )}
                                               >
                                                 <div className="text-sm font-medium">
                                                   {division}
                                                 </div>
-                                                <div className="text-sm text-muted-foreground">
-                                                  {score} очков
+                                                <div className="flex items-center justify-between mt-1">
+                                                  <div className="text-sm text-muted-foreground">
+                                                    {divisionInfo.scores} очков
+                                                  </div>
+                                                  <Badge
+                                                    className={cn(
+                                                      "text-xs",
+                                                      divisionInfo.result === "WIN"
+                                                        ? "bg-green-500"
+                                                        : divisionInfo.result === "LOSS"
+                                                          ? "bg-red-500"
+                                                          : "bg-yellow-500"
+                                                    )}
+                                                  >
+                                                    {resultNames[divisionInfo.result]}
+                                                  </Badge>
                                                 </div>
                                               </div>
                                             ))}
