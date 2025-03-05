@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "stats" ADD COLUMN     "max_rating" INTEGER NOT NULL DEFAULT 1000,
-ADD COLUMN     "total_score" INTEGER NOT NULL DEFAULT 0;

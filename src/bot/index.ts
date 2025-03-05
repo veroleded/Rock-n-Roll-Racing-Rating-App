@@ -136,19 +136,15 @@ commandHandler.register({
     );
 
     // Отправляем запрос на присоединение
-    const user = await trpc.auth.joinBot.mutate({
+    await trpc.auth.joinBot.mutate({
       ...joinData,
       timestamp: joinTimestamp,
       signature: joinSignature,
     });
 
-    console.log("Join successful. User data:", user);
 
     // Формируем сообщение в зависимости от роли пользователя
     let replyMessage = "✅ Вы успешно присоединились! ";
-    if (user.role === "ADMIN") {
-      replyMessage += "**Вам предоставлены права администратора.** ";
-    }
     replyMessage += `\n🌐 Войдите в веб-приложение: ${process.env.NEXTAUTH_URL}`;
 
     await message.reply(replyMessage);

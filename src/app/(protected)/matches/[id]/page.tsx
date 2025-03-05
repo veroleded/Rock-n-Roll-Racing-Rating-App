@@ -58,10 +58,20 @@ export default function MatchPage() {
 
   const { data: session } = useSession();
   const { data: match, isLoading } = trpc.matches.byId.useQuery(
-    params.id as string
+    params.id as string,
+    {
+      // Отключаем автоматическое обновление данных при фокусе на странице
+      refetchOnWindowFocus: false,
+      // Не пытаемся перезагружать данные при ошибке
+      retry: false,
+      // Обрабатываем ошибку, если матч не найден
+      onError: (error) => {
+        if (error.data?.code === 'NOT_FOUND') {
+          router.push('/matches');
+        }
+      }
+    }
   );
-
-  console.dir(match);
 
   const { mutate: deleteMatch, isLoading: isDeleting } =
     trpc.matches.delete.useMutation({
@@ -70,6 +80,7 @@ export default function MatchPage() {
           title: "Матч удален",
           description: "Матч и вся связанная статистика были успешно удалены",
         });
+        // Немедленно перенаправляем на страницу со списком матчей
         router.push("/matches");
       },
       onError: (error) => {
@@ -78,11 +89,11 @@ export default function MatchPage() {
           description: error.message,
           variant: "destructive",
         });
-      },
+      }
     });
 
-  const canDelete =
-    session?.user.role === Role.ADMIN || session?.user.role === Role.MODERATOR;
+  const canChange =
+    session?.user.role === Role.ADMIN || (session?.user.role === Role.MODERATOR && match?.isLast);
 
   if (isLoading) {
     return (
@@ -130,7 +141,7 @@ export default function MatchPage() {
           <div className="flex items-center gap-4">
             <BackButton />
             <h1 className="text-3xl font-bold">Матч #{match.id}</h1>
-            {canDelete && (
+            {canChange && (
               <>
                 <Button size='sm'>
                   <Link onClick={(e) => { e.stopPropagation(); }} href={`${match.id}/edit`}>Изменить</Link>

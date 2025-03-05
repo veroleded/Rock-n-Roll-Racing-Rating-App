@@ -85,16 +85,18 @@ export const matchesRouter = router({
   delete: moderatorOrAdminProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      const matchService = new MatchService(ctx.prisma);
-      const match = await matchService.delete(input);
-
-      if (!match) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Матч не найден",
-        });
+      try {
+        const matchService = new MatchService(ctx.prisma);
+        const match = await matchService.delete(input);
+        return match;
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('not found')) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Матч не найден",
+          });
+        }
+        throw error;
       }
-
-      return match;
     }),
 });

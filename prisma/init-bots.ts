@@ -7,12 +7,22 @@ async function main() {
   
 
   const botIds: string[] = [
-    "bot_alexander",
-    "bot_vladimir",
-    "bot_dmitry",
-    "bot_mikhail",
+    "bot_snake",
+    "bot_hawk",
     "bot_ivan",
-    "bot_sergey"
+    "bot_kat",
+    "bot_jake",
+    "bot_tarquinn",
+    "bot_olaf",
+    "bot_rash",
+    "bot_violet",
+    "bot_vinnie",
+    "bot_viper",
+    "bot_grinder",
+    "bot_rage",
+    "bot_roadkill",
+    "bot_butcher",
+    "bot_slash"
   ];
 
     await Promise.all(
@@ -25,7 +35,7 @@ async function main() {
           await prisma.user.create({
             data: {
               id: botId,
-              name: botId.replace("bot_", ""),
+              name: botId,
               role: "PLAYER",
             },
           });

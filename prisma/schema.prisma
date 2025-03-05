@@ -66,9 +66,9 @@ model VerificationToken {
 model Stats {
   id              String   @id @default(cuid())
   userId          String   @unique @map("user_id")
-  rating          Int      @default(1000)
-  maxRating       Int      @default(1000) @map("max_rating")
-  minRating       Int      @default(0) @map("min_rating")
+  rating          Int      @default(1200)
+  maxRating       Int      @default(1200) @map("max_rating")
+  minRating       Int      @default(1200) @map("min_rating")
   totalScore      Int      @default(0) @map("total_score")
   gamesPlayed     Int      @default(0) @map("games_played")
   wins            Int      @default(0)
