@@ -37,6 +37,7 @@ export const matchesRouter = router({
         mode: createMatchDataSchema.shape.mode,
         players: createMatchDataSchema.shape.players,
         statsData: createMatchDataSchema.shape.statsData,
+        penaltyFactor: createMatchDataSchema.shape.penaltyFactor,
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -48,12 +49,15 @@ export const matchesRouter = router({
     }),
 
   edit: moderatorOrAdminProcedure
-    .input(z.object({
-      mode: editMatchDataSchema.shape.mode,
-      players: editMatchDataSchema.shape.players,
-      statsData: editMatchDataSchema.shape.statsData,
-      editMatchId: editMatchDataSchema.shape.editMatchId
-    }))
+    .input(
+      z.object({
+        mode: editMatchDataSchema.shape.mode,
+        players: editMatchDataSchema.shape.players,
+        statsData: editMatchDataSchema.shape.statsData,
+        editMatchId: editMatchDataSchema.shape.editMatchId,
+        penaltyFactor: editMatchDataSchema.shape.penaltyFactor,
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const matchService = new MatchService(ctx.prisma);
       return matchService.edit({ ...input, creatorId: ctx.session.user.id });
@@ -65,8 +69,8 @@ export const matchesRouter = router({
 
     if (!match) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Match not found",
+        code: 'NOT_FOUND',
+        message: 'Match not found',
       });
     }
 
@@ -82,21 +86,19 @@ export const matchesRouter = router({
     });
   }),
 
-  delete: moderatorOrAdminProcedure
-    .input(z.string())
-    .mutation(async ({ ctx, input }) => {
-      try {
-        const matchService = new MatchService(ctx.prisma);
-        const match = await matchService.delete(input);
-        return match;
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('not found')) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Матч не найден",
-          });
-        }
-        throw error;
+  delete: moderatorOrAdminProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+    try {
+      const matchService = new MatchService(ctx.prisma);
+      const match = await matchService.delete(input);
+      return match;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Матч не найден',
+        });
       }
-    }),
+      throw error;
+    }
+  }),
 });

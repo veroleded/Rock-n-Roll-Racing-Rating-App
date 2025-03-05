@@ -302,7 +302,7 @@ commandHandler.register({
   },
 });
 
-// Регистрируем команду !rank
+// Регистрируем команду !rank 
 commandHandler.register({
   name: "rank",
   description: "Показывает позицию игрока в рейтинге и 5 человек над ним и 5 человек под ним",

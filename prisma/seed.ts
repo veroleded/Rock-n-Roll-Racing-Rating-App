@@ -48,12 +48,12 @@ async function main() {
       data: {
         id: user.discordId,
         name: user.name,
-        role: "PLAYER",
+        role: 'PLAYER',
         hasJoinedBot: true,
         image: avatarUrl,
         stats: {
           create: {
-            rating: 1200,
+            rating: 1800,
             gamesPlayed: 0,
             wins: 0,
             losses: 0,

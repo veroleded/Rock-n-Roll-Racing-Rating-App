@@ -73,6 +73,8 @@ export default function MatchPage() {
     }
   );
 
+  console.dir(match, { depth: 5 });
+
   const { mutate: deleteMatch, isLoading: isDeleting } =
     trpc.matches.delete.useMutation({
       onSuccess: () => {

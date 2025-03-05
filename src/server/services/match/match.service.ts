@@ -21,6 +21,7 @@ import {
 
 // Локальное определение типа StatsData
 
+
 type MatchWithRelations = Match & {
   players: (MatchPlayer & {
     user: User;
@@ -344,13 +345,22 @@ export class MatchService {
     return totalResult;
   }
 
-  private getELOcoefficient(rating1: number, rating2: number, result1: 1 | 0 | 0.5) {
-    const K = 100;
+  private getELOcoefficient(
+    rating1: number,
+    rating2: number,
+    result1: 1 | 0 | 0.5,
+    gameMode: GameMode
+  ) {
+    let K = 100;
+    if (gameMode === 'TWO_VS_TWO') {
+      K = 66;
+    }
     const result2 = 1 - result1;
-    const E1 = (1 / (1 + 10 * ((rating2 - rating1) / 400))).toFixed(3);
-    const E2 = (1 / (1 + 10 * ((rating1 - rating2) / 400))).toFixed(3);
+    const E1 = (1 / (1 + 10 ** ((rating2 - rating1) / 400))).toFixed(3);
+    const E2 = (1 / (1 + 10 ** ((rating1 - rating2) / 400))).toFixed(3);
     const eloCoef1 = K * (result1 - Number(E1));
     const eloCoef2 = K * (result2 - Number(E2));
+
     return { eloCoef1, eloCoef2 };
   }
 
@@ -395,19 +405,18 @@ export class MatchService {
   ) {
     const baseCoef1 =
       eloCoefs.eloCoef1 +
-      (getPercentage(eloCoefs.eloCoef1, divCoefs.divCoef1) +
-        getPercentage(eloCoefs.eloCoef1, scoreCoefs.scoreCoef1));
+      getPercentage(eloCoefs.eloCoef1, divCoefs.divCoef1 + scoreCoefs.scoreCoef1);
     const baseCoef2 =
       eloCoefs.eloCoef2 +
-      (getPercentage(eloCoefs.eloCoef2, divCoefs.divCoef2) +
-        getPercentage(eloCoefs.eloCoef2, scoreCoefs.scoreCoef2));
+      getPercentage(eloCoefs.eloCoef2, divCoefs.divCoef2 + scoreCoefs.scoreCoef2);
     return { baseCoef1: Number(baseCoef1.toFixed(3)), baseCoef2: Number(baseCoef2.toFixed(3)) };
   }
 
   private async getRatingChange(
     baseCoefs: { baseCoef1: number; baseCoef2: number },
     players: CreateMatchPlayer[],
-    totalScore: string
+    totalScore: string,
+    divAmount: number
   ) {
     const [resultTeam1, resultTeam2] = totalScore.split(' - ');
     const playersInBase = await this.prisma.stats.findMany({
@@ -437,17 +446,17 @@ export class MatchService {
     );
 
     const usersRatingChange: Record<string, number> = {};
-
-    if (resultTeam1 > resultTeam2) {
+    if (Number(resultTeam1) > Number(resultTeam2)) {
       const R1 = getInverseCommonValue(...Object.values(team1Scores.users).map((value) => value));
       const R2 = team2Scores.rating;
+      console.log(R1, R2);
       Object.entries(team1Scores.users).forEach(([key, value]) => {
         usersRatingChange[key] = Number((1 / value / R1).toFixed(3));
       });
       Object.entries(team2Scores.users).forEach(([key, value]) => {
         usersRatingChange[key] = Number((value / R2).toFixed(3));
       });
-    } else if (resultTeam2 > resultTeam1) {
+    } else if (Number(resultTeam2) > Number(resultTeam1)) {
       const R1 = team1Scores.rating;
       const R2 = getInverseCommonValue(...Object.values(team2Scores.users).map((value) => value));
       Object.entries(team2Scores.users).forEach(([key, value]) => {
@@ -456,27 +465,165 @@ export class MatchService {
       Object.entries(team1Scores.users).forEach(([key, value]) => {
         usersRatingChange[key] = Number((value / R2).toFixed(3));
       });
+    } else {
+      console.log('gtasd');
+      const R1 = getInverseCommonValue(...Object.values(team1Scores.users).map((value) => value));
+      const R2 = getInverseCommonValue(...Object.values(team2Scores.users).map((value) => value));
+
+      Object.entries(team1Scores.users).forEach(([key, value]) => {
+        usersRatingChange[key] = Number((1 / value / R1).toFixed(3));
+      });
+      Object.entries(team2Scores.users).forEach(([key, value]) => {
+        usersRatingChange[key] = Number((1 / value / R2).toFixed(3));
+      });
     }
 
-    playersInBase.reduce((acc, player) => {}, {});
+    const calibationKefs = new Map<number, number>();
+    calibationKefs.set(0, 3.5);
+    calibationKefs.set(1, 3);
+    calibationKefs.set(2, 2.5);
+    calibationKefs.set(3, 2);
+    calibationKefs.set(4, 1.5);
+
+    const finalRatingChange = new Map<string, number>();
+    playersInBase.forEach((player) => {
+      const matchPlayer = players.find((p) => p.userId === player.userId);
+      if (matchPlayer) {
+        const kef = matchPlayer.team === 1 ? baseCoefs.baseCoef1 : baseCoefs.baseCoef2;
+        const userRatingChange = usersRatingChange[matchPlayer.userId];
+        const divKef = divAmount / 12;
+        const calibationKef = calibationKefs.get(player.gamesPlayed) ?? 1;
+        console.log(userRatingChange, divKef, kef, calibationKef);
+        finalRatingChange.set(
+          matchPlayer.userId,
+          userRatingChange * divKef * kef * calibationKef + 1
+        );
+      }
+    });
+    console.log(finalRatingChange);
+    return finalRatingChange;
   }
+
+  private getTeamsScore(players: CreateMatchPlayer[], scores: Record<string, number>) {
+    return players.reduce(
+      (acc, player) => {
+        if (player.team === 1) {
+          acc.team1Rating += scores[player.userId];
+        } else {
+          acc.team2Rating += scores[player.userId];
+        }
+        return acc;
+      },
+      { team1Rating: 0, team2Rating: 0 }
+    );
+  }
+
   async create(data: CreateMatchData) {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const normalizedStatsData = this.normalizeStatsData(data.statsData, data.players);
-        const teamsResult = this.calculateTeamResultDivisions(
+        const isRated = this.isRated(data.mode, data.players);
+        const isLeave = data.players.find((value) => value.hasLeft);
+        const teamsResultDivisions = this.calculateTeamResultDivisions(
           normalizedStatsData.divisions,
           data.players
         );
-
-        const totalPoints = this.calculateTotalPoints(teamsResult);
-
+        const totalPoints = this.calculateTotalPoints(teamsResultDivisions);
         const totalScore = Object.values(totalPoints)
           .map((team) => team.points)
           .join(' - ');
 
-        const isRated = this.isRated(data.mode, data.players);
-        console.log(totalScore);
+        let ratingsChange = new Map<string, number>();
+
+        if (!isRated) {
+          data.players.forEach((player) => {
+            ratingsChange.set(player.userId, 0);
+          });
+        } else if (isLeave) {
+          const leavePlayers = data.players.filter((player) => player.hasLeft);
+          const notLeavePlayers = data.players.filter((player) => !player.hasLeft);
+
+          leavePlayers.forEach((player) => {
+            ratingsChange.set(player.userId, -data.penaltyFactor);
+          });
+
+          const isLeaveTeamOne = leavePlayers.some((player) => player.team === 1);
+          const isLeaveTeamTwo = leavePlayers.some((player) => player.team === 2);
+
+          if (isLeaveTeamOne && isLeaveTeamTwo) {
+            const plusRating = data.penaltyFactor / notLeavePlayers.length;
+
+            notLeavePlayers.forEach((player) => {
+              ratingsChange.set(player.userId, plusRating);
+            });
+          } else if (isLeaveTeamOne) {
+            const notLeavePlayersTeamTwo = notLeavePlayers.filter((player) => player.team === 2);
+            const netLeavePlayersTeamOne = notLeavePlayers.filter((player) => player.team === 1);
+            const plusRating = data.penaltyFactor / notLeavePlayersTeamTwo.length;
+            notLeavePlayersTeamTwo.forEach((player) => {
+              ratingsChange.set(player.userId, plusRating);
+            });
+            netLeavePlayersTeamOne.forEach((player) => {
+              ratingsChange.set(player.userId, 0);
+            });
+          } else if (isLeaveTeamTwo) {
+            const notLeavePlayersTeamOne = notLeavePlayers.filter((player) => player.team === 1);
+            const netLeavePlayersTeamTwo = notLeavePlayers.filter((player) => player.team === 2);
+            const plusRating = data.penaltyFactor / notLeavePlayersTeamOne.length;
+            notLeavePlayersTeamOne.forEach((player) => {
+              ratingsChange.set(player.userId, plusRating);
+            });
+            netLeavePlayersTeamTwo.forEach((player) => {
+              ratingsChange.set(player.userId, 0);
+            });
+          }
+        } else {
+          const totalScoreNumber =
+            Number(totalScore[1]) === Number(totalScore[2])
+              ? 0.5
+              : Number(totalScore[1]) > Number(totalScore[2])
+                ? 1
+                : 0;
+
+          const playersRating = await this.prisma.stats.findMany({
+            where: {
+              userId: { in: data.players.map((player) => player.userId) },
+            },
+          });
+
+          let team1Rating = 0;
+          let team2Rating = 0;
+
+          playersRating.forEach((player) => {
+            const checkedResult = data.players.find((p) => p.userId === player.userId);
+            if (checkedResult?.team === 1) {
+              team1Rating += player.rating;
+            } else {
+              team2Rating += player.rating;
+            }
+          });
+
+          const teamsScore = this.getTeamsScore(data.players, normalizedStatsData.scores);
+          const eloCoefs = this.getELOcoefficient(
+            team1Rating,
+            team2Rating,
+            totalScoreNumber,
+            data.mode
+          );
+          const divCoefs = this.getDivCoefficient(totalScore);
+
+          const scoreCoefs = this.getScoreCoefficient(
+            teamsScore.team1Rating,
+            teamsScore.team2Rating
+          );
+          const baseCoefs = this.getBaseCoefficient(divCoefs, scoreCoefs, eloCoefs);
+          ratingsChange = await this.getRatingChange(
+            baseCoefs,
+            data.players,
+            totalScore,
+            Object.keys(normalizedStatsData.divisions).length
+          );
+        }
         const matchPlayers = data.players.map((player) => {
           const { userId } = player;
           const damages = this.calculatePlayerDamage(
@@ -491,7 +638,12 @@ export class MatchService {
           const wipeouts = normalizedStatsData.wipeouts[userId];
           const result = totalPoints[player.team.toString()].result;
 
-          const ratingChange = isRated ? (result === 'WIN' ? 10 : result === 'LOSS' ? -10 : 0) : 0;
+          const ratingChange =
+            !isRated || player.userId.startsWith('bot_')
+              ? 0
+              : Number(ratingsChange.get(userId)?.toFixed(3));
+
+          console.log({ ratingChange });
 
           const divisions = Object.entries(normalizedStatsData.divisions).reduce(
             (acc, [key, value]) => {
@@ -537,6 +689,7 @@ export class MatchService {
           },
         });
 
+        console.log(123);
         await Promise.all(
           match.players
             .filter((player) => !player.userId.startsWith('bot_'))
@@ -596,211 +749,14 @@ export class MatchService {
 
   async edit(editData: EditMatchDataSchema) {
     try {
-      return await this.prisma.$transaction(async (tx) => {
-        const { editMatchId, ...matchData } = editData;
-
-        // Получаем матч для удаления
-        const matchToDelete = await tx.match.findUnique({
-          where: { id: editMatchId },
-          include: {
-            players: true,
-          },
-        });
-
-        if (!matchToDelete) {
-          throw new Error(`Match with id ${editMatchId} not found`);
-        }
-
-        // Сохраняем дату создания для последующего использования
-        const originalCreatedAt = matchToDelete.createdAt;
-
-        // Удаляем старый матч
-        await Promise.all(
-          matchToDelete.players
-            .filter((player) => !player.userId.startsWith('bot_'))
-            .map(async (player) => {
-              const stats = (await tx.stats.findUnique({
-                where: { userId: player.userId },
-              })) as Stats;
-              return tx.stats.update({
-                where: { userId: player.userId },
-                data: {
-                  gamesPlayed: { decrement: 1 },
-                  rating: { decrement: player.ratingChange },
-                  wins: player.result === 'WIN' ? { decrement: 1 } : undefined,
-                  losses: player.result === 'LOSS' ? { decrement: 1 } : undefined,
-                  draws: player.result === 'DRAW' ? { decrement: 1 } : undefined,
-                  totalScore: { decrement: player.score },
-                  totalDivisions: { decrement: Object.keys(player.divisions as Divisions).length },
-                  winsDivisions: {
-                    decrement: Object.values(player.divisions as Divisions).filter(
-                      (division) => division.result === 'WIN'
-                    ).length,
-                  },
-                  lossesDivisions: {
-                    decrement: Object.values(player.divisions as Divisions).filter(
-                      (division) => division.result === 'LOSS'
-                    ).length,
-                  },
-                  drawsDivisions: {
-                    decrement: Object.values(player.divisions as Divisions).filter(
-                      (division) => division.result === 'DRAW'
-                    ).length,
-                  },
-                  maxRating: {
-                    set:
-                      player.ratingChange > 0 && stats.maxRating === stats.rating
-                        ? stats.maxRating - player.ratingChange
-                        : stats.maxRating,
-                  },
-                  minRating: {
-                    set:
-                      player.ratingChange < 0 && stats.minRating === stats.rating
-                        ? stats.minRating - player.ratingChange
-                        : stats.minRating,
-                  },
-                },
-              });
-            })
-        );
-
-        await tx.matchPlayer.deleteMany({
-          where: { matchId: editMatchId },
-        });
-
-        await tx.match.delete({
-          where: { id: editMatchId },
-        });
-
-        // Создаем новый матч
-        const normalizedStatsData = this.normalizeStatsData(matchData.statsData, matchData.players);
-        const teamsResult = this.calculateTeamResultDivisions(
-          normalizedStatsData.divisions,
-          matchData.players
-        );
-
-        const totalPoints = this.calculateTotalPoints(teamsResult);
-
-        const totalScore = Object.values(totalPoints)
-          .map((team) => team.points)
-          .join(' - ');
-
-        const isRated = this.isRated(matchData.mode, matchData.players);
-
-        const matchPlayers = matchData.players.map((player) => {
-          const { userId } = player;
-          const damages = this.calculatePlayerDamage(
-            player.userId,
-            normalizedStatsData.damage,
-            matchData.players
-          );
-          const score = normalizedStatsData.scores[userId];
-          const minesDamage = normalizedStatsData.mines_damage[userId];
-          const moneyTaken = normalizedStatsData.money_taken[userId];
-          const armorTaken = normalizedStatsData.armor_taken[userId];
-          const wipeouts = normalizedStatsData.wipeouts[userId];
-          const result = totalPoints[player.team.toString()].result;
-
-          const ratingChange = isRated ? (result === 'WIN' ? 10 : result === 'LOSS' ? -10 : 0) : 0;
-
-          const divisions = Object.entries(normalizedStatsData.divisions).reduce(
-            (acc, [key, value]) => {
-              if (value[userId]) {
-                acc[key] = value[userId];
-              }
-              return acc;
-            },
-            {} as Record<string, { scores: number; result: MatchResult }>
-          );
-
-          return {
-            ...player,
-            ...damages,
-            score,
-            minesDamage,
-            moneyTaken,
-            armorTaken,
-            wipeouts,
-            divisions,
-            result,
-            ratingChange,
-          };
-        });
-
-        // Создаем новый матч с ID и датой создания старого
-        const newMatch = await tx.match.create({
-          data: {
-            id: editMatchId,
-            createdAt: originalCreatedAt,
-            mode: matchData.mode,
-            creatorId: matchData.creatorId,
-            isRated,
-            totalScore,
-            players: {
-              create: matchPlayers,
-            },
-          },
-          include: {
-            players: {
-              include: {
-                user: true,
-              },
-            },
-            creator: true,
-          },
-        });
-
-        // Обновляем статистику игроков
-        await Promise.all(
-          newMatch.players
-            .filter((player) => !player.userId.startsWith('bot_'))
-            .map(async (player) => {
-              const stats = (await tx.stats.findUnique({
-                where: { userId: player.userId },
-              })) as Stats;
-              return tx.stats.update({
-                where: { userId: player.userId },
-                data: {
-                  gamesPlayed: { increment: 1 },
-                  rating: { increment: player.ratingChange },
-                  wins: player.result === 'WIN' ? { increment: 1 } : undefined,
-                  losses: player.result === 'LOSS' ? { increment: 1 } : undefined,
-                  draws: player.result === 'DRAW' ? { increment: 1 } : undefined,
-                  totalScore: { increment: player.score },
-                  totalDivisions: { increment: Object.keys(player.divisions as Divisions).length },
-                  maxRating: {
-                    set:
-                      player.ratingChange > 0
-                        ? Math.max(stats.rating + player.ratingChange, stats.maxRating)
-                        : stats.maxRating,
-                  },
-                  minRating: {
-                    set:
-                      player.ratingChange < 0
-                        ? Math.min(stats.rating + player.ratingChange, stats.minRating)
-                        : stats.minRating,
-                  },
-                  winsDivisions: {
-                    increment: Object.values(player.divisions as Divisions).filter(
-                      (division) => division.result === 'WIN'
-                    ).length,
-                  },
-                  lossesDivisions: {
-                    increment: Object.values(player.divisions as Divisions).filter(
-                      (division) => division.result === 'LOSS'
-                    ).length,
-                  },
-                  drawsDivisions: {
-                    increment: Object.values(player.divisions as Divisions).filter(
-                      (division) => division.result === 'DRAW'
-                    ).length,
-                  },
-                },
-              });
-            })
-        );
-
-        return newMatch;
+      const { editMatchId, ...matchData } = editData;
+      const editedMatch = await this.delete(editMatchId);
+      const newMatch = await this.create(matchData);
+      return await this.prisma.match.update({
+        where: {
+          id: newMatch.id,
+        },
+        data: { createdAt: editedMatch?.createdAt, id: editedMatch?.id },
       });
     } catch (error) {
       throw error;

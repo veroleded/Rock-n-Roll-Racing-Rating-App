@@ -80,26 +80,26 @@ export class UsersService {
   async updateUser(data: UpdateUserData) {
     const { id, stats, ...userData } = data;
 
-    const existingUser = await this.prisma.user.findUnique({
+
+
+    const existingUser = (await this.prisma.user.findUnique({
       where: { id },
-      select: { role: true },
-    });
+      select: { role: true, stats: { select: { maxRating: true, minRating: true } } },
+    })) as { role: string; stats: { maxRating: number; minRating: number } };
 
-    if (!existingUser) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Пользователь не найден",
-      });
-    }
+    const maxRating =
+      existingUser?.stats?.maxRating > (stats?.rating as number)
+        ? existingUser?.stats?.maxRating
+        : stats?.rating;
+    const minRating =
+      existingUser?.stats?.minRating < (stats?.rating as number)
+        ? existingUser?.stats?.minRating
+        : stats?.rating;
 
-    if (
-      existingUser.role === "ADMIN" &&
-      userData.role &&
-      userData.role !== "ADMIN"
-    ) {
+    if (existingUser.role === 'ADMIN' && userData.role && userData.role !== 'ADMIN') {
       throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Нельзя изменить роль администратора",
+        code: 'FORBIDDEN',
+        message: 'Нельзя изменить роль администратора',
       });
     }
 
@@ -109,7 +109,7 @@ export class UsersService {
         ...userData,
         stats: stats
           ? {
-              update: stats,
+              update: { ...stats, maxRating, minRating },
             }
           : undefined,
       },

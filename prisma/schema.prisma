@@ -66,9 +66,9 @@ model VerificationToken {
 model Stats {
   id              String   @id @default(cuid())
   userId          String   @unique @map("user_id")
-  rating          Int      @default(1200)
-  maxRating       Int      @default(1200) @map("max_rating")
-  minRating       Int      @default(1200) @map("min_rating")
+  rating          Float    @default(1800)
+  maxRating       Float    @default(1800) @map("max_rating")
+  minRating       Float    @default(1800) @map("min_rating")
   totalScore      Int      @default(0) @map("total_score")
   gamesPlayed     Int      @default(0) @map("games_played")
   wins            Int      @default(0)
@@ -123,7 +123,7 @@ model MatchPlayer {
   /// Тип: Divisions из src/types/json-types.ts
   /// Record<string, { scores: number, result: 'WIN' | 'LOSS' | 'DRAW' }>
   divisions           Json        @default("{}") @map("divisions")
-  ratingChange        Int         @default(0) @map("rating_change")
+  ratingChange        Float       @default(0) @map("rating_change")
   match               Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)
   user                User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt           DateTime    @default(now()) @map("created_at")

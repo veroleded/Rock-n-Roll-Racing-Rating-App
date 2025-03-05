@@ -56,6 +56,7 @@ export const createMatchDataSchema = z.object({
   players: z.array(createMatchPlayerSchema),
   statsData: createStatsDataSchema,
   creatorId: z.string(),
+  penaltyFactor: z.number().default(30),
 });
 
 export type CreateMatchData = z.infer<typeof createMatchDataSchema>;
@@ -75,7 +76,8 @@ export const editMatchDataSchema = z.object({
   players: z.array(createMatchPlayerSchema),
   statsData: createStatsDataSchema,
   creatorId: z.string(),
-  editMatchId: z.string()
+  editMatchId: z.string(),
+  penaltyFactor: z.number().default(30),
 });
 
 export type EditMatchDataSchema = z.infer<typeof editMatchDataSchema>
