@@ -15,7 +15,7 @@ export const usersRouter = router({
     return usersService.getCurrentUser(ctx.session.user.id);
   }),
 
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: publicProcedure.query(async ({ ctx }) => {
     try {
       const usersService = new UsersService(ctx.prisma);
       return usersService.getUsers();

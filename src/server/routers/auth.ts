@@ -135,4 +135,33 @@ export const authRouter = router({
 
       return user;
     }),
+
+  updateUserData: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        username: z.string(),
+        avatar: z.string(),
+        timestamp: z.string(),
+        signature: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { timestamp, signature, ...data } = input;
+
+      if (!verifyBotSignature(timestamp, signature, JSON.stringify(data))) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const user = await ctx.prisma.user.update({
+        where: { id: data.userId },
+        data: {
+          name: data.username,
+          image: data.avatar,
+        },
+        include: { stats: true },
+      });
+
+      return user;
+    }),
 });

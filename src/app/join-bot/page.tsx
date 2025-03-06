@@ -17,8 +17,7 @@ export default async function JoinBotPage() {
           Присоединитесь к боту
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Для использования приложения необходимо присоединиться к боту в
-          Discord
+          Для использования приложения необходимо присоединиться к боту в Discord
         </p>
       </div>
 
@@ -29,20 +28,15 @@ export default async function JoinBotPage() {
               <h3 className="text-lg font-medium text-gray-900">Инструкции:</h3>
               <div className="mt-2 text-sm text-gray-500">
                 <ol className="list-decimal pl-4 space-y-2">
+                  <li>Присоединитесь к нашему Discord серверу, если вы еще не сделали этого</li>
                   <li>
-                    Присоединитесь к нашему Discord серверу, если вы еще не
-                    сделали этого
-                  </li>
-                  <li>
-                    Найдите канал <code>#commands</code> или{" "}
-                    <code>#bot-commands</code>
+                    Найдите канал <code>#commands</code> или <code>#bot-commands</code>
                   </li>
                   <li>
                     Отправьте команду <code>!join</code> в этот канал
                   </li>
                   <li>
-                    После подтверждения от бота, обновите эту страницу или
-                    попробуйте войти снова
+                    После подтверждения от бота, обновите эту страницу или попробуйте войти снова
                   </li>
                 </ol>
               </div>
@@ -51,7 +45,7 @@ export default async function JoinBotPage() {
             <div className="flex items-center justify-between">
               <div className="text-sm">
                 <a
-                  href={`https://discord.com/channels/${process.env.DISCORD_GUILD_ID}`}
+                  href={`https://discord.com/channels/`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-indigo-600 hover:text-indigo-500"
@@ -60,10 +54,7 @@ export default async function JoinBotPage() {
                 </a>
               </div>
               <div className="text-sm">
-                <a
-                  href="/login"
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                >
+                <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
                   Попробовать войти снова
                 </a>
               </div>

@@ -127,6 +127,9 @@ export class UsersService {
   }
 
   async getTopUsers(type: 'start' | 'end') {
+    const total = await this.prisma.user.count({
+      where: { hasJoinedBot: true, id: { not: { startsWith: 'bot_' } } },
+    });
     const users = await this.prisma.user.findMany({
       where: { hasJoinedBot: true, id: { not: { startsWith: 'bot_' } } },
       include: { stats: true },
@@ -142,10 +145,10 @@ export class UsersService {
           },
         },
       ],
-      take: 10,
+      take: 22,
     });
 
-    return users;
+    return { users, total };
   }
 
   async getUserWithNeighbors(userId: string) {
