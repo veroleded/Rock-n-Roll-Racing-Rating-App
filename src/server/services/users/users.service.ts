@@ -24,8 +24,8 @@ export class UsersService {
 
     if (!user) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "User not found",
+        code: 'NOT_FOUND',
+        message: 'User not found',
       });
     }
 
@@ -38,7 +38,7 @@ export class UsersService {
         hasJoinedBot: true,
         NOT: {
           id: {
-            startsWith: "bot_",
+            startsWith: 'bot_',
           },
         },
       },
@@ -46,16 +46,25 @@ export class UsersService {
         stats: true,
       },
       orderBy: {
-        name: "asc",
+        name: 'asc',
       },
     });
 
     return users;
   }
 
-  async getBotList() {
+  async getBotListForMatch() {
     const bots = await this.prisma.user.findMany({
-      where: { id: { startsWith: "bot_" } },
+      where: { id: { startsWith: 'bot_' } },
+    });
+
+    return bots;
+  }
+
+  async getBotListForEdit() {
+    const bots = await this.prisma.user.findMany({
+      where: { id: { startsWith: 'bot_' } },
+      include: { stats: true },
     });
 
     return bots;
@@ -69,8 +78,8 @@ export class UsersService {
 
     if (!user) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "User not found",
+        code: 'NOT_FOUND',
+        message: 'User not found',
       });
     }
 
@@ -79,8 +88,6 @@ export class UsersService {
 
   async updateUser(data: UpdateUserData) {
     const { id, stats, ...userData } = data;
-
-
 
     const existingUser = (await this.prisma.user.findUnique({
       where: { id },
@@ -121,7 +128,7 @@ export class UsersService {
 
   async getTopUsers(type: 'start' | 'end') {
     const users = await this.prisma.user.findMany({
-      where: { hasJoinedBot: true, id: { not: { startsWith: "bot_" } } },
+      where: { hasJoinedBot: true, id: { not: { startsWith: 'bot_' } } },
       include: { stats: true },
       orderBy: [
         {
@@ -133,7 +140,7 @@ export class UsersService {
           stats: {
             totalScore: type === 'start' ? 'desc' : 'asc',
           },
-        }
+        },
       ],
       take: 10,
     });
@@ -144,20 +151,17 @@ export class UsersService {
   async getUserWithNeighbors(userId: string) {
     // Получаем всех игроков в отсортированном порядке
     const allUsers = await this.prisma.user.findMany({
-      where: { 
-        hasJoinedBot: true, 
-        id: { not: { startsWith: "bot_" } } 
+      where: {
+        hasJoinedBot: true,
+        id: { not: { startsWith: 'bot_' } },
       },
       include: { stats: true },
-      orderBy: [
-        { stats: { rating: 'desc' } },
-        { stats: { totalScore: 'desc' } }
-      ],
+      orderBy: [{ stats: { rating: 'desc' } }, { stats: { totalScore: 'desc' } }],
     });
 
     // Находим индекс текущего игрока
-    const userIndex = allUsers.findIndex(user => user.id === userId);
-    
+    const userIndex = allUsers.findIndex((user) => user.id === userId);
+
     if (userIndex === -1) {
       throw new Error('Пользователь не найден');
     }
@@ -182,7 +186,7 @@ export class UsersService {
 
     // Выбираем 10 игроков
     const neighbors = allUsers.slice(startIndex, endIndex);
-    
+
     // Если получилось меньше 10 (маловероятно, но на всякий случай)
     while (neighbors.length < 10 && allUsers.length >= 10) {
       if (startIndex > 0) {
@@ -207,15 +211,15 @@ export class UsersService {
 
     if (!user) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Пользователь не найден",
+        code: 'NOT_FOUND',
+        message: 'Пользователь не найден',
       });
     }
 
-    if (user.role === "ADMIN") {
+    if (user.role === 'ADMIN') {
       throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Нельзя удалить администратора",
+        code: 'FORBIDDEN',
+        message: 'Нельзя удалить администратора',
       });
     }
 

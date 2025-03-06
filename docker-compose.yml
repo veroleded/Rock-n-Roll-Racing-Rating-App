@@ -13,6 +13,21 @@ services:
     networks:
       - app_network
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: rnr_racing_pgadmin
+    env_file:
+      - .env
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@admin.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
 networks:
   app_network:
     driver: bridge

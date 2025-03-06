@@ -98,7 +98,7 @@ export class MatchService {
           if (!teamScores[playerTeam]) {
             teamScores[playerTeam] = 0;
           }
-          teamScores[playerTeam] += Number(scoreValue);
+          teamScores[playerTeam] += scoreValue;
         }
 
         const teamScoreValues = Object.values(teamScores);
@@ -115,7 +115,7 @@ export class MatchService {
           const userId = playerToIdMap.get(playerKey as PlayerKey) || playerKey;
           const team = playerToTeamMap.get(playerKey) || 0;
           const teamScore = teamScores[team] || 0;
-          const score = Number(scoreValue);
+          const score = scoreValue;
 
           let result: MatchResult;
           if (teamScore === maxScore) {
@@ -356,10 +356,10 @@ export class MatchService {
       K = 66;
     }
     const result2 = 1 - result1;
-    const E1 = (1 / (1 + 10 ** ((rating2 - rating1) / 400))).toFixed(3);
-    const E2 = (1 / (1 + 10 ** ((rating1 - rating2) / 400))).toFixed(3);
-    const eloCoef1 = K * (result1 - Number(E1));
-    const eloCoef2 = K * (result2 - Number(E2));
+    const E1 = 1 / (1 + 10 ** ((rating2 - rating1) / 400));
+    const E2 = 1 / (1 + 10 ** ((rating1 - rating2) / 400));
+    const eloCoef1 = K * (result1 - E1);
+    const eloCoef2 = K * (result2 - E2);
 
     return { eloCoef1, eloCoef2 };
   }
@@ -409,7 +409,7 @@ export class MatchService {
     const baseCoef2 =
       eloCoefs.eloCoef2 +
       getPercentage(eloCoefs.eloCoef2, divCoefs.divCoef2 + scoreCoefs.scoreCoef2);
-    return { baseCoef1: Number(baseCoef1.toFixed(3)), baseCoef2: Number(baseCoef2.toFixed(3)) };
+    return { baseCoef1: baseCoef1, baseCoef2: baseCoef2 };
   }
 
   private async getRatingChange(
@@ -451,39 +451,38 @@ export class MatchService {
       const R2 = team2Scores.rating;
       console.log(R1, R2);
       Object.entries(team1Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = Number((1 / value / R1).toFixed(3));
+        usersRatingChange[key] = 1 / value / R1;
       });
       Object.entries(team2Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = Number((value / R2).toFixed(3));
+        usersRatingChange[key] = value / R2;
       });
     } else if (Number(resultTeam2) > Number(resultTeam1)) {
       const R1 = team1Scores.rating;
       const R2 = getInverseCommonValue(...Object.values(team2Scores.users).map((value) => value));
       Object.entries(team2Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = Number((1 / value / R1).toFixed(3));
+        usersRatingChange[key] = 1 / value / R1;
       });
       Object.entries(team1Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = Number((value / R2).toFixed(3));
+        usersRatingChange[key] = value / R2;
       });
     } else {
-      console.log('gtasd');
       const R1 = getInverseCommonValue(...Object.values(team1Scores.users).map((value) => value));
       const R2 = getInverseCommonValue(...Object.values(team2Scores.users).map((value) => value));
 
       Object.entries(team1Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = Number((1 / value / R1).toFixed(3));
+        usersRatingChange[key] = 1 / value / R1;
       });
       Object.entries(team2Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = Number((1 / value / R2).toFixed(3));
+        usersRatingChange[key] = 1 / value / R2;
       });
     }
 
     const calibationKefs = new Map<number, number>();
-    calibationKefs.set(0, 3.5);
-    calibationKefs.set(1, 3);
-    calibationKefs.set(2, 2.5);
-    calibationKefs.set(3, 2);
-    calibationKefs.set(4, 1.5);
+    // calibationKefs.set(0, 3.5);
+    // calibationKefs.set(1, 3);
+    // calibationKefs.set(2, 2.5);
+    // calibationKefs.set(3, 2);
+    // calibationKefs.set(4, 1.5);
 
     const finalRatingChange = new Map<string, number>();
     playersInBase.forEach((player) => {
@@ -579,9 +578,9 @@ export class MatchService {
           }
         } else {
           const totalScoreNumber =
-            Number(totalScore[1]) === Number(totalScore[2])
+            totalPoints[1].points === totalPoints[2].points
               ? 0.5
-              : Number(totalScore[1]) > Number(totalScore[2])
+              : totalPoints[1].points > totalPoints[2].points
                 ? 1
                 : 0;
 

@@ -135,6 +135,7 @@ commandHandler.register({
       JSON.stringify(joinData)
     );
 
+    console.log(123);
     // Отправляем запрос на присоединение
     await trpc.auth.joinBot.mutate({
       ...joinData,

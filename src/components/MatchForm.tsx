@@ -10,19 +10,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+} from '@/components/ui/form';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import { cn } from "@/lib/utils";
 import { CreateStatsData } from "@/server/services/match/schemas";
 import { trpc } from "@/utils/trpc";
@@ -81,7 +77,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
     data: bots = [],
     isLoading: isLoadingBots,
     error: botsError,
-  } = trpc.users.botList.useQuery();
+  } = trpc.users.botListForMAtch.useQuery();
 
   const { mutate: createMatch } = trpc.matches.create.useMutation({
     onSuccess: (match) => {

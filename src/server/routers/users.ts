@@ -3,10 +3,11 @@ import { z } from "zod";
 import { UsersService } from "../services/users/users.service";
 import {
   adminProcedure,
+  moderatorOrAdminProcedure,
   protectedProcedure,
   publicProcedure,
   router,
-} from "../trpc";
+} from '../trpc';
 
 export const usersRouter = router({
   me: protectedProcedure.query(async ({ ctx }) => {
@@ -20,15 +21,20 @@ export const usersRouter = router({
       return usersService.getUsers();
     } catch {
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to fetch users",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch users',
       });
     }
   }),
 
-  botList: protectedProcedure.query(async ({ ctx }) => {
+  botListForMAtch: moderatorOrAdminProcedure.query(async ({ ctx }) => {
     const usersService = new UsersService(ctx.prisma);
-    return usersService.getBotList();
+    return usersService.getBotListForMatch();
+  }),
+
+  botListForEdit: protectedProcedure.query(async ({ ctx }) => {
+    const usersService = new UsersService(ctx.prisma);
+    return usersService.getBotListForEdit();
   }),
 
   byId: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
@@ -51,7 +57,7 @@ export const usersRouter = router({
       z.object({
         id: z.string(),
         name: z.string().optional(),
-        role: z.enum(["ADMIN", "MODERATOR", "PLAYER"]).optional(),
+        role: z.enum(['ADMIN', 'MODERATOR', 'PLAYER']).optional(),
         stats: z
           .object({
             rating: z.number(),

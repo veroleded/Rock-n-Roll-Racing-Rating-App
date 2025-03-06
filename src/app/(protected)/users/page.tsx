@@ -1,11 +1,13 @@
 "use client";
 
-import { BackButton } from "@/components/BackButton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { UsersTable } from "@/components/UsersTable";
-import { trpc } from "@/utils/trpc";
-import { Role } from "@prisma/client";
+import { BackButton } from '@/components/BackButton';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { UsersTable } from '@/components/UsersTable';
+import { trpc } from '@/utils/trpc';
+import { Role } from '@prisma/client';
+import Link from 'next/link';
 
 export default function UsersPage() {
   const { data: session } = trpc.auth.getSession.useQuery();
@@ -33,14 +35,13 @@ export default function UsersPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-4">
             <BackButton />
-            <h1 className="text-3xl font-bold tracking-tight">
-              Таблица игроков
-            </h1>
+            <h1 className="text-3xl font-bold tracking-tight">Таблица игроков</h1>
           </div>
-          <p className="text-muted-foreground">
-            Просмотр игроков и их статистики
-          </p>
+          <p className="text-muted-foreground">Просмотр игроков и их статистики</p>
         </div>
+        <Button asChild>
+          <Link href="/users/bots">Посмотреть ботов</Link>
+        </Button>
       </div>
 
       <div className="flex-1 min-h-0 py-6">
