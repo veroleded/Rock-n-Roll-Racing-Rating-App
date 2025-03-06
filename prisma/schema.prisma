@@ -50,7 +50,7 @@ model User {
   stats          Stats?
   matchPlayers   MatchPlayer[]
   createdMatches Match[]       @relation("MatchCreator")
-
+  queues         Queue[]       @relation("QueuePlayers")
   @@map("users")
 }
 
@@ -131,6 +131,17 @@ model MatchPlayer {
 
   @@unique([matchId, userId])
   @@map("match_players")
+}
+
+model Queue {
+  id          Int      @id @default(autoincrement())
+  gameType    GameMode   // Тип игры ("3x3", "2x2", "2x2x2")
+  players     User[]     @relation("QueuePlayers")
+  botsCount   Int      @default(0)    // Количество ботов в очереди
+  lastAdded   DateTime
+  isCompleted Boolean  @default(false)
+
+  @@map("queues")
 }
 
 enum Role {

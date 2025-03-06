@@ -1,5 +1,5 @@
 import type { AppRouter } from "@/server/root";
-import type { Stats, User } from '@prisma/client';
+import type { Queue, Stats, User } from '@prisma/client';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { createHmac } from 'crypto';
 import {
@@ -9,6 +9,7 @@ import {
   Events,
   GatewayIntentBits,
   Message,
+  TextChannel,
 } from 'discord.js';
 import * as dotenv from 'dotenv';
 import superjson from 'superjson';
@@ -70,6 +71,8 @@ const MESSAGES = {
       `Пожалуйста, попробуйте позже или обратитесь к администратору.`,
     USER_NOT_FOUND: `${EMOJIS.ERROR} Пользователь не найден в базе данных.`,
     GENERAL: `${EMOJIS.ERROR} Произошла непредвиденная ошибка. Пожалуйста, попробуйте позже.`,
+    WRONG_CHANNEL_GATHERING: `${EMOJIS.ERROR} Эта команда работает только в каналах сбора на игру.`,
+    WRONG_CHANNEL_STANDARD: `${EMOJIS.ERROR} Эта команда не работает в каналах сбора на игру.`,
   },
   SUCCESS: {
     ALREADY_JOINED: (appUrl: string) =>
@@ -621,8 +624,350 @@ commandHandler.register({
   },
 });
 
+// Константы для каналов сбора на игру
+const GAME_GATHERING_PREFIX = 'сбор_на_игру';
+
+// Команды для каналов сбора
+const GATHERING_COMMANDS = {
+  JOIN: '++',
+  JOIN_BOT: '+bot',
+  LEAVE: '--',
+  LEAVE_BOT: '-bot',
+  CLEAN: 'clean',
+  HELP: 'help',
+} as const;
+
+// Описания команд для каналов сбора
+const GATHERING_COMMANDS_DESCRIPTIONS = new Map([
+  [GATHERING_COMMANDS.JOIN, 'Присоединиться к очереди'],
+  [GATHERING_COMMANDS.JOIN_BOT, 'Добавить бота в очередь'],
+  [GATHERING_COMMANDS.LEAVE, 'Покинуть очередь'],
+  [GATHERING_COMMANDS.LEAVE_BOT, 'Удалить бота из очереди'],
+  [GATHERING_COMMANDS.CLEAN, 'Очистить текущую очередь'],
+  [GATHERING_COMMANDS.HELP, 'Показать список доступных команд'],
+]);
+
+// Вспомогательная функция для форматирования информации об очереди
+function formatQueueInfo(queue: (Queue & { players: (User & { stats: Stats | null })[] }) | null) {
+  if (!queue) {
+    return 'Очередь пуста';
+  }
+
+  const { players, botsCount, gameType } = queue;
+  const requiredPlayers = gameType === 'TWO_VS_TWO' ? 4 : 6;
+  const currentPlayers = players.length + botsCount;
+
+  let info = `Тип игры: ${
+    gameType === 'THREE_VS_THREE' ? '3x3' : gameType === 'TWO_VS_TWO' ? '2x2' : '2x2x2'
+  }\n`;
+  info += `Игроков в очереди: ${currentPlayers}/${requiredPlayers}\n\n`;
+
+  if (players.length > 0) {
+    info += 'Игроки:\n';
+    players.forEach((player, index) => {
+      info += `${index + 1}. ${player.name} (${player.stats?.rating || 1800})\n`;
+    });
+  }
+
+  if (botsCount > 0) {
+    info += `\nБотов: ${botsCount}`;
+  }
+
+  return info;
+}
+
 // Обработчик сообщений
 client.on(Events.MessageCreate, async (message) => {
+  // Игнорируем сообщения от ботов
+  if (message.author.bot) return;
+
+  // Проверяем, что это не личное сообщение и канал текстовый
+  if (!message.guild || !(message.channel instanceof TextChannel)) return;
+
+  const channelName = message.channel.name;
+  const isGatheringChannel = channelName.startsWith(GAME_GATHERING_PREFIX);
+  const content = message.content.trim();
+
+  // Обработка команд в каналах сбора
+  if (isGatheringChannel) {
+    // Если пытаются использовать стандартные команды в канале сбора
+    if (content.startsWith('!')) {
+      await message.reply({
+        embeds: [createEmbed.error('Неверный канал', MESSAGES.ERROR.WRONG_CHANNEL_STANDARD)],
+      });
+      return;
+    }
+
+    if (
+      content === GATHERING_COMMANDS.JOIN ||
+      content === GATHERING_COMMANDS.JOIN_BOT ||
+      content === GATHERING_COMMANDS.LEAVE ||
+      content === GATHERING_COMMANDS.LEAVE_BOT ||
+      content === GATHERING_COMMANDS.CLEAN ||
+      content === GATHERING_COMMANDS.HELP
+    ) {
+      try {
+        const timestamp = Date.now().toString();
+
+        if (content === GATHERING_COMMANDS.HELP) {
+          const embed = new EmbedBuilder()
+            .setColor(COLORS.INFO)
+            .setTitle(`${EMOJIS.INFO} Команды для сбора игроков`)
+            .setDescription(
+              Array.from(GATHERING_COMMANDS_DESCRIPTIONS.entries())
+                .map(([command, description]) => `${EMOJIS.GAME} \`${command}\` - ${description}`)
+                .join('\n')
+            )
+            .setTimestamp();
+
+          await message.reply({ embeds: [embed] });
+          return;
+        }
+
+        if (content === GATHERING_COMMANDS.CLEAN) {
+          try {
+            await trpc.queues.cleanQueue.mutate({
+              channelName: channelName,
+              timestamp,
+              signature: createSignature(timestamp, JSON.stringify({ channelName })),
+            });
+
+            await message.reply({
+              embeds: [createEmbed.success('Очередь очищена', 'Очередь была успешно очищена.')],
+            });
+            return;
+          } catch (error: unknown) {
+            if (typeof error === 'object' && error !== null && 'message' in error) {
+              const errorMessage = (error as { message: string }).message;
+              if (errorMessage === 'Очередь не найдена') {
+                await message.reply({
+                  embeds: [createEmbed.error('Ошибка', 'В данный момент нет активной очереди')],
+                });
+                return;
+              }
+            }
+            throw error;
+          }
+        }
+
+        if (content === GATHERING_COMMANDS.JOIN) {
+          try {
+            // Проверяем, присоединился ли пользователь к боту
+            const statusCheck = await trpc.auth.checkBotStatus.query({
+              userId: message.author.id,
+              timestamp,
+              signature: createSignature(timestamp),
+            });
+
+            if (!statusCheck.hasJoinedBot) {
+              await message.reply({
+                embeds: [
+                  createEmbed.error(
+                    'Ошибка',
+                    'Вы должны сначала присоединиться к боту с помощью команды !join'
+                  ),
+                ],
+              });
+              return;
+            }
+
+            // Добавляем игрока в очередь
+            const result = await trpc.queues.addPlayer.mutate({
+              userId: message.author.id,
+              channelName: channelName,
+              timestamp,
+              signature: createSignature(
+                timestamp,
+                JSON.stringify({ userId: message.author.id, channelName })
+              ),
+            });
+
+            // Формируем сообщение о текущем составе очереди
+            const queueInfo = formatQueueInfo(result.queue);
+            await message.reply({
+              embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
+            });
+
+            // Если очередь заполнена, начинаем формирование команд
+            if (result.isComplete) {
+              await message.reply({
+                embeds: [
+                  createEmbed.success('Очередь заполнена', 'Начинаем формирование команд...'),
+                ],
+              });
+            }
+          } catch (error: unknown) {
+            if (typeof error === 'object' && error !== null && 'message' in error) {
+              const errorMessage = (error as { message: string }).message;
+              if (errorMessage === 'Вы уже находитесь в очереди') {
+                await message.reply({
+                  embeds: [createEmbed.error('Ошибка', 'Вы уже находитесь в очереди')],
+                });
+                return;
+              }
+            }
+            console.error('Ошибка при добавлении игрока в очередь:', error);
+            await message.reply({
+              embeds: [
+                createEmbed.error(
+                  'Ошибка',
+                  typeof error === 'object' && error !== null && 'message' in error
+                    ? (error as { message: string }).message
+                    : MESSAGES.ERROR.GENERAL
+                ),
+              ],
+            });
+          }
+        } else if (content === GATHERING_COMMANDS.JOIN_BOT) {
+          // Добавляем бота в очередь
+          const result = await trpc.queues.addBot.mutate({
+            channelName: channelName,
+            timestamp,
+            signature: createSignature(timestamp, JSON.stringify({ channelName })),
+          });
+
+          // Формируем сообщение о текущем составе очереди
+          const queueInfo = formatQueueInfo(result.queue);
+          await message.reply({
+            embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
+          });
+
+          // Если очередь заполнена, начинаем формирование команд
+          if (result.isComplete) {
+            // TODO: Добавить логику формирования команд
+            await message.reply({
+              embeds: [createEmbed.success('Очередь заполнена', 'Начинаем формирование команд...')],
+            });
+          }
+        } else if (content === GATHERING_COMMANDS.LEAVE) {
+          // Удаляем игрока из очереди
+          try {
+            const result = await trpc.queues.removePlayer.mutate({
+              userId: message.author.id,
+              channelName: channelName,
+              timestamp,
+              signature: createSignature(
+                timestamp,
+                JSON.stringify({ userId: message.author.id, channelName })
+              ),
+            });
+
+            if (result.isDeleted) {
+              await message.reply({
+                embeds: [
+                  createEmbed.info(
+                    'Очередь удалена',
+                    'Очередь была удалена, так как все игроки покинули её.'
+                  ),
+                ],
+              });
+            } else {
+              // Формируем сообщение о текущем составе очереди
+              const queueInfo = formatQueueInfo(result.queue);
+              await message.reply({
+                embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
+              });
+            }
+          } catch (error: unknown) {
+            if (typeof error === 'object' && error !== null && 'message' in error) {
+              const errorMessage = (error as { message: string }).message;
+              if (errorMessage === 'Очередь не найдена') {
+                await message.reply({
+                  embeds: [createEmbed.error('Ошибка', 'В данный момент нет активной очереди')],
+                });
+                return;
+              }
+              if (errorMessage === 'Вы не находитесь в очереди') {
+                await message.reply({
+                  embeds: [createEmbed.error('Ошибка', 'Вы не находитесь в очереди')],
+                });
+                return;
+              }
+            }
+            throw error;
+          }
+        } else if (content === GATHERING_COMMANDS.LEAVE_BOT) {
+          // Удаляем бота из очереди
+          try {
+            const result = await trpc.queues.removeBot.mutate({
+              channelName: channelName,
+              timestamp,
+              signature: createSignature(timestamp, JSON.stringify({ channelName })),
+            });
+
+            if (result.isDeleted) {
+              await message.reply({
+                embeds: [
+                  createEmbed.info(
+                    'Очередь удалена',
+                    'Очередь была удалена, так как все участники покинули её.'
+                  ),
+                ],
+              });
+            } else {
+              // Формируем сообщение о текущем составе очереди
+              const queueInfo = formatQueueInfo(result.queue);
+              await message.reply({
+                embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
+              });
+            }
+          } catch (error: unknown) {
+            if (typeof error === 'object' && error !== null && 'message' in error) {
+              const errorMessage = (error as { message: string }).message;
+              if (errorMessage === 'Очередь не найдена') {
+                await message.reply({
+                  embeds: [createEmbed.error('Ошибка', 'В данный момент нет активной очереди')],
+                });
+                return;
+              }
+              if (errorMessage === 'В очереди нет ботов') {
+                await message.reply({
+                  embeds: [createEmbed.error('Ошибка', 'В очереди нет ботов')],
+                });
+                return;
+              }
+            }
+            throw error;
+          }
+        }
+
+        // Очищаем старые очереди
+        await trpc.queues.cleanOld.mutate({
+          timestamp,
+          signature: createSignature(timestamp),
+        });
+      } catch (error) {
+        console.error('Ошибка при обработке команды очереди:', error);
+        await message.reply({
+          embeds: [
+            createEmbed.error(
+              'Ошибка',
+              typeof error === 'object' && error !== null && 'message' in error
+                ? (error as { message: string }).message
+                : MESSAGES.ERROR.GENERAL
+            ),
+          ],
+        });
+      }
+      return;
+    }
+    return;
+  }
+
+  // Если пытаются использовать команды сбора в обычном канале
+  if (
+    content === GATHERING_COMMANDS.JOIN ||
+    content === GATHERING_COMMANDS.JOIN_BOT ||
+    content === GATHERING_COMMANDS.LEAVE ||
+    content === GATHERING_COMMANDS.LEAVE_BOT
+  ) {
+    await message.reply({
+      embeds: [createEmbed.error('Неверный канал', MESSAGES.ERROR.WRONG_CHANNEL_GATHERING)],
+    });
+    return;
+  }
+
+  // Обработка стандартных команд только в не-сборочных каналах
   await commandHandler.handleMessage(message);
 });
 
@@ -634,6 +979,52 @@ client.on(Events.Error, (error) => {
 // Обработчик готовности бота
 client.once(Events.ClientReady, (c) => {
   console.log(`Бот готов! Вошел как ${c.user.tag}`);
+
+  // Запускаем планировщик проверки очередей
+  setInterval(async () => {
+    console.log('Проверка старых очередей');
+    try {
+      const timestamp = Date.now().toString();
+      const oldQueues = await trpc.queues.cleanOld.mutate({
+        timestamp,
+        signature: createSignature(timestamp),
+      });
+
+      // Если есть устаревшие очереди, отправляем уведомления
+      if (oldQueues.length > 0) {
+        for (const queue of oldQueues) {
+          // Находим канал, в котором была очередь
+          const channelName =
+            queue.gameType === 'THREE_VS_THREE'
+              ? 'сбор_на_игру_3x3'
+              : queue.gameType === 'TWO_VS_TWO_VS_TWO'
+                ? 'сбор_на_игру_2x2x2'
+                : 'сбор_на_игру_2x2';
+
+          // Ищем канал во всех гильдиях
+          for (const guild of client.guilds.cache.values()) {
+            const channel = guild.channels.cache.find(
+              (ch) => ch.name === channelName && ch.type === 0
+            );
+
+            if (channel) {
+              await (channel as TextChannel).send({
+                embeds: [
+                  createEmbed.info(
+                    'Очередь удалена',
+                    'Очередь была автоматически удалена из-за отсутствия активности в течение часа.'
+                  ),
+                ],
+              });
+              break;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при проверке старых очередей:', error);
+    }
+  }, 10000); // Проверяем каждую минуту
 });
 
 // Подключаемся к Discord

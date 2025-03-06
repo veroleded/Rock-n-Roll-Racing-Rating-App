@@ -164,11 +164,7 @@ function EditUserContent({ userId }: { userId: string }) {
         <div className="rounded-md bg-destructive/15 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-destructive"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
+              <svg className="h-5 w-5 text-destructive" viewBox="0 0 20 20" fill="currentColor">
                 <path
                   fillRule="evenodd"
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -188,16 +184,14 @@ function EditUserContent({ userId }: { userId: string }) {
 
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">
-            Редактирование пользователя
-          </h2>
+          <h2 className="text-2xl font-bold tracking-tight">Редактирование пользователя</h2>
           <p className="text-muted-foreground">
             {userData.name} ({userData.role.toLowerCase()})
           </p>
         </div>
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="destructive" disabled={userData.role === "ADMIN"}>
+            <Button variant="destructive" disabled={userData.role === 'ADMIN'}>
               <Trash2 className="h-4 w-4 mr-2" />
               Удалить
             </Button>
@@ -206,29 +200,22 @@ function EditUserContent({ userId }: { userId: string }) {
             <DialogHeader>
               <DialogTitle>Удалить пользователя?</DialogTitle>
               <DialogDescription>
-                Это действие нельзя отменить. Пользователь будет удален из
-                системы вместе со всей статистикой.
+                Это действие нельзя отменить. Пользователь будет удален из системы вместе со всей
+                статистикой.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button
-                variant="ghost"
-                onClick={() => setIsDeleteDialogOpen(false)}
-              >
+              <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)}>
                 Отмена
               </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={isDeleting}
-              >
+              <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
                 {isDeleting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Удаление...
                   </>
                 ) : (
-                  "Удалить"
+                  'Удалить'
                 )}
               </Button>
             </DialogFooter>
@@ -240,9 +227,7 @@ function EditUserContent({ userId }: { userId: string }) {
         <Card>
           <CardHeader>
             <CardTitle>Основная информация</CardTitle>
-            <CardDescription>
-              Управление основными данными пользователя
-            </CardDescription>
+            <CardDescription>Управление основными данными пользователя</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-4">
@@ -250,23 +235,16 @@ function EditUserContent({ userId }: { userId: string }) {
                 <label className="text-sm font-medium" htmlFor="name">
                   Имя
                 </label>
-                <Input
-                  id="name"
-                  value={userData.name || ""}
-                  disabled
-                  className="w-full bg-muted"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Имя пользователя нельзя изменить
-                </p>
+                <Input id="name" value={userData.name || ''} disabled className="w-full bg-muted" />
+                <p className="text-sm text-muted-foreground">Имя пользователя нельзя изменить</p>
               </div>
 
               <div className="grid gap-2">
                 <label className="text-sm font-medium">Роль</label>
                 <Select
-                  value={form.watch("role")}
-                  onValueChange={(value: Role) => form.setValue("role", value)}
-                  disabled={userData.role === "ADMIN"}
+                  value={form.watch('role')}
+                  onValueChange={(value: Role) => form.setValue('role', value)}
+                  disabled={userData.role === 'ADMIN'}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -278,9 +256,7 @@ function EditUserContent({ userId }: { userId: string }) {
                   </SelectContent>
                 </Select>
                 {form.formState.errors.role && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.role.message}
-                  </p>
+                  <p className="text-sm text-destructive">{form.formState.errors.role.message}</p>
                 )}
               </div>
             </div>
@@ -291,9 +267,7 @@ function EditUserContent({ userId }: { userId: string }) {
           <Card>
             <CardHeader>
               <CardTitle>Статистика</CardTitle>
-              <CardDescription>
-                Управление игровой статистикой пользователя
-              </CardDescription>
+              <CardDescription>Управление игровой статистикой пользователя</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -304,7 +278,7 @@ function EditUserContent({ userId }: { userId: string }) {
                   <Input
                     id="rating"
                     type="number"
-                    {...form.register("stats.rating", { valueAsNumber: true })}
+                    {...form.register('stats.rating', { setValueAs: (value) => Number(value) })}
                   />
                   {form.formState.errors.stats?.rating && (
                     <p className="text-sm text-destructive">
@@ -370,11 +344,7 @@ function EditUserContent({ userId }: { userId: string }) {
         )}
 
         <div className="flex justify-end space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push("/admin/users")}
-          >
+          <Button type="button" variant="outline" onClick={() => router.push('/admin/users')}>
             Отмена
           </Button>
           <Button type="submit" disabled={isUpdating}>
@@ -384,7 +354,7 @@ function EditUserContent({ userId }: { userId: string }) {
                 Сохранение...
               </>
             ) : (
-              "Сохранить"
+              'Сохранить'
             )}
           </Button>
         </div>
