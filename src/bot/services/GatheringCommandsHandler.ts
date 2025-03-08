@@ -1,0 +1,279 @@
+import { Message } from 'discord.js';
+import { GATHERING_COMMANDS, GATHERING_COMMANDS_DESCRIPTIONS } from '../constants/commands';
+import { MESSAGES } from '../constants/messages';
+import { trpc } from '../trpc';
+import { createEmbed } from '../utils/embeds';
+import { formatQueueInfo } from '../utils/queue';
+import { createSignature } from '../utils/signature';
+import { TeamFormationService } from './TeamFormationService';
+
+export class GatheringCommandsHandler {
+  private teamFormationService: TeamFormationService;
+
+  constructor() {
+    this.teamFormationService = new TeamFormationService();
+  }
+
+  async handleCommand(message: Message, channelName: string) {
+    const content = message.content.trim();
+    const timestamp = Date.now().toString();
+
+    try {
+      switch (content) {
+        case GATHERING_COMMANDS.HELP:
+          await this.handleHelpCommand(message);
+          break;
+
+        case GATHERING_COMMANDS.CLEAN:
+          await this.handleCleanCommand(message, channelName, timestamp);
+          break;
+
+        case GATHERING_COMMANDS.JOIN:
+          await this.handleJoinCommand(message, channelName, timestamp);
+          break;
+
+        case GATHERING_COMMANDS.JOIN_BOT:
+          await this.handleJoinBotCommand(message, channelName, timestamp);
+          break;
+
+        case GATHERING_COMMANDS.LEAVE:
+          await this.handleLeaveCommand(message, channelName, timestamp);
+          break;
+
+        case GATHERING_COMMANDS.LEAVE_BOT:
+          await this.handleLeaveBotCommand(message, channelName, timestamp);
+          break;
+      }
+
+      // Очищаем старые очереди после каждой команды
+      await this.cleanOldQueues(timestamp);
+    } catch (error) {
+      console.error('Ошибка при обработке команды очереди:', error);
+      await message.reply({
+        embeds: [
+          createEmbed.error(
+            'Ошибка',
+            typeof error === 'object' && error !== null && 'message' in error
+              ? (error as { message: string }).message
+              : MESSAGES.ERROR.GENERAL
+          ),
+        ],
+      });
+    }
+  }
+
+  private async handleHelpCommand(message: Message) {
+    const embed = createEmbed.help();
+    embed.setDescription(
+      Array.from(GATHERING_COMMANDS_DESCRIPTIONS.entries())
+        .map(([command, description]) => `🎮 \`${command}\` - ${description}`)
+        .join('\n')
+    );
+    await message.reply({ embeds: [embed] });
+  }
+
+  private async handleCleanCommand(message: Message, channelName: string, timestamp: string) {
+    try {
+      await trpc.queues.cleanQueue.mutate({
+        channelName: channelName,
+        timestamp,
+        signature: createSignature(timestamp, JSON.stringify({ channelName })),
+      });
+
+      await message.reply({
+        embeds: [createEmbed.success('Очередь очищена', 'Очередь была успешно очищена.')],
+      });
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        const errorMessage = (error as { message: string }).message;
+        if (errorMessage === 'Очередь не найдена') {
+          await message.reply({
+            embeds: [createEmbed.error('Ошибка', 'В данный момент нет активной очереди')],
+          });
+          return;
+        }
+      }
+      throw error;
+    }
+  }
+
+  private async handleJoinCommand(message: Message, channelName: string, timestamp: string) {
+    try {
+      // Проверяем, присоединился ли пользователь к боту
+      const statusCheck = await trpc.auth.checkBotStatus.query({
+        userId: message.author.id,
+        timestamp,
+        signature: createSignature(timestamp),
+      });
+
+      if (!statusCheck.hasJoinedBot) {
+        await message.reply({
+          embeds: [
+            createEmbed.error(
+              'Ошибка',
+              'Вы должны сначала присоединиться к боту с помощью команды !join'
+            ),
+          ],
+        });
+        return;
+      }
+
+      // Добавляем игрока в очередь
+      const result = await trpc.queues.addPlayer.mutate({
+        userId: message.author.id,
+        channelName: channelName,
+        timestamp,
+        signature: createSignature(
+          timestamp,
+          JSON.stringify({ userId: message.author.id, channelName })
+        ),
+      });
+
+      // Формируем сообщение о текущем составе очереди
+      const queueInfo = formatQueueInfo(result.queue);
+      await message.reply({
+        embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
+      });
+
+      // Если очередь заполнена, начинаем формирование команд
+      if (result.isComplete) {
+        await message.reply({
+          embeds: [createEmbed.success('Очередь заполнена', 'Начинаем формирование команд...')],
+        });
+        await this.teamFormationService.formTeams(result.queue, message);
+      }
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        const errorMessage = (error as { message: string }).message;
+        if (errorMessage === 'Вы уже находитесь в очереди') {
+          await message.reply({
+            embeds: [createEmbed.error('Ошибка', 'Вы уже находитесь в очереди')],
+          });
+          return;
+        }
+      }
+      throw error;
+    }
+  }
+
+  private async handleJoinBotCommand(message: Message, channelName: string, timestamp: string) {
+    const result = await trpc.queues.addBot.mutate({
+      channelName: channelName,
+      timestamp,
+      signature: createSignature(timestamp, JSON.stringify({ channelName })),
+    });
+
+    // Формируем сообщение о текущем составе очереди
+    const queueInfo = formatQueueInfo(result.queue);
+    await message.reply({
+      embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
+    });
+
+    // Если очередь заполнена, начинаем формирование команд
+    if (result.isComplete) {
+      await message.reply({
+        embeds: [createEmbed.success('Очередь заполнена', 'Начинаем формирование команд...')],
+      });
+      await this.teamFormationService.formTeams(result.queue, message);
+    }
+  }
+
+  private async handleLeaveCommand(message: Message, channelName: string, timestamp: string) {
+    try {
+      const result = await trpc.queues.removePlayer.mutate({
+        userId: message.author.id,
+        channelName: channelName,
+        timestamp,
+        signature: createSignature(
+          timestamp,
+          JSON.stringify({ userId: message.author.id, channelName })
+        ),
+      });
+
+      if (result.isDeleted) {
+        await message.reply({
+          embeds: [
+            createEmbed.info(
+              'Очередь удалена',
+              'Очередь была удалена, так как все игроки покинули её.'
+            ),
+          ],
+        });
+      } else {
+        // Формируем сообщение о текущем составе очереди
+        const queueInfo = formatQueueInfo(result.queue);
+        await message.reply({
+          embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
+        });
+      }
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        const errorMessage = (error as { message: string }).message;
+        if (errorMessage === 'Очередь не найдена') {
+          await message.reply({
+            embeds: [createEmbed.error('Ошибка', 'В данный момент нет активной очереди')],
+          });
+          return;
+        }
+        if (errorMessage === 'Вы не находитесь в очереди') {
+          await message.reply({
+            embeds: [createEmbed.error('Ошибка', 'Вы не находитесь в очереди')],
+          });
+          return;
+        }
+      }
+      throw error;
+    }
+  }
+
+  private async handleLeaveBotCommand(message: Message, channelName: string, timestamp: string) {
+    try {
+      const result = await trpc.queues.removeBot.mutate({
+        channelName: channelName,
+        timestamp,
+        signature: createSignature(timestamp, JSON.stringify({ channelName })),
+      });
+
+      if (result.isDeleted) {
+        await message.reply({
+          embeds: [
+            createEmbed.info(
+              'Очередь удалена',
+              'Очередь была удалена, так как все участники покинули её.'
+            ),
+          ],
+        });
+      } else {
+        // Формируем сообщение о текущем составе очереди
+        const queueInfo = formatQueueInfo(result.queue);
+        await message.reply({
+          embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
+        });
+      }
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        const errorMessage = (error as { message: string }).message;
+        if (errorMessage === 'Очередь не найдена') {
+          await message.reply({
+            embeds: [createEmbed.error('Ошибка', 'В данный момент нет активной очереди')],
+          });
+          return;
+        }
+        if (errorMessage === 'В очереди нет ботов') {
+          await message.reply({
+            embeds: [createEmbed.error('Ошибка', 'В очереди нет ботов')],
+          });
+          return;
+        }
+      }
+      throw error;
+    }
+  }
+
+  private async cleanOldQueues(timestamp: string) {
+    await trpc.queues.cleanOld.mutate({
+      timestamp,
+      signature: createSignature(timestamp),
+    });
+  }
+}

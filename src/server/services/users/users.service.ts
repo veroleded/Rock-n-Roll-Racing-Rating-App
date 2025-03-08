@@ -145,7 +145,7 @@ export class UsersService {
           },
         },
       ],
-      take: 22,
+      take: 10,
     });
 
     return { users, total };
