@@ -6,10 +6,6 @@ services:
     container_name: rnr_racing_app
     env_file:
       - .env.prod
-    volumes:
-      - ./:/app
-      - /app/node_modules
-      - /app/.next
     depends_on:
       postgres:
         condition: service_started
