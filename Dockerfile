@@ -11,10 +11,14 @@ COPY . .
 
 RUN npx prisma generate
 
-# Скрипт для запуска всех сервисов
-COPY start.sh .
-RUN chmod +x start.sh
+# Запуск миграций и инициализация при старте
+RUN echo "#!/bin/sh\n\
+npx prisma migrate deploy\n\
+node prisma/init-bots.ts\n\
+npm run build\n\
+npm run start & npm run bot" > start.sh \
+&& chmod +x start.sh
 
 EXPOSE 3000
 
-CMD ["./start.sh"] 
+CMD ["/bin/sh", "start.sh"] 
