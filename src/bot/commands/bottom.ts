@@ -1,8 +1,9 @@
+import { prisma } from '@/lib/prisma';
+import { UsersService } from '@/server/services/users/users.service';
 import { EmbedBuilder, Message } from 'discord.js';
 import { COLORS } from '../constants/colors';
 import { EMOJIS } from '../constants/emojis';
 import { MESSAGES } from '../constants/messages';
-import { trpc } from '../trpc';
 import { Command } from '../types/command';
 import { createEmbed } from '../utils/embeds';
 
@@ -11,7 +12,8 @@ export const bottomCommand: Command = {
   description: 'Показывает последние 10 человек в рейтинге',
   execute: async (message: Message) => {
     try {
-      const { users: bottomPlayers, total } = await trpc.users.getTop.query('end');
+      const usersService = new UsersService(prisma);
+      const { users: bottomPlayers, total } = await usersService.getTopUsers('end');
 
       if (!bottomPlayers || bottomPlayers.length === 0) {
         await message.reply({

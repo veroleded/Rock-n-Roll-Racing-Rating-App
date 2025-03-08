@@ -1,17 +1,19 @@
+import { prisma } from '@/lib/prisma';
+import { QueuesService } from '@/server/services/queues/queues.service';
 import { UsersService } from '@/server/services/users/users.service';
 import { Queue, Stats, User } from '@prisma/client';
 import { Message, TextChannel } from 'discord.js';
-import { prisma, trpc } from '../trpc';
 import { createEmbed } from '../utils/embeds';
-import { createSignature } from '../utils/signature';
 
 type PlayerWithStats = User & { stats: Stats | null };
 type QueueWithPlayers = Queue & { players: PlayerWithStats[] };
 
 export class TeamFormationService {
   userService: UsersService;
+  queueService: QueuesService;
   constructor() {
     this.userService = new UsersService(prisma);
+    this.queueService = new QueuesService(prisma);
   }
   // Вспомогательная функция для получения всех комбинаций из массива длины k
   private combinations<T>(arr: T[], k: number): T[][] {
@@ -181,15 +183,10 @@ export class TeamFormationService {
     }
 
     // Удаляем очередь после отправки сообщения о командах
-    const timestamp = Date.now().toString();
     const channelName = message.channel.name;
 
     try {
-      await trpc.queues.cleanQueue.mutate({
-        channelName,
-        timestamp,
-        signature: createSignature(timestamp, JSON.stringify({ channelName })),
-      });
+      await this.queueService.cleanQueueByChannel(channelName);
 
       await message.channel.send({
         embeds: [

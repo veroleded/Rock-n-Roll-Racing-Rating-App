@@ -1,15 +1,18 @@
+import { prisma } from '@/lib/prisma';
+import { UsersService } from '@/server/services/users/users.service';
 import { Message } from 'discord.js';
 import { MESSAGES } from '../constants/messages';
-import { trpc } from '../trpc';
 import { Command } from '../types/command';
 import { createEmbed } from '../utils/embeds';
+
+const usersService = new UsersService(prisma);
 
 export const topCommand: Command = {
   name: 'top',
   description: 'Показывает первые 10 человек в рейтинге',
   execute: async (message: Message) => {
     try {
-      const { users: topPlayers } = await trpc.users.getTop.query('start');
+      const { users: topPlayers } = await usersService.getTopUsers('start');
 
       if (!topPlayers || topPlayers.length === 0) {
         await message.reply({

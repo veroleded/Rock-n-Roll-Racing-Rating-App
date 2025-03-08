@@ -1,8 +1,11 @@
+import { prisma } from '@/lib/prisma';
+import { UsersService } from '@/server/services/users/users.service';
 import { Message } from 'discord.js';
 import { MESSAGES } from '../constants/messages';
-import { trpc } from '../trpc';
 import { Command } from '../types/command';
 import { createEmbed } from '../utils/embeds';
+
+const usersService = new UsersService(prisma);
 
 export const statCommand: Command = {
   name: 'stat',
@@ -24,13 +27,13 @@ export const statCommand: Command = {
 
       try {
         // Получаем информацию о пользователе
-        const user = await trpc.users.byId.query(discordId);
-        if (!user.stats) {
+        const user = await usersService.getUserById(discordId);
+        if (!user?.stats) {
           await message.reply({
             embeds: [
               createEmbed.info(
                 'Нет статистики',
-                `У пользователя ${user.name || 'Неизвестный игрок'} еще нет статистики.`
+                `У пользователя ${user?.name || 'Неизвестный игрок'} еще нет статистики.`
               ),
             ],
           });
@@ -38,7 +41,7 @@ export const statCommand: Command = {
         }
 
         // Получаем всех пользователей для определения места в рейтинге
-        const allUsers = await trpc.users.list.query();
+        const allUsers = await usersService.getUsers();
 
         // Сортируем пользователей по рейтингу
         const sortedUsers = allUsers

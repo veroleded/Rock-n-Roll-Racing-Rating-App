@@ -1,10 +1,11 @@
-import { PrismaClient } from "@prisma/client";
-import { TRPCError } from "@trpc/server";
+import { isAdminUser } from '@/lib/adminUtils';
+import { PrismaClient } from '@prisma/client';
+import { TRPCError } from '@trpc/server';
 
 type UpdateUserData = {
   id: string;
   name?: string;
-  role?: "ADMIN" | "MODERATOR" | "PLAYER";
+  role?: 'ADMIN' | 'MODERATOR' | 'PLAYER';
   stats?: {
     rating: number;
     wins: number;
@@ -26,6 +27,50 @@ export class UsersService {
       throw new TRPCError({
         code: 'NOT_FOUND',
         message: 'User not found',
+      });
+    }
+
+    return user;
+  }
+
+  async create(data: { id: string; name: string; image: string }) {
+    const role = isAdminUser(data.id) ? 'ADMIN' : 'PLAYER';
+
+    let user = await this.prisma.user.findUnique({
+      where: { id: data.id },
+      include: { stats: true },
+    });
+
+    if (user) {
+      user = await this.prisma.user.update({
+        where: { id: data.id },
+        data: {
+          hasJoinedBot: true,
+          name: data.name,
+          image: data.image,
+          role,
+        },
+        include: { stats: true },
+      });
+    } else {
+      user = await this.prisma.user.create({
+        data: {
+          id: data.id,
+          name: data.name,
+          image: data.image,
+          role,
+          hasJoinedBot: true,
+          stats: {
+            create: {
+              rating: 1800,
+              gamesPlayed: 0,
+              wins: 0,
+              losses: 0,
+              draws: 0,
+            },
+          },
+        },
+        include: { stats: true },
       });
     }
 
@@ -77,10 +122,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'User not found',
-      });
+      return null;
     }
 
     return user;

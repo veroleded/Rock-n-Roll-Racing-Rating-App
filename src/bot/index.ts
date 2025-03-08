@@ -1,3 +1,5 @@
+import { prisma } from '@/lib/prisma';
+import { QueuesService } from '@/server/services/queues/queues.service';
 import { Client, Events, GatewayIntentBits, Message, TextChannel } from 'discord.js';
 import * as dotenv from 'dotenv';
 import { bottomCommand } from './commands/bottom';
@@ -10,9 +12,7 @@ import { GAME_GATHERING_PREFIX, GATHERING_COMMANDS } from './constants/commands'
 import { MESSAGES } from './constants/messages';
 import { CommandHandler } from './services/CommandHandler';
 import { GatheringCommandsHandler } from './services/GatheringCommandsHandler';
-import { trpc } from './trpc';
 import { createEmbed } from './utils/embeds';
-import { createSignature } from './utils/signature';
 
 // Загружаем переменные окружения
 dotenv.config();
@@ -101,11 +101,8 @@ client.once(Events.ClientReady, (c) => {
   setInterval(async () => {
     console.log('Проверка старых очередей');
     try {
-      const timestamp = Date.now().toString();
-      const oldQueues = await trpc.queues.cleanOld.mutate({
-        timestamp,
-        signature: createSignature(timestamp),
-      });
+      const queuesService = new QueuesService(prisma);
+      const oldQueues = await queuesService.cleanOldQueues();
 
       // Если есть устаревшие очереди, отправляем уведомления
       if (oldQueues.length > 0) {

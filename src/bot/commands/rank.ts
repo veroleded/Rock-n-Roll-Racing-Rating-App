@@ -1,10 +1,13 @@
+import { prisma } from '@/lib/prisma';
+import { UsersService } from '@/server/services/users/users.service';
 import { EmbedBuilder, Message } from 'discord.js';
 import { COLORS } from '../constants/colors';
 import { EMOJIS } from '../constants/emojis';
 import { MESSAGES } from '../constants/messages';
-import { trpc } from '../trpc';
 import { Command } from '../types/command';
 import { createEmbed } from '../utils/embeds';
+
+const usersService = new UsersService(prisma);
 
 export const rankCommand: Command = {
   name: 'rank',
@@ -25,7 +28,7 @@ export const rankCommand: Command = {
       }
 
       try {
-        const neighbors = await trpc.users.getUserWithNeighbors.query(discordId);
+        const neighbors = await usersService.getUserWithNeighbors(discordId);
 
         if (neighbors.length === 0) {
           await message.reply({

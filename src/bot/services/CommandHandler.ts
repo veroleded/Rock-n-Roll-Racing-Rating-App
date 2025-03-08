@@ -1,12 +1,15 @@
+import { prisma } from '@/lib/prisma';
+import { UsersService } from '@/server/services/users/users.service';
 import { Message } from 'discord.js';
 import { MESSAGES } from '../constants/messages';
-import { trpc } from '../trpc';
 import { Command } from '../types/command';
 import { createEmbed } from '../utils/embeds';
-import { createSignature } from '../utils/signature';
-
 export class CommandHandler {
   private commands: Map<string, Command> = new Map();
+  private userService: UsersService;
+  constructor() {
+    this.userService = new UsersService(prisma);
+  }
 
   // Проверка и обновление данных пользователя
   private async checkAndUpdateUserData(message: Message): Promise<void> {
@@ -19,25 +22,18 @@ export class CommandHandler {
       const currentUsername = message.author.globalName || message.author.username;
 
       // Получаем текущие данные пользователя из базы
-      const userData = await trpc.users.byId.query(message.author.id);
+      const userData = await this.userService.getUserById(message.author.id);
 
       // Проверяем, нужно ли обновление
       if (userData && (userData.image !== currentAvatar || userData.name !== currentUsername)) {
         const updateData = {
-          userId: message.author.id,
+          id: message.author.id,
           username: currentUsername,
           avatar: currentAvatar,
         };
 
-        const updateTimestamp = Date.now().toString();
-        const updateSignature = createSignature(updateTimestamp, JSON.stringify(updateData));
-
         // Обновляем данные пользователя
-        await trpc.auth.updateUserData.mutate({
-          ...updateData,
-          timestamp: updateTimestamp,
-          signature: updateSignature,
-        });
+        await this.userService.updateUser(updateData);
 
         console.log(`Обновлены данные пользователя ${currentUsername}`);
       }

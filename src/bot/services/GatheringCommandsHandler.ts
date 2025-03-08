@@ -1,22 +1,25 @@
+import { prisma } from '@/lib/prisma';
+import { QueuesService } from '@/server/services/queues/queues.service';
+import { UsersService } from '@/server/services/users/users.service';
 import { Message } from 'discord.js';
 import { GATHERING_COMMANDS, GATHERING_COMMANDS_DESCRIPTIONS } from '../constants/commands';
 import { MESSAGES } from '../constants/messages';
-import { trpc } from '../trpc';
 import { createEmbed } from '../utils/embeds';
 import { formatQueueInfo } from '../utils/queue';
-import { createSignature } from '../utils/signature';
 import { TeamFormationService } from './TeamFormationService';
 
 export class GatheringCommandsHandler {
   private teamFormationService: TeamFormationService;
-
+  private queueService: QueuesService;
+  private usersService: UsersService;
   constructor() {
     this.teamFormationService = new TeamFormationService();
+    this.queueService = new QueuesService(prisma);
+    this.usersService = new UsersService(prisma);
   }
 
   async handleCommand(message: Message, channelName: string) {
     const content = message.content.trim();
-    const timestamp = Date.now().toString();
 
     try {
       switch (content) {
@@ -25,28 +28,28 @@ export class GatheringCommandsHandler {
           break;
 
         case GATHERING_COMMANDS.CLEAN:
-          await this.handleCleanCommand(message, channelName, timestamp);
+          await this.handleCleanCommand(message, channelName);
           break;
 
         case GATHERING_COMMANDS.JOIN:
-          await this.handleJoinCommand(message, channelName, timestamp);
+          await this.handleJoinCommand(message, channelName);
           break;
 
         case GATHERING_COMMANDS.JOIN_BOT:
-          await this.handleJoinBotCommand(message, channelName, timestamp);
+          await this.handleJoinBotCommand(message, channelName);
           break;
 
         case GATHERING_COMMANDS.LEAVE:
-          await this.handleLeaveCommand(message, channelName, timestamp);
+          await this.handleLeaveCommand(message, channelName);
           break;
 
         case GATHERING_COMMANDS.LEAVE_BOT:
-          await this.handleLeaveBotCommand(message, channelName, timestamp);
+          await this.handleLeaveBotCommand(message, channelName);
           break;
       }
 
       // Очищаем старые очереди после каждой команды
-      await this.cleanOldQueues(timestamp);
+      await this.cleanOldQueues();
     } catch (error) {
       console.error('Ошибка при обработке команды очереди:', error);
       await message.reply({
@@ -72,13 +75,9 @@ export class GatheringCommandsHandler {
     await message.reply({ embeds: [embed] });
   }
 
-  private async handleCleanCommand(message: Message, channelName: string, timestamp: string) {
+  private async handleCleanCommand(message: Message, channelName: string) {
     try {
-      await trpc.queues.cleanQueue.mutate({
-        channelName: channelName,
-        timestamp,
-        signature: createSignature(timestamp, JSON.stringify({ channelName })),
-      });
+      await this.queueService.cleanQueueByChannel(channelName);
 
       await message.reply({
         embeds: [createEmbed.success('Очередь очищена', 'Очередь была успешно очищена.')],
@@ -97,16 +96,12 @@ export class GatheringCommandsHandler {
     }
   }
 
-  private async handleJoinCommand(message: Message, channelName: string, timestamp: string) {
+  private async handleJoinCommand(message: Message, channelName: string) {
     try {
       // Проверяем, присоединился ли пользователь к боту
-      const statusCheck = await trpc.auth.checkBotStatus.query({
-        userId: message.author.id,
-        timestamp,
-        signature: createSignature(timestamp),
-      });
+      const statusCheck = await this.usersService.getUserById(message.author.id);
 
-      if (!statusCheck.hasJoinedBot) {
+      if (!statusCheck?.hasJoinedBot) {
         await message.reply({
           embeds: [
             createEmbed.error(
@@ -119,15 +114,7 @@ export class GatheringCommandsHandler {
       }
 
       // Добавляем игрока в очередь
-      const result = await trpc.queues.addPlayer.mutate({
-        userId: message.author.id,
-        channelName: channelName,
-        timestamp,
-        signature: createSignature(
-          timestamp,
-          JSON.stringify({ userId: message.author.id, channelName })
-        ),
-      });
+      const result = await this.queueService.addPlayerToQueue(message.author.id, channelName);
 
       // Формируем сообщение о текущем составе очереди
       const queueInfo = formatQueueInfo(result.queue);
@@ -156,12 +143,8 @@ export class GatheringCommandsHandler {
     }
   }
 
-  private async handleJoinBotCommand(message: Message, channelName: string, timestamp: string) {
-    const result = await trpc.queues.addBot.mutate({
-      channelName: channelName,
-      timestamp,
-      signature: createSignature(timestamp, JSON.stringify({ channelName })),
-    });
+  private async handleJoinBotCommand(message: Message, channelName: string) {
+    const result = await this.queueService.addBotToQueue(channelName);
 
     // Формируем сообщение о текущем составе очереди
     const queueInfo = formatQueueInfo(result.queue);
@@ -178,17 +161,9 @@ export class GatheringCommandsHandler {
     }
   }
 
-  private async handleLeaveCommand(message: Message, channelName: string, timestamp: string) {
+  private async handleLeaveCommand(message: Message, channelName: string) {
     try {
-      const result = await trpc.queues.removePlayer.mutate({
-        userId: message.author.id,
-        channelName: channelName,
-        timestamp,
-        signature: createSignature(
-          timestamp,
-          JSON.stringify({ userId: message.author.id, channelName })
-        ),
-      });
+      const result = await this.queueService.removePlayerFromQueue(message.author.id, channelName);
 
       if (result.isDeleted) {
         await message.reply({
@@ -226,13 +201,9 @@ export class GatheringCommandsHandler {
     }
   }
 
-  private async handleLeaveBotCommand(message: Message, channelName: string, timestamp: string) {
+  private async handleLeaveBotCommand(message: Message, channelName: string) {
     try {
-      const result = await trpc.queues.removeBot.mutate({
-        channelName: channelName,
-        timestamp,
-        signature: createSignature(timestamp, JSON.stringify({ channelName })),
-      });
+      const result = await this.queueService.removeBotFromQueue(channelName);
 
       if (result.isDeleted) {
         await message.reply({
@@ -270,10 +241,7 @@ export class GatheringCommandsHandler {
     }
   }
 
-  private async cleanOldQueues(timestamp: string) {
-    await trpc.queues.cleanOld.mutate({
-      timestamp,
-      signature: createSignature(timestamp),
-    });
+  private async cleanOldQueues() {
+    await this.queueService.cleanOldQueues();
   }
 }
