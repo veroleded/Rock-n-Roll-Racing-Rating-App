@@ -203,11 +203,10 @@ export function UsersTable({
               <TableHead
                 key={column.key}
                 className={cn(
-                  column.sortable &&
-                    "cursor-pointer select-none hover:bg-muted/50",
-                  column.key === "name" && "w-[200px]",
-                  column.key === "position" && "w-[80px]",
-                  sortConfig.key === column.key && "bg-muted"
+                  column.sortable && 'cursor-pointer select-none hover:bg-muted/50',
+                  column.key === 'name' && 'w-[200px]',
+                  column.key === 'position' && 'w-[80px]',
+                  sortConfig.key === column.key && 'bg-muted'
                 )}
                 onClick={() => column.sortable && handleSort(column.key)}
               >
@@ -216,7 +215,7 @@ export function UsersTable({
                   {column.sortable && (
                     <div className="flex items-center">
                       {sortConfig.key === column.key ? (
-                        sortConfig.direction === "desc" ? (
+                        sortConfig.direction === 'desc' ? (
                           <ArrowDown className="h-4 w-4" />
                         ) : (
                           <ArrowUp className="h-4 w-4" />
@@ -256,7 +255,7 @@ export function UsersTable({
                     {user.image ? (
                       <Image
                         src={user.image}
-                        alt={user.name || ""}
+                        alt={user.name || ''}
                         className="rounded-full"
                         fill
                         sizes="40px"
@@ -270,9 +269,7 @@ export function UsersTable({
                       <div className="font-medium group-hover:text-primary transition-colors">
                         {user.name}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {user.role.toLowerCase()}
-                      </div>
+                      <div className="text-sm text-muted-foreground">{user.role.toLowerCase()}</div>
                     </div>
                     {currentUserId === user.id && (
                       <div className="rounded bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -282,18 +279,15 @@ export function UsersTable({
                   </div>
                 </div>
               </TableCell>
-              <TableCell>{user.stats?.rating || 1000}</TableCell>
-              <TableCell>{user.stats?.gamesPlayed || 0}</TableCell>
-              <TableCell>{user.stats?.wins || 0}</TableCell>
-              <TableCell>{user.stats?.losses || 0}</TableCell>
-              <TableCell>{user.stats?.draws || 0}</TableCell>
+              <TableCell>{user.stats?.rating}</TableCell>
+              <TableCell>{user.stats?.gamesPlayed}</TableCell>
+              <TableCell>{user.stats?.wins}</TableCell>
+              <TableCell>{user.stats?.losses}</TableCell>
+              <TableCell>{user.stats?.draws}</TableCell>
               <TableCell>
                 {user.stats?.gamesPlayed
-                  ? `${(
-                      ((user.stats?.wins || 0) / user.stats.gamesPlayed) *
-                      100
-                    ).toFixed(1)}%`
-                  : "0%"}
+                  ? `${((user.stats?.wins / user.stats.gamesPlayed) * 100).toFixed(1)}%`
+                  : '0%'}
               </TableCell>
               {canEditUser && (
                 <TableCell>
