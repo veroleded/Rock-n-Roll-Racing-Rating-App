@@ -8,6 +8,7 @@ services:
       - .env
     ports:
       - "3000:3000"
+    restart: always
     depends_on:
       - postgres
     networks:
@@ -24,6 +25,7 @@ services:
       - .env
     ports:
       - "${POSTGRES_PORT}:5432"
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -39,6 +41,7 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
     ports:
       - "5050:80"
+    restart: always
     depends_on:
       - postgres
     networks:
