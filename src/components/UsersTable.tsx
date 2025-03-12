@@ -182,8 +182,8 @@ export function UsersTable({
 
   // Получаем отсортированных по рейтингу пользователей для определения позиций
   const usersByRating = [...users].sort((a, b) => {
-    const ratingA = a.stats?.rating || 1000;
-    const ratingB = b.stats?.rating || 1000;
+    const ratingA = a.stats?.rating || 0;
+    const ratingB = b.stats?.rating || 0;
     return ratingB - ratingA;
   });
 

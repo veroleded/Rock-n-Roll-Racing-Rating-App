@@ -279,9 +279,9 @@ export class MatchService {
     return teamsResult;
   }
 
-  private isRated(mode: GameMode, players: CreateMatchPlayer[]) {
+  private isRated(mode: GameMode, players: CreateMatchPlayer[], isTraining: boolean) {
     const realPlayers = players.filter((player) => !player.userId.startsWith('bot_'));
-    if (mode === 'TWO_VS_TWO_VS_TWO' || realPlayers.length !== players.length) {
+    if (mode === 'TWO_VS_TWO_VS_TWO' || realPlayers.length !== players.length || isTraining) {
       return false;
     } else {
       return true;
@@ -521,7 +521,7 @@ export class MatchService {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const normalizedStatsData = this.normalizeStatsData(data.statsData, data.players);
-        const isRated = this.isRated(data.mode, data.players);
+        const isRated = this.isRated(data.mode, data.players, data.isTraining);
         const isLeave = data.players.find((value) => value.hasLeft);
         const teamsResultDivisions = this.calculateTeamResultDivisions(
           normalizedStatsData.divisions,

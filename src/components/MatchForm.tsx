@@ -54,6 +54,7 @@ const formSchema = z.object({
   statsData: z.any(),
   teams: z.array(teamSchema).min(2, 'Добавьте как минимум две команды'),
   penaltyFactor: z.number().default(30),
+  isTraining: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -120,6 +121,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
         }[];
       }[],
       penaltyFactor: 30,
+      isTraining: false,
     },
   });
 
@@ -312,6 +314,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
           players,
           statsData: data.statsData,
           penaltyFactor: data.penaltyFactor,
+          isTraining: data.isTraining,
           editMatchId,
         });
       } else {
@@ -320,6 +323,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
           players,
           statsData: data.statsData,
           penaltyFactor: data.penaltyFactor,
+          isTraining: data.isTraining,
         });
       }
     } catch (error) {
@@ -546,6 +550,21 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
               )}
             />
           )}
+
+          <FormField
+            control={form.control}
+            name="isTraining"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel className="text-base font-normal cursor-pointer">
+                  Тренировочная игра
+                </FormLabel>
+              </FormItem>
+            )}
+          />
 
           {mode && (
             <>

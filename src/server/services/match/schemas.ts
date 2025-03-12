@@ -57,6 +57,7 @@ export const createMatchDataSchema = z.object({
   statsData: createStatsDataSchema,
   creatorId: z.string(),
   penaltyFactor: z.number().default(30),
+  isTraining: z.boolean().default(false),
 });
 
 export type CreateMatchData = z.infer<typeof createMatchDataSchema>;
@@ -78,6 +79,7 @@ export const editMatchDataSchema = z.object({
   creatorId: z.string(),
   editMatchId: z.string(),
   penaltyFactor: z.number().default(30),
+  isTraining: z.boolean().default(false),
 });
 
 export type EditMatchDataSchema = z.infer<typeof editMatchDataSchema>

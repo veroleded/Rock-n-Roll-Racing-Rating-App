@@ -126,7 +126,7 @@ export class TeamFormationService {
       // Оцениваем каждое разбиение: ищем разницу между максимальной и минимальной суммой рейтингов
       for (const partition of allPartitions) {
         const sums = partition.map((group) =>
-          group.reduce((acc, player) => acc + (player.stats?.rating || 1800), 0)
+          group.reduce((acc, player) => acc + (player.stats?.rating ||  0), 0)
         );
         const maxSum = Math.max(...sums);
         const minSum = Math.min(...sums);
@@ -154,12 +154,14 @@ export class TeamFormationService {
     const embed = createEmbed.info('Команды сформированы', 'Распределение игроков по командам:');
 
     teams.forEach((team, index) => {
+      const shuffledTeam = [...team].sort(() => Math.random() - 0.5);
       const teamRating = Math.round(
-        team.reduce((sum, player) => sum + (player.stats?.rating || 1800), 0) / team.length
+        shuffledTeam.reduce((sum, player) => sum + (player.stats?.rating || 0), 0) /
+          shuffledTeam.length
       );
 
-      const teamInfo = team
-        .map((player) => `${player.name} (${player.stats?.rating || 1800})`)
+      const teamInfo = shuffledTeam
+        .map((player) => `${player.name} (${player.stats?.rating || 0})`)
         .join('\n');
 
       embed.addFields({

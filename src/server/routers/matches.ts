@@ -38,6 +38,7 @@ export const matchesRouter = router({
         players: createMatchDataSchema.shape.players,
         statsData: createMatchDataSchema.shape.statsData,
         penaltyFactor: createMatchDataSchema.shape.penaltyFactor,
+        isTraining: createMatchDataSchema.shape.isTraining,
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -56,6 +57,7 @@ export const matchesRouter = router({
         statsData: editMatchDataSchema.shape.statsData,
         editMatchId: editMatchDataSchema.shape.editMatchId,
         penaltyFactor: editMatchDataSchema.shape.penaltyFactor,
+        isTraining: editMatchDataSchema.shape.isTraining,
       })
     )
     .mutation(async ({ ctx, input }) => {

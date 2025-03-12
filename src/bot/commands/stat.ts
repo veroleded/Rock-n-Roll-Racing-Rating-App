@@ -53,25 +53,21 @@ export const statCommand: Command = {
         const rankSuffix =
           userRank === 1 ? 'st' : userRank === 2 ? 'nd' : userRank === 3 ? 'rd' : 'th';
 
-        // Получаем предыдущий рейтинг (заглушка)
-        const prevRating = user.stats.rating - Math.floor(Math.random() * 300);
-        const newRating = user.stats.rating;
-
         // Формируем сообщение со статистикой
         const totalGames = user.stats.wins + user.stats.losses + user.stats.draws;
         const winRate = Math.round((user.stats.wins / (totalGames || 1)) * 100);
 
         // Заглушки для данных о дивизионах и очках
-        const divTotal = 2178;
-        const divWon = 1090;
-        const divLost = 968;
-        const divDraw = 120;
-        const totalScores = 3216738;
+        const divTotal = 0;
+        const divWon = 0;
+        const divLost = 0;
+        const divDraw = 0;
+        const totalScores = 0;
 
         const embed = createEmbed.stats(user).addFields(
           {
             name: '👑 Ранг',
-            value: `Место: ${userRank}${rankSuffix}\nРейтинг: ${newRating}\nИзменение: ${prevRating} → ${newRating}`,
+            value: `Место: ${userRank}${rankSuffix}\nРейтинг: ${user.stats.rating}\nИзменение: ${user.stats.minRating} → ${user.stats.maxRating}`,
             inline: false,
           },
           {
