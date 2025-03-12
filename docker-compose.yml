@@ -1,84 +1,32 @@
 version: "3.8"
 
 services:
-  app:
-    build: .
-    container_name: rnr_racing_app
-    env_file:
-      - .env.prod
-    depends_on:
-      postgres:
-        condition: service_started
-    networks:
-      - app_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 40s
-
   postgres:
     image: postgres:16-alpine
     container_name: rnr_racing_db
     env_file:
-      - .env.prod
+      - .env
+    ports:
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  nginx:
-    image: nginx:alpine
-    container_name: rnr_racing_nginx
-    ports:
-      - "8080:80"
-      - "8443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    depends_on:
-      app:
-        condition: service_healthy
-    networks:
-      - app_network
-    restart: unless-stopped
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
-
-  certbot:
-    image: certbot/certbot
-    container_name: rnr_racing_certbot
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-    depends_on:
-      - nginx
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: rnr_racing_pgadmin
     env_file:
-      - .env.prod
+      - .env
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@admin.com}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
     ports:
       - "5050:80"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     networks:
       - app_network
-    restart: unless-stopped
 
 networks:
   app_network:
