@@ -16,4 +16,4 @@ RUN npx prisma generate && npm run build
 EXPOSE 3000
 
 # Запускаем миграции, бота и Next.js
-CMD npx prisma migrate deploy && npm run init-bots && (npm run start & npm run bot)
+CMD npx prisma migrate deploy && npm run init-bots && npm run dev
