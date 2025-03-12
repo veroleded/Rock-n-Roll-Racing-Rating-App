@@ -1,32 +1,19 @@
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-COPY package*.json ./
-COPY prisma ./prisma/
-
-RUN npm install && \
-    npm install -g ts-node typescript && \
-    npm cache clean --force
-
-COPY . .
-
-RUN npx prisma generate && \
-    npm run build
-
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/next.config.* ./
+# Копируем файлы зависимостей и устанавливаем зависимости
+COPY package*.json ./
+RUN npm install && npm cache clean --force
 
-RUN npm install -g ts-node typescript && \
-    npm cache clean --force
+# Копируем весь код проекта
+COPY . .
 
+# Генерируем Prisma клиент и билдим Next.js
+RUN npx prisma generate && npm run build
+
+# Открываем порт 3000
 EXPOSE 3000
 
-CMD npx prisma migrate deploy && npx ts-node prisma/init-bots.ts && (npm run start & npm run bot) 
+# Запускаем миграции, бота и Next.js
+CMD npx prisma migrate deploy && npm run init-bots && (npm run start & npm run bot)

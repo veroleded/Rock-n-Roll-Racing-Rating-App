@@ -1,6 +1,22 @@
 version: "3.8"
 
 services:
+  app:
+    build: .
+    container_name: rnr_racing_app
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+    command: >
+      sh -c "npx prisma migrate deploy &&
+             npm run init-bots &&
+             (npm run start & npm run bot)"
+
   postgres:
     image: postgres:16-alpine
     container_name: rnr_racing_db
