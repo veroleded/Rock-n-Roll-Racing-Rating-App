@@ -1,11 +1,17 @@
 import { prisma } from '@/lib/prisma';
 import { UsersService } from '@/server/services/users/users.service';
 import { EmbedBuilder, Message } from 'discord.js';
+import dotenv from 'dotenv';
 import { COLORS } from '../constants/colors';
 import { EMOJIS } from '../constants/emojis';
 import { MESSAGES } from '../constants/messages';
 import { Command } from '../types/command';
 import { createEmbed } from '../utils/embeds';
+
+dotenv.config();
+
+const APP_URL =
+  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54:3000';
 
 const usersService = new UsersService(prisma);
 
@@ -40,6 +46,7 @@ export const rankCommand: Command = {
         const embed = new EmbedBuilder()
           .setColor(COLORS.PRIMARY)
           .setTitle(`${EMOJIS.TROPHY} Рейтинг игрока и соседи`)
+          .setDescription(`[Перейти к списку игроков](${APP_URL}/users)`)
           .setTimestamp();
 
         const fields = neighbors.map((player, index) => {

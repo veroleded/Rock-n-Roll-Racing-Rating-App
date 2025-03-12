@@ -1,7 +1,13 @@
 import { Stats, User } from '@prisma/client';
 import { EmbedBuilder } from 'discord.js';
+import dotenv from 'dotenv';
 import { COLORS } from '../constants/colors';
 import { EMOJIS } from '../constants/emojis';
+
+dotenv.config();
+
+const APP_URL =
+  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54:3000';
 
 // Утилиты для создания embed сообщений
 export const createEmbed = {
@@ -41,6 +47,7 @@ export const createEmbed = {
     return new EmbedBuilder()
       .setColor(COLORS.PRIMARY)
       .setTitle(`${EMOJIS.TROPHY} Статистика игрока ${user.name}`)
+      .setDescription(`[Перейти к статистике](${APP_URL}/users/${user.id})`)
       .setThumbnail(user.image || null)
       .setTimestamp();
   },
@@ -49,6 +56,7 @@ export const createEmbed = {
     return new EmbedBuilder()
       .setColor(COLORS.PRIMARY)
       .setTitle(`${EMOJIS.TROPHY} ТОП-10 ИГРОКОВ`)
+      .setDescription(`[Перейти к списку игроков](${APP_URL}/users)`)
       .setTimestamp();
   },
 

@@ -37,14 +37,21 @@ import * as z from "zod";
 // Схема валидации формы
 const formSchema = z.object({
   id: z.string(),
-  role: z.enum(["ADMIN", "MODERATOR", "PLAYER"]),
+  role: z.enum(['ADMIN', 'MODERATOR', 'PLAYER']),
   stats: z
     .object({
       rating: z.number().min(0).max(50000),
-      gamesPlayed: z.number(),
-      wins: z.number(),
-      losses: z.number(),
-      draws: z.number(),
+      maxRating: z.number().min(0).max(50000),
+      minRating: z.number().min(0).max(50000),
+      totalScore: z.number().min(0),
+      gamesPlayed: z.number().min(0),
+      wins: z.number().min(0),
+      losses: z.number().min(0),
+      draws: z.number().min(0),
+      totalDivisions: z.number().min(0),
+      winsDivisions: z.number().min(0),
+      lossesDivisions: z.number().min(0),
+      drawsDivisions: z.number().min(0),
     })
     .nullable(),
 });
@@ -62,36 +69,34 @@ function EditUserContent({ userId }: { userId: string }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       id: userId,
-      role: userData?.role || "PLAYER",
+      role: userData?.role || 'PLAYER',
       stats: userData?.stats || null,
     },
   });
 
-  const { mutate: updateUser, isLoading: isUpdating } =
-    trpc.users.update.useMutation({
-      onSuccess: (user) => {
-        router.push(`/users/${user.id}`);
-      },
-      onError: (error) => {
-        form.setError("root", {
-          type: "manual",
-          message: error.message,
-        });
-      },
-    });
+  const { mutate: updateUser, isLoading: isUpdating } = trpc.users.update.useMutation({
+    onSuccess: (user) => {
+      router.push(`/users/${user.id}`);
+    },
+    onError: (error) => {
+      form.setError('root', {
+        type: 'manual',
+        message: error.message,
+      });
+    },
+  });
 
-  const { mutate: deleteUser, isLoading: isDeleting } =
-    trpc.users.delete.useMutation({
-      onSuccess: () => {
-        router.push("/admin/users");
-      },
-      onError: (error) => {
-        form.setError("root", {
-          type: "manual",
-          message: error.message,
-        });
-      },
-    });
+  const { mutate: deleteUser, isLoading: isDeleting } = trpc.users.delete.useMutation({
+    onSuccess: () => {
+      router.push('/users');
+    },
+    onError: (error) => {
+      form.setError('root', {
+        type: 'manual',
+        message: error.message,
+      });
+    },
+  });
 
   useEffect(() => {
     if (userData) {
@@ -104,12 +109,10 @@ function EditUserContent({ userId }: { userId: string }) {
   }, [userData, form]);
 
   // Проверяем права доступа
-  if (!session?.user || session.user.role !== "ADMIN") {
+  if (!session?.user || session.user.role !== 'ADMIN') {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-destructive">
-          У вас нет прав для редактирования пользователей
-        </div>
+        <div className="text-destructive">У вас нет прав для редактирования пользователей</div>
       </div>
     );
   }
@@ -132,10 +135,10 @@ function EditUserContent({ userId }: { userId: string }) {
 
   const onSubmit = async (data: FormValues) => {
     // Проверяем, не пытаемся ли мы изменить роль администратора
-    if (userData.role === "ADMIN" && data.role !== "ADMIN") {
-      form.setError("role", {
-        type: "manual",
-        message: "Нельзя изменить роль администратора",
+    if (userData.role === 'ADMIN' && data.role !== 'ADMIN') {
+      form.setError('role', {
+        type: 'manual',
+        message: 'Нельзя изменить роль администратора',
       });
       return;
     }
@@ -148,10 +151,10 @@ function EditUserContent({ userId }: { userId: string }) {
   };
 
   const handleDelete = () => {
-    if (userData.role === "ADMIN") {
-      form.setError("root", {
-        type: "manual",
-        message: "Нельзя удалить администратора",
+    if (userData.role === 'ADMIN' && userData.id !== session?.user.id) {
+      form.setError('root', {
+        type: 'manual',
+        message: 'Нельзя удалить другого администратора',
       });
       return;
     }
@@ -191,7 +194,10 @@ function EditUserContent({ userId }: { userId: string }) {
         </div>
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="destructive" disabled={userData.role === 'ADMIN'}>
+            <Button
+              variant="destructive"
+              disabled={userData.role === 'ADMIN' && userData.id !== session?.user.id}
+            >
               <Trash2 className="h-4 w-4 mr-2" />
               Удалить
             </Button>
@@ -288,15 +294,48 @@ function EditUserContent({ userId }: { userId: string }) {
                 </div>
 
                 <div className="grid gap-2">
+                  <label className="text-sm font-medium" htmlFor="maxRating">
+                    Максимальный рейтинг
+                  </label>
+                  <Input
+                    id="maxRating"
+                    type="number"
+                    {...form.register('stats.maxRating', { setValueAs: (value) => Number(value) })}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium" htmlFor="minRating">
+                    Минимальный рейтинг
+                  </label>
+                  <Input
+                    id="minRating"
+                    type="number"
+                    {...form.register('stats.minRating', { setValueAs: (value) => Number(value) })}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium" htmlFor="totalScore">
+                    Общий счет
+                  </label>
+                  <Input
+                    id="totalScore"
+                    type="number"
+                    {...form.register('stats.totalScore', { setValueAs: (value) => Number(value) })}
+                  />
+                </div>
+
+                <div className="grid gap-2">
                   <label className="text-sm font-medium" htmlFor="gamesPlayed">
                     Сыграно игр
                   </label>
                   <Input
                     id="gamesPlayed"
                     type="number"
-                    value={userData.stats.gamesPlayed}
-                    disabled
-                    className="bg-muted"
+                    {...form.register('stats.gamesPlayed', {
+                      setValueAs: (value) => Number(value),
+                    })}
                   />
                 </div>
 
@@ -307,9 +346,7 @@ function EditUserContent({ userId }: { userId: string }) {
                   <Input
                     id="wins"
                     type="number"
-                    value={userData.stats.wins}
-                    disabled
-                    className="bg-muted"
+                    {...form.register('stats.wins', { setValueAs: (value) => Number(value) })}
                   />
                 </div>
 
@@ -320,9 +357,7 @@ function EditUserContent({ userId }: { userId: string }) {
                   <Input
                     id="losses"
                     type="number"
-                    value={userData.stats.losses}
-                    disabled
-                    className="bg-muted"
+                    {...form.register('stats.losses', { setValueAs: (value) => Number(value) })}
                   />
                 </div>
 
@@ -333,9 +368,59 @@ function EditUserContent({ userId }: { userId: string }) {
                   <Input
                     id="draws"
                     type="number"
-                    value={userData.stats.draws}
-                    disabled
-                    className="bg-muted"
+                    {...form.register('stats.draws', { setValueAs: (value) => Number(value) })}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium" htmlFor="totalDivisions">
+                    Всего дивизионов
+                  </label>
+                  <Input
+                    id="totalDivisions"
+                    type="number"
+                    {...form.register('stats.totalDivisions', {
+                      setValueAs: (value) => Number(value),
+                    })}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium" htmlFor="winsDivisions">
+                    Победы в дивизионах
+                  </label>
+                  <Input
+                    id="winsDivisions"
+                    type="number"
+                    {...form.register('stats.winsDivisions', {
+                      setValueAs: (value) => Number(value),
+                    })}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium" htmlFor="lossesDivisions">
+                    Поражения в дивизионах
+                  </label>
+                  <Input
+                    id="lossesDivisions"
+                    type="number"
+                    {...form.register('stats.lossesDivisions', {
+                      setValueAs: (value) => Number(value),
+                    })}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium" htmlFor="drawsDivisions">
+                    Ничьи в дивизионах
+                  </label>
+                  <Input
+                    id="drawsDivisions"
+                    type="number"
+                    {...form.register('stats.drawsDivisions', {
+                      setValueAs: (value) => Number(value),
+                    })}
                   />
                 </div>
               </div>

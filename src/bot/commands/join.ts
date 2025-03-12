@@ -1,13 +1,15 @@
 import { prisma } from '@/lib/prisma';
 import { UsersService } from '@/server/services/users/users.service';
 import { Message } from 'discord.js';
+import dotenv from 'dotenv';
 import { Command } from '../types/command';
 import { createEmbed } from '../utils/embeds';
+dotenv.config();
 
 const usersService = new UsersService(prisma);
 
 const APP_URL =
-  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://localhost:3000';
+  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54:3000';
 
 export const joinCommand: Command = {
   name: 'join',

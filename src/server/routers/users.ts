@@ -60,10 +60,18 @@ export const usersRouter = router({
         role: z.enum(['ADMIN', 'MODERATOR', 'PLAYER']).optional(),
         stats: z
           .object({
-            rating: z.number(),
-            wins: z.number(),
-            losses: z.number(),
-            draws: z.number(),
+            rating: z.number().optional(),
+            maxRating: z.number().optional(),
+            minRating: z.number().optional(),
+            totalScore: z.number().optional(),
+            gamesPlayed: z.number().optional(),
+            wins: z.number().optional(),
+            losses: z.number().optional(),
+            draws: z.number().optional(),
+            totalDivisions: z.number().optional(),
+            winsDivisions: z.number().optional(),
+            lossesDivisions: z.number().optional(),
+            drawsDivisions: z.number().optional(),
           })
           .optional(),
       })
@@ -75,6 +83,6 @@ export const usersRouter = router({
 
   delete: adminProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
     const usersService = new UsersService(ctx.prisma);
-    return usersService.deleteUser(input);
+    return usersService.deleteUser(input, ctx.session.user.id);
   }),
 });

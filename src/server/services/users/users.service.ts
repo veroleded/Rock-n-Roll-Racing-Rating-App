@@ -7,10 +7,18 @@ type UpdateUserData = {
   name?: string;
   role?: 'ADMIN' | 'MODERATOR' | 'PLAYER';
   stats?: {
-    rating: number;
-    wins: number;
-    losses: number;
-    draws: number;
+    rating?: number;
+    maxRating?: number;
+    minRating?: number;
+    totalScore?: number;
+    gamesPlayed?: number;
+    wins?: number;
+    losses?: number;
+    draws?: number;
+    totalDivisions?: number;
+    winsDivisions?: number;
+    lossesDivisions?: number;
+    drawsDivisions?: number;
   };
 };
 
@@ -131,21 +139,12 @@ export class UsersService {
   async updateUser(data: UpdateUserData) {
     const { id, stats, ...userData } = data;
 
-    const existingUser = (await this.prisma.user.findUnique({
+    const existingUser = await this.prisma.user.findUnique({
       where: { id },
-      select: { role: true, stats: { select: { maxRating: true, minRating: true } } },
-    })) as { role: string; stats: { maxRating: number; minRating: number } };
+      select: { role: true },
+    });
 
-    const maxRating =
-      existingUser?.stats?.maxRating > (stats?.rating as number)
-        ? existingUser?.stats?.maxRating
-        : stats?.rating;
-    const minRating =
-      existingUser?.stats?.minRating < (stats?.rating as number)
-        ? existingUser?.stats?.minRating
-        : stats?.rating;
-
-    if (existingUser.role === 'ADMIN' && userData.role && userData.role !== 'ADMIN') {
+    if (existingUser?.role === 'ADMIN' && userData.role && userData.role !== 'ADMIN') {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Нельзя изменить роль администратора',
@@ -158,7 +157,7 @@ export class UsersService {
         ...userData,
         stats: stats
           ? {
-              update: { ...stats, maxRating, minRating },
+              update: stats,
             }
           : undefined,
       },
@@ -248,7 +247,7 @@ export class UsersService {
     return neighbors;
   }
 
-  async deleteUser(id: string) {
+  async deleteUser(id: string, currentUserId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: { role: true },
@@ -261,10 +260,10 @@ export class UsersService {
       });
     }
 
-    if (user.role === 'ADMIN') {
+    if (user.role === 'ADMIN' && id !== currentUserId) {
       throw new TRPCError({
         code: 'FORBIDDEN',
-        message: 'Нельзя удалить администратора',
+        message: 'Нельзя удалить другого администратора',
       });
     }
 

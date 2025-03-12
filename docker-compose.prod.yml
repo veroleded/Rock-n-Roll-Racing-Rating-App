@@ -1,11 +1,28 @@
 version: "3.8"
 
 services:
+  app:
+    build: .
+    container_name: rnr_racing_app
+    env_file:
+      - .env.prod
+    ports:
+      - "3000:3000"
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+    command: >
+      sh -c "npx prisma migrate deploy &&
+             npm run init-bots &&
+             (npm run start & npm run bot)"
+
   postgres:
     image: postgres:16-alpine
     container_name: rnr_racing_db
     env_file:
-      - .env
+      - .env.prod
     ports:
       - "${POSTGRES_PORT}:5432"
     restart: always
@@ -18,7 +35,7 @@ services:
     image: dpage/pgadmin4
     container_name: rnr_racing_pgadmin
     env_file:
-      - .env
+      - .env.prod
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@admin.com}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
