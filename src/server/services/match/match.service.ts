@@ -445,11 +445,11 @@ export class MatchService {
       }
     );
 
+
     const usersRatingChange: Record<string, number> = {};
     if (Number(resultTeam1) > Number(resultTeam2)) {
       const R1 = getInverseCommonValue(...Object.values(team1Scores.users).map((value) => value));
       const R2 = team2Scores.rating;
-      console.log(R1, R2);
       Object.entries(team1Scores.users).forEach(([key, value]) => {
         usersRatingChange[key] = 1 / value / R1;
       });
@@ -459,11 +459,12 @@ export class MatchService {
     } else if (Number(resultTeam2) > Number(resultTeam1)) {
       const R1 = team1Scores.rating;
       const R2 = getInverseCommonValue(...Object.values(team2Scores.users).map((value) => value));
-      Object.entries(team2Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = 1 / value / R1;
-      });
       Object.entries(team1Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = value / R2;
+        usersRatingChange[key] = value / R1;
+      });
+      Object.entries(team2Scores.users).forEach(([key, value]) => {
+;
+        usersRatingChange[key] = 1 / value / R2;
       });
     } else {
       const R1 = getInverseCommonValue(...Object.values(team1Scores.users).map((value) => value));
@@ -477,12 +478,13 @@ export class MatchService {
       });
     }
 
+
     const calibationKefs = new Map<number, number>();
-    // calibationKefs.set(0, 3.5);
-    // calibationKefs.set(1, 3);
-    // calibationKefs.set(2, 2.5);
-    // calibationKefs.set(3, 2);
-    // calibationKefs.set(4, 1.5);
+    calibationKefs.set(0, 3.5);
+    calibationKefs.set(1, 3);
+    calibationKefs.set(2, 2.5);
+    calibationKefs.set(3, 2);
+    calibationKefs.set(4, 1.5);
 
     const finalRatingChange = new Map<string, number>();
     playersInBase.forEach((player) => {
@@ -492,14 +494,12 @@ export class MatchService {
         const userRatingChange = usersRatingChange[matchPlayer.userId];
         const divKef = divAmount / 12;
         const calibationKef = calibationKefs.get(player.gamesPlayed) ?? 1;
-        console.log(userRatingChange, divKef, kef, calibationKef);
         finalRatingChange.set(
           matchPlayer.userId,
           userRatingChange * divKef * kef * calibationKef + 1
         );
       }
     });
-    console.log(finalRatingChange);
     return finalRatingChange;
   }
 
@@ -521,8 +521,10 @@ export class MatchService {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const normalizedStatsData = this.normalizeStatsData(data.statsData, data.players);
+ 
         const isRated = this.isRated(data.mode, data.players, data.isTraining);
-        const isLeave = data.players.find((value) => value.hasLeft);
+     
+        const isLeave = data.players.some((value) => value.hasLeft);
         const teamsResultDivisions = this.calculateTeamResultDivisions(
           normalizedStatsData.divisions,
           data.players
@@ -531,7 +533,6 @@ export class MatchService {
         const totalScore = Object.values(totalPoints)
           .map((team) => team.points)
           .join(' - ');
-
         let ratingsChange = new Map<string, number>();
 
         if (!isRated) {
@@ -609,8 +610,8 @@ export class MatchService {
             totalScoreNumber,
             data.mode
           );
-          const divCoefs = this.getDivCoefficient(totalScore);
 
+          const divCoefs = this.getDivCoefficient(totalScore);
           const scoreCoefs = this.getScoreCoefficient(
             teamsScore.team1Rating,
             teamsScore.team2Rating
@@ -623,6 +624,7 @@ export class MatchService {
             Object.keys(normalizedStatsData.divisions).length
           );
         }
+
         const matchPlayers = data.players.map((player) => {
           const { userId } = player;
           const damages = this.calculatePlayerDamage(
@@ -641,8 +643,6 @@ export class MatchService {
             !isRated || player.userId.startsWith('bot_')
               ? 0
               : Number(ratingsChange.get(userId)?.toFixed(3));
-
-          console.log({ ratingChange });
 
           const divisions = Object.entries(normalizedStatsData.divisions).reduce(
             (acc, [key, value]) => {
@@ -688,7 +688,6 @@ export class MatchService {
           },
         });
 
-        console.log(123);
         await Promise.all(
           match.players
             .filter((player) => !player.userId.startsWith('bot_'))
