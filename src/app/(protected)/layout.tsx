@@ -40,7 +40,7 @@ export default function ProtectedLayout({
     <div className="min-h-screen bg-background">
       <Header />
       <div className="min-h-[calc(100vh-4rem)] bg-muted/10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
+        <div className="mx-auto  px-4 sm:px-6 lg:px-8">{children}</div>
       </div>
     </div>
   );

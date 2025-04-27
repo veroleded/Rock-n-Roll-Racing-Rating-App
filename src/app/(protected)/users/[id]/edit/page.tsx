@@ -429,7 +429,7 @@ function EditUserContent({ userId }: { userId: string }) {
         )}
 
         <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" onClick={() => router.push('/admin/users')}>
+          <Button type="button" variant="outline" onClick={() => router.push('/users')}>
             Отмена
           </Button>
           <Button type="submit" disabled={isUpdating}>

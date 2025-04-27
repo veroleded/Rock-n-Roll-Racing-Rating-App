@@ -351,9 +351,9 @@ export class MatchService {
     result1: 1 | 0 | 0.5,
     gameMode: GameMode
   ) {
-    let K = 100;
+    let K = 60;
     if (gameMode === 'TWO_VS_TWO') {
-      K = 66;
+      K = 40;
     }
     const result2 = 1 - result1;
     const E1 = 1 / (1 + 10 ** ((rating2 - rating1) / 400));
@@ -373,28 +373,30 @@ export class MatchService {
     let divCoef2 = 0;
 
     if (P <= OKO) {
-      divCoef1 = P * 3;
-      divCoef2 = P * 3;
+      divCoef1 = P * 10;
+      divCoef2 = P * 10;
     } else {
-      divCoef1 = OKO * 3 + (P - OKO) * 1.5;
-      divCoef2 = OKO * 3 + (P - OKO) * 1.5;
+      divCoef1 = OKO * 10 + (P - OKO) * 5;
+      divCoef2 = OKO * 10 + (P - OKO) * 5;
     }
 
-    if (team1 > team2) {
+    if (Number(team1) > Number(team2)) {
       divCoef2 = -divCoef2;
-    } else if (team1 < team2) {
+    } else if (Number(team1) < Number(team2)) {
       divCoef1 = -divCoef1;
     } else {
       divCoef1 = 0;
       divCoef2 = 0;
     }
 
+
+
     return { divCoef1, divCoef2 };
   }
 
   private getScoreCoefficient(score1: number, score2: number) {
-    const scoreCoef1 = (score1 - score2) / 1000;
-    const scoreCoef2 = (score2 - score1) / 1000;
+    const scoreCoef1 = (score1 - score2) / 500;
+    const scoreCoef2 = (score2 - score1) / 500;
     return { scoreCoef1, scoreCoef2 };
   }
 
@@ -403,6 +405,7 @@ export class MatchService {
     scoreCoefs: { scoreCoef1: number; scoreCoef2: number },
     eloCoefs: { eloCoef1: number; eloCoef2: number }
   ) {
+
     const baseCoef1 =
       eloCoefs.eloCoef1 +
       getPercentage(eloCoefs.eloCoef1, divCoefs.divCoef1 + scoreCoefs.scoreCoef1);
@@ -446,45 +449,40 @@ export class MatchService {
     );
 
 
+
+    const middleRatingTeam1 = team1Scores.rating / Object.keys(team1Scores.users).length;
+    const middleRatingTeam2 = team2Scores.rating / Object.keys(team2Scores.users).length;
+
     const usersRatingChange: Record<string, number> = {};
     if (Number(resultTeam1) > Number(resultTeam2)) {
       const R1 = getInverseCommonValue(...Object.values(team1Scores.users).map((value) => value));
       const R2 = team2Scores.rating;
-      Object.entries(team1Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = 1 / value / R1;
+      Object.keys(team1Scores.users).forEach((key) => {
+        usersRatingChange[key] = 1 / middleRatingTeam1 / R1;
       });
-      Object.entries(team2Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = value / R2;
+      Object.keys(team2Scores.users).forEach((key) => {
+        usersRatingChange[key] = middleRatingTeam2 / R2;
       });
     } else if (Number(resultTeam2) > Number(resultTeam1)) {
       const R1 = team1Scores.rating;
       const R2 = getInverseCommonValue(...Object.values(team2Scores.users).map((value) => value));
-      Object.entries(team1Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = value / R1;
+      Object.keys(team1Scores.users).forEach((key) => {
+        usersRatingChange[key] = middleRatingTeam1 / R1;
       });
-      Object.entries(team2Scores.users).forEach(([key, value]) => {
-;
-        usersRatingChange[key] = 1 / value / R2;
+      Object.keys(team2Scores.users).forEach((key) => {
+        usersRatingChange[key] = 1 / middleRatingTeam2 / R2;
       });
     } else {
       const R1 = getInverseCommonValue(...Object.values(team1Scores.users).map((value) => value));
       const R2 = getInverseCommonValue(...Object.values(team2Scores.users).map((value) => value));
 
-      Object.entries(team1Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = 1 / value / R1;
+      Object.keys(team1Scores.users).forEach((key) => {
+        usersRatingChange[key] = 1 / middleRatingTeam1 / R1;
       });
-      Object.entries(team2Scores.users).forEach(([key, value]) => {
-        usersRatingChange[key] = 1 / value / R2;
+      Object.keys(team2Scores.users).forEach((key) => {
+        usersRatingChange[key] = 1 / middleRatingTeam2 / R2;
       });
     }
-
-
-    const calibationKefs = new Map<number, number>();
-    calibationKefs.set(0, 3.5);
-    calibationKefs.set(1, 3);
-    calibationKefs.set(2, 2.5);
-    calibationKefs.set(3, 2);
-    calibationKefs.set(4, 1.5);
 
     const finalRatingChange = new Map<string, number>();
     playersInBase.forEach((player) => {
@@ -493,13 +491,11 @@ export class MatchService {
         const kef = matchPlayer.team === 1 ? baseCoefs.baseCoef1 : baseCoefs.baseCoef2;
         const userRatingChange = usersRatingChange[matchPlayer.userId];
         const divKef = divAmount / 12;
-        const calibationKef = calibationKefs.get(player.gamesPlayed) ?? 1;
-        finalRatingChange.set(
-          matchPlayer.userId,
-          userRatingChange * divKef * kef * calibationKef + 1
-        );
+
+        finalRatingChange.set(matchPlayer.userId, parseFloat((userRatingChange * divKef * kef + 1).toFixed(2)));
       }
     });
+
     return finalRatingChange;
   }
 
@@ -653,7 +649,8 @@ export class MatchService {
             },
             {} as Record<string, { scores: number; result: MatchResult }>
           );
-
+          
+          
           return {
             ...player,
             ...damages,
@@ -740,7 +737,6 @@ export class MatchService {
         return match;
       });
     } catch (error) {
-      console.error('Error create match.service', error);
       throw error;
     }
   }
