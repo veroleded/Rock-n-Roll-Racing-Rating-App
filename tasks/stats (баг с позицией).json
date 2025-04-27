@@ -1,0 +1,183 @@
+{
+  "damage": {
+    "player1": {
+      "player2": 23,
+      "player3": 41,
+      "player4": 215,
+      "player5": 200,
+      "player6": 153
+    },
+    "player2": {
+      "player1": 46,
+      "player3": 56,
+      "player4": 299,
+      "player5": 298,
+      "player6": 307
+    },
+    "player3": {
+      "player1": 61,
+      "player2": 37,
+      "player4": 361,
+      "player5": 253,
+      "player6": 215
+    },
+    "player4": {
+      "player1": 249,
+      "player2": 213,
+      "player3": 266,
+      "player5": 25,
+      "player6": 22
+    },
+    "player5": {
+      "player1": 275,
+      "player2": 211,
+      "player3": 272,
+      "player4": 57,
+      "player6": 80
+    },
+    "player6": {
+      "player1": 201,
+      "player2": 384,
+      "player3": 328,
+      "player4": 48,
+      "player5": 51
+    }
+  },
+  "scores": {
+    "player1": 3300,
+    "player2": 12000,
+    "player3": 11300,
+    "player4": 10500,
+    "player5": 8400,
+    "player6": 12100
+  },
+  "mines_damage": {
+    "player1": 76,
+    "player2": 62,
+    "player3": 56,
+    "player4": 96,
+    "player5": 88,
+    "player6": 78
+  },
+  "money_taken": {
+    "player1": 10,
+    "player2": 21,
+    "player3": 23,
+    "player4": 27,
+    "player5": 20,
+    "player6": 39
+  },
+  "armor_taken": {
+    "player1": 0,
+    "player2": 0,
+    "player3": 0,
+    "player4": 0,
+    "player5": 0,
+    "player6": 0
+  },
+  "wipeouts": {
+    "player1": 21,
+    "player2": 11,
+    "player3": 11,
+    "player4": 12,
+    "player5": 18,
+    "player6": 8
+  },
+  "chem_vi_b": {
+    "player1": 400,
+    "player2": 500,
+    "player3": 800,
+    "player4": 700,
+    "player5": 1200,
+    "player6": 1200
+  },
+  "chem_vi_a": {
+    "player1": 700,
+    "player2": 900,
+    "player3": 500,
+    "player4": 900,
+    "player5": 300,
+    "player6": 1500
+  },
+  "drakonis_b": {
+    "player1": 700,
+    "player2": 1100,
+    "player3": 400,
+    "player4": 1600,
+    "player5": 600,
+    "player6": 400
+  },
+  "drakonis_a": {
+    "player1": 300,
+    "player2": 800,
+    "player3": 1000,
+    "player4": 1200,
+    "player5": 800,
+    "player6": 700
+  },
+  "bogmire_b": {
+    "player1": 300,
+    "player2": 900,
+    "player3": 900,
+    "player4": 1100,
+    "player5": 200,
+    "player6": 1400
+  },
+  "bogmire_a": {
+    "player1": 300,
+    "player2": 1400,
+    "player3": 1600,
+    "player4": 600,
+    "player5": 400,
+    "player6": 500
+  },
+  "new_mojave_b": {
+    "player1": 100,
+    "player2": 1600,
+    "player3": 1400,
+    "player4": 800,
+    "player5": 300,
+    "player6": 600
+  },
+  "new_mojave_a": {
+    "player1": 200,
+    "player2": 1300,
+    "player3": 1100,
+    "player4": 900,
+    "player5": 1000,
+    "player6": 300
+  },
+  "nho_b": {
+    "player1": 100,
+    "player2": 600,
+    "player3": 600,
+    "player4": 500,
+    "player5": 1400,
+    "player6": 1600
+  },
+  "nho_a": {
+    "player1": 0,
+    "player2": 1100,
+    "player3": 800,
+    "player4": 500,
+    "player5": 600,
+    "player6": 1800
+  },
+  "inferno_b": {
+    "player1": 100,
+    "player2": 1200,
+    "player3": 400,
+    "player4": 1300,
+    "player5": 600,
+    "player6": 1200
+  },
+  "inferno_a": {
+    "player1": 100,
+    "player2": 600,
+    "player3": 1800,
+    "player4": 400,
+    "player5": 1000,
+    "player6": 900
+  },
+  "total_score": "8 - 16"
+}
