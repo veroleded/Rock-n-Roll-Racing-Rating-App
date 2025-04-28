@@ -1,9 +1,12 @@
 'use client';
 
+import { DamageMatrix } from '@/components/matches/DamageMatrix';
+import { DivisionsStats } from '@/components/matches/DivisionsStats';
 import { MatchActionButtons } from '@/components/matches/MatchActionButtons';
 import { MatchDetails } from '@/components/matches/MatchDetails';
 import { MatchHeader } from '@/components/matches/MatchHeader';
 import { MatchLoading, MatchNotFound } from '@/components/matches/MatchLoading';
+import { MatchStats } from '@/components/matches/MatchStats';
 import { PlayerStatsDisplay } from '@/components/matches/PlayerStatsDisplay';
 import { DamageDealt, DamageReceived, Divisions } from '@/components/matches/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -77,7 +80,7 @@ export default function MatchPage() {
   }));
 
   return (
-    <div className="container max-w-screen-xl py-8 space-y-8">
+    <div className="container mx-auto py-8 space-y-8">
       {/* Заголовок матча */}
       <MatchHeader
         id={match.id}
@@ -100,6 +103,15 @@ export default function MatchPage() {
       <div className="relative">
         <PlayerStatsDisplay players={typedPlayers} sessionUserId={session?.user.id} />
       </div>
+
+      {/* Графики статистики */}
+      <MatchStats players={typedPlayers} />
+
+      {/* Матрица урона */}
+      <DamageMatrix players={typedPlayers} />
+
+      {/* Статистика по дивизиям */}
+      <DivisionsStats players={typedPlayers} />
 
       {/* Детали матча */}
       <MatchDetails

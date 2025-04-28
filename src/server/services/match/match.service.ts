@@ -361,6 +361,8 @@ export class MatchService {
     const eloCoef1 = K * (result1 - E1);
     const eloCoef2 = K * (result2 - E2);
 
+    console.log(eloCoef1, eloCoef2);
+
     return { eloCoef1, eloCoef2 };
   }
 
@@ -389,7 +391,7 @@ export class MatchService {
       divCoef2 = 0;
     }
 
-
+    console.log(divCoef1, divCoef2);
 
     return { divCoef1, divCoef2 };
   }
@@ -397,6 +399,7 @@ export class MatchService {
   private getScoreCoefficient(score1: number, score2: number) {
     const scoreCoef1 = (score1 - score2) / 500;
     const scoreCoef2 = (score2 - score1) / 500;
+    console.log(scoreCoef1, scoreCoef2);
     return { scoreCoef1, scoreCoef2 };
   }
 
@@ -405,13 +408,13 @@ export class MatchService {
     scoreCoefs: { scoreCoef1: number; scoreCoef2: number },
     eloCoefs: { eloCoef1: number; eloCoef2: number }
   ) {
-
     const baseCoef1 =
       eloCoefs.eloCoef1 +
       getPercentage(eloCoefs.eloCoef1, divCoefs.divCoef1 + scoreCoefs.scoreCoef1);
     const baseCoef2 =
       eloCoefs.eloCoef2 +
       getPercentage(eloCoefs.eloCoef2, divCoefs.divCoef2 + scoreCoefs.scoreCoef2);
+    console.log(baseCoef1, baseCoef2);
     return { baseCoef1: baseCoef1, baseCoef2: baseCoef2 };
   }
 
@@ -447,8 +450,6 @@ export class MatchService {
         team2Scores: { rating: number; users: Record<string, number> };
       }
     );
-
-
 
     const middleRatingTeam1 = team1Scores.rating / Object.keys(team1Scores.users).length;
     const middleRatingTeam2 = team2Scores.rating / Object.keys(team2Scores.users).length;
@@ -492,7 +493,10 @@ export class MatchService {
         const userRatingChange = usersRatingChange[matchPlayer.userId];
         const divKef = divAmount / 12;
 
-        finalRatingChange.set(matchPlayer.userId, parseFloat((userRatingChange * divKef * kef + 1).toFixed(2)));
+        finalRatingChange.set(
+          matchPlayer.userId,
+          parseFloat((userRatingChange * divKef * kef + 1).toFixed(2))
+        );
       }
     });
 
@@ -517,9 +521,9 @@ export class MatchService {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const normalizedStatsData = this.normalizeStatsData(data.statsData, data.players);
- 
+
         const isRated = this.isRated(data.mode, data.players, data.isTraining);
-     
+
         const isLeave = data.players.some((value) => value.hasLeft);
         const teamsResultDivisions = this.calculateTeamResultDivisions(
           normalizedStatsData.divisions,
@@ -649,8 +653,7 @@ export class MatchService {
             },
             {} as Record<string, { scores: number; result: MatchResult }>
           );
-          
-          
+
           return {
             ...player,
             ...damages,
