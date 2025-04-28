@@ -361,7 +361,7 @@ export class MatchService {
     const eloCoef1 = K * (result1 - E1);
     const eloCoef2 = K * (result2 - E2);
 
-    console.log(eloCoef1, eloCoef2);
+    console.log({ eloCoef1, eloCoef2 });
 
     return { eloCoef1, eloCoef2 };
   }
@@ -391,7 +391,7 @@ export class MatchService {
       divCoef2 = 0;
     }
 
-    console.log(divCoef1, divCoef2);
+    console.log({ divCoef1, divCoef2 });
 
     return { divCoef1, divCoef2 };
   }
@@ -399,7 +399,7 @@ export class MatchService {
   private getScoreCoefficient(score1: number, score2: number) {
     const scoreCoef1 = (score1 - score2) / 500;
     const scoreCoef2 = (score2 - score1) / 500;
-    console.log(scoreCoef1, scoreCoef2);
+    console.log({ scoreCoef1, scoreCoef2 });
     return { scoreCoef1, scoreCoef2 };
   }
 
@@ -414,7 +414,7 @@ export class MatchService {
     const baseCoef2 =
       eloCoefs.eloCoef2 +
       getPercentage(eloCoefs.eloCoef2, divCoefs.divCoef2 + scoreCoefs.scoreCoef2);
-    console.log(baseCoef1, baseCoef2);
+    console.log({ baseCoef1, baseCoef2 });
     return { baseCoef1: baseCoef1, baseCoef2: baseCoef2 };
   }
 
@@ -424,6 +424,8 @@ export class MatchService {
     totalScore: string,
     divAmount: number
   ) {
+
+    console.log({ players });
     const [resultTeam1, resultTeam2] = totalScore.split(' - ');
     const playersInBase = await this.prisma.stats.findMany({
       where: {
@@ -626,6 +628,8 @@ export class MatchService {
         }
 
         const matchPlayers = data.players.map((player) => {
+          const team = player.team.toString();
+          console.log({ team });
           const { userId } = player;
           const damages = this.calculatePlayerDamage(
             player.userId,
@@ -654,6 +658,21 @@ export class MatchService {
             {} as Record<string, { scores: number; result: MatchResult }>
           );
 
+          console.log({ damage: normalizedStatsData.damage });
+
+          console.log({
+            player,
+            damages,
+            score,
+            minesDamage,
+            moneyTaken,
+            armorTaken,
+            wipeouts,
+            divisions,
+            result,
+            ratingChange,
+          });
+
           return {
             ...player,
             ...damages,
@@ -667,6 +686,8 @@ export class MatchService {
             ratingChange,
           };
         });
+
+        return;
 
         const match = await tx.match.create({
           data: {

@@ -22,7 +22,7 @@ export default function MatchPage() {
   const { data: session } = useSession();
 
   // Запрос данных матча
-  const { data: match, isLoading } = trpc.matches.byId.useQuery(params.id as string, {
+  const { data: match, isLoading } = trpc.matches.byId.useQuery(params?.id as string, {
     refetchOnWindowFocus: false,
     retry: false,
     onError: (error) => {

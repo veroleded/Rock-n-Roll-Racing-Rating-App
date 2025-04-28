@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, Bot, Coins, ShieldHalf, Target, User } from 'lucide-react';
+import { AlertTriangle, Bot, Coins, ShieldHalf, Target, Trophy, User } from 'lucide-react';
 import React from 'react';
 import { DamageDealt, MatchPlayer } from './types';
 
@@ -27,23 +27,67 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
     {} as Record<number, typeof players>
   );
 
+  // Находим игрока с максимальным количеством вайпаутов
+  const playerWithMaxWipeouts = players.reduce((maxPlayer, currentPlayer) => {
+    return currentPlayer.wipeouts > (maxPlayer?.wipeouts || 0) ? currentPlayer : maxPlayer;
+  }, players[0]);
+
+  // Находим игрока с максимальным количеством очков
+  const playerWithMaxScore = players.reduce((maxPlayer, currentPlayer) => {
+    return currentPlayer.score > (maxPlayer?.score || 0) ? currentPlayer : maxPlayer;
+  }, players[0]);
+
   return (
     <div className="w-full">
       <div className="grid md:grid-cols-2 gap-4">
-        {Object.entries(teams).map(([teamId, teamPlayers]) => (
-          <div key={teamId} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              {teamPlayers.map((player) => (
-                <PlayerStatsCard
-                  key={player.id}
-                  player={player}
-                  allPlayers={players}
-                  isCurrentUser={player.userId === sessionUserId}
-                />
-              ))}
+        {Object.entries(teams).map(([teamId, teamPlayers]) => {
+          // Считаем сумму очков команды
+          const teamTotalScore = teamPlayers.reduce((sum, player) => sum + player.score, 0);
+          const hasWin = teamPlayers.some((player) => player.result === 'WIN');
+
+          return (
+            <div key={teamId} className="space-y-2">
+              {/* Заголовок команды с суммой очков */}
+              <TeamScoreHeader
+                teamName={`Команда ${parseInt(teamId)}`}
+                totalScore={teamTotalScore}
+                hasWin={hasWin}
+              />
+
+              <div className="grid grid-cols-1 gap-4">
+                {teamPlayers.map((player) => (
+                  <PlayerStatsCard
+                    key={player.id}
+                    player={player}
+                    allPlayers={players}
+                    isCurrentUser={player.userId === sessionUserId}
+                    isTopWipeouts={
+                      player.userId === playerWithMaxWipeouts.userId && player.wipeouts > 0
+                    }
+                    isTopScore={player.userId === playerWithMaxScore.userId && player.score > 0}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// Компонент заголовка команды с общим счетом
+const TeamScoreHeader: React.FC<{
+  teamName: string;
+  totalScore: number;
+  hasWin: boolean;
+}> = ({ teamName, totalScore, hasWin }) => {
+  return (
+    <div className="flex items-center justify-between px-2 py-[5px]">
+      <h3 className="font-bold text-base">{teamName}</h3>
+      <div className="flex items-center gap-2">
+        <Trophy className={cn('h-4 w-4', hasWin ? 'text-yellow-500' : 'text-gray-400')} />
+        <span className="font-bold text-lg">{totalScore}</span>
       </div>
     </div>
   );
@@ -53,7 +97,9 @@ const PlayerStatsCard: React.FC<{
   player: MatchPlayer;
   allPlayers: MatchPlayer[];
   isCurrentUser: boolean;
-}> = ({ player, allPlayers, isCurrentUser }) => {
+  isTopWipeouts?: boolean;
+  isTopScore?: boolean;
+}> = ({ player, allPlayers, isCurrentUser, isTopWipeouts = false, isTopScore = false }) => {
   // Отображаемые названия результатов
   const resultNames = {
     WIN: 'Победа',
@@ -75,10 +121,10 @@ const PlayerStatsCard: React.FC<{
       style={{
         borderColor:
           player.result === 'WIN'
-            ? 'rgb(34, 197, 94)'
+            ? 'rgb(74, 222, 128)'
             : player.result === 'LOSS'
-              ? 'rgb(239, 68, 68)'
-              : 'rgb(234, 179, 8)',
+              ? 'rgb(248, 113, 113)'
+              : 'rgb(250, 204, 21)',
       }}
     >
       {/* Хедер с аватаром и именем */}
@@ -86,10 +132,10 @@ const PlayerStatsCard: React.FC<{
         className={cn(
           'p-1.5 flex items-center gap-1.5',
           player.result === 'WIN'
-            ? 'bg-green-500/10'
+            ? 'bg-green-500/20'
             : player.result === 'LOSS'
-              ? 'bg-red-500/10'
-              : 'bg-yellow-500/10'
+              ? 'bg-red-500/20'
+              : 'bg-yellow-500/20'
         )}
       >
         <div className="relative">
@@ -117,6 +163,19 @@ const PlayerStatsCard: React.FC<{
               {isCurrentUser && (
                 <Badge variant="secondary" className="ml-1 text-[9px] py-0 h-4">
                   Вы
+                </Badge>
+              )}
+              {isTopWipeouts && (
+                <Badge
+                  variant="destructive"
+                  className="ml-1 text-[9px] py-0 h-4 bg-pink-400 border-pink-500 hover:bg-pink-500/90 hover:border-pink-400/90"
+                >
+                  ХУЕСОС
+                </Badge>
+              )}
+              {isTopScore && (
+                <Badge variant="default" className="ml-1 text-[9px] py-0 h-4">
+                  ПИЗДОЛИЗ
                 </Badge>
               )}
             </h3>
@@ -156,14 +215,14 @@ const PlayerStatsCard: React.FC<{
         <div className="grid md:grid-cols-2 gap-1.5 h-full">
           {/* Колонка 1: Урон */}
           <div className="flex flex-col space-y-1.5">
-            <div className="bg-muted rounded-lg p-1">
+            <div className="bg-muted/80 rounded-lg p-1">
               <div className="text-[9px] font-medium">Нанесенный урон</div>
               <div className="flex items-center gap-1 text-base font-bold">
-                <Target className="h-3 w-3 text-red-500" />
+                <Target className="h-3 w-3 text-red-400" />
                 {player.totalDamageDealt}
               </div>
               {hasAllyDamage && (
-                <div className="text-[9px] text-red-600 flex items-center">
+                <div className="text-[9px] text-red-400 flex items-center">
                   <AlertTriangle className="h-2 w-2 mr-0.5" />
                   Урон по союзникам: {totalAllyDamage} (
                   {((totalAllyDamage / player.totalDamageDealt) * 100).toFixed(1)}%)
@@ -212,7 +271,7 @@ const PlayerStatsCard: React.FC<{
               value={player.moneyTaken}
               icon={<Coins className="h-2.5 w-2.5 text-yellow-500" />}
               valueClassName="text-green-500"
-              format={(val) => `$${val.toLocaleString()}`}
+              format={(val) => `$${val.toLocaleString()}00`}
             />
 
             <StatCard

@@ -178,7 +178,7 @@ export class TeamFormationService {
     const gameTypeText =
       gameType === 'THREE_VS_THREE' ? '3x3' : gameType === 'TWO_VS_TWO' ? '2x2' : '2x2x2';
 
-    embed.setTitle(`Команды сформированы (${gameTypeText})`);
+    embed.setTitle(`Команды сформированы (${gameTypeText}). http://80.76.34.54:3000/matches`);
 
     await message.reply({ embeds: [embed] });
 

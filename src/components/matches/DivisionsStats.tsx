@@ -123,25 +123,25 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
   const colors = {
     team: {
       1: {
-        text: isDark ? 'text-blue-400' : 'text-blue-600',
+        text: isDark ? 'text-blue-300' : 'text-blue-600',
       },
       2: {
-        text: isDark ? 'text-red-400' : 'text-red-600',
+        text: isDark ? 'text-red-300' : 'text-red-600',
       },
     },
     result: {
       WIN: {
-        text: isDark ? 'text-green-400' : 'text-green-600',
+        text: isDark ? 'text-green-300' : 'text-green-500',
       },
       LOSS: {
-        text: isDark ? 'text-red-400' : 'text-red-600',
+        text: isDark ? 'text-red-300' : 'text-red-500',
       },
       DRAW: {
-        text: isDark ? 'text-amber-400' : 'text-amber-600',
+        text: isDark ? 'text-amber-300' : 'text-amber-500',
       },
     },
     total: {
-      bg: isDark ? 'bg-muted/30' : 'bg-muted/30',
+      bg: isDark ? 'bg-muted/40' : 'bg-muted/40',
     },
   };
 

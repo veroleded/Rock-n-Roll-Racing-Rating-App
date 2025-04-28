@@ -62,26 +62,26 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
   const colors = {
     team: {
       1: {
-        text: isDark ? 'text-blue-400' : 'text-blue-600',
+        text: isDark ? 'text-blue-300' : 'text-blue-600',
       },
       2: {
-        text: isDark ? 'text-red-400' : 'text-red-600',
+        text: isDark ? 'text-red-300' : 'text-red-600',
       },
     },
     damage: {
       friendly: {
-        text: isDark ? 'text-red-400' : 'text-red-600',
+        text: isDark ? 'text-red-300' : 'text-red-500',
       },
       enemy: {
         high: isDark ? 'text-primary font-bold' : 'text-primary font-bold',
-        medium: isDark ? 'text-primary/90 font-semibold' : 'text-primary/90 font-semibold',
-        low: isDark ? 'text-primary/80' : 'text-primary/80',
+        medium: isDark ? 'text-primary/95 font-semibold' : 'text-primary/90 font-semibold',
+        low: isDark ? 'text-primary/85' : 'text-primary/80',
       },
-      none: 'text-muted-foreground opacity-40',
-      self: isDark ? 'bg-accent/10' : 'bg-accent/10',
+      none: isDark ? 'text-muted-foreground opacity-30' : 'text-muted-foreground opacity-40',
+      self: isDark ? 'bg-accent/30' : 'bg-accent/20',
     },
     total: {
-      bg: isDark ? 'bg-muted/30' : 'bg-muted/30',
+      bg: isDark ? 'bg-muted/40' : 'bg-muted/50',
       text: 'text-foreground',
     },
   };
