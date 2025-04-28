@@ -160,12 +160,16 @@ export class TeamFormationService {
           shuffledTeam.length
       );
 
+      const sumTeamRating = shuffledTeam
+        .reduce((sum, player) => sum + (player.stats?.rating || 0), 0)
+        .toFixed(2);
+
       const teamInfo = shuffledTeam
         .map((player) => `${player.name} (${player.stats?.rating || 0})`)
         .join('\n');
 
       embed.addFields({
-        name: `Команда ${index + 1} (ср. рейтинг: ${teamRating})`,
+        name: `Команда ${index + 1} (ср. рейтинг: ${teamRating} / ${sumTeamRating})`,
         value: teamInfo,
         inline: false,
       });

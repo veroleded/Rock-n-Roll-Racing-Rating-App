@@ -54,15 +54,11 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
+    <div className="container mx-auto h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex items-center justify-between border-b pb-4 pt-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Мой профиль
-          </h1>
-          <p className="text-muted-foreground">
-            Ваша личная информация и статистика
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Мой профиль</h1>
+          <p className="text-muted-foreground">Ваша личная информация и статистика</p>
         </div>
         {isAdmin && (
           <Button asChild>
@@ -84,7 +80,7 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex flex-col items-center gap-4">
                 <Avatar className="h-32 w-32 border-4 border-primary/10">
-                  <AvatarImage src={user.image || ""} />
+                  <AvatarImage src={user.image || ''} />
                   <AvatarFallback className="text-4xl bg-primary/5">
                     <User className="h-16 w-16" />
                   </AvatarFallback>
@@ -96,9 +92,7 @@ export default function DashboardPage() {
               <div className="flex-1 space-y-4">
                 <div>
                   <h2 className="text-2xl font-bold">{user.name}</h2>
-                  {user.email && (
-                    <p className="text-muted-foreground">{user.email}</p>
-                  )}
+                  {user.email && <p className="text-muted-foreground">{user.email}</p>}
                 </div>
 
                 {user.stats && (
@@ -122,10 +116,10 @@ export default function DashboardPage() {
                       <p className="text-sm text-muted-foreground">Присоединился</p>
                       <p className="text-base">
                         {user.stats.createdAt
-                          ? format(new Date(user.stats.createdAt), "d MMMM yyyy", {
-                            locale: ru,
-                          })
-                          : "Неизвестно"}
+                          ? format(new Date(user.stats.createdAt), 'd MMMM yyyy', {
+                              locale: ru,
+                            })
+                          : 'Неизвестно'}
                       </p>
                     </div>
                   </div>
@@ -162,21 +156,29 @@ export default function DashboardPage() {
                             <div className="grid grid-cols-3 gap-4">
                               <div className="space-y-1 text-center">
                                 <p className="text-sm font-medium">Победы</p>
-                                <p className="text-xl font-bold text-green-500">{user.stats.wins}</p>
+                                <p className="text-xl font-bold text-green-500">
+                                  {user.stats.wins}
+                                </p>
                               </div>
                               <div className="space-y-1 text-center">
                                 <p className="text-sm font-medium">Поражения</p>
-                                <p className="text-xl font-bold text-red-500">{user.stats.losses}</p>
+                                <p className="text-xl font-bold text-red-500">
+                                  {user.stats.losses}
+                                </p>
                               </div>
                               <div className="space-y-1 text-center">
                                 <p className="text-sm font-medium">Ничьи</p>
-                                <p className="text-xl font-bold text-yellow-500">{user.stats.draws}</p>
+                                <p className="text-xl font-bold text-yellow-500">
+                                  {user.stats.draws}
+                                </p>
                               </div>
                             </div>
 
                             <div className="space-y-2">
                               <div className="flex justify-between items-center">
-                                <p className="text-sm font-medium">Всего игр: {user.stats.gamesPlayed}</p>
+                                <p className="text-sm font-medium">
+                                  Всего игр: {user.stats.gamesPlayed}
+                                </p>
                                 <div className="flex items-center gap-2 text-xs">
                                   <span className="flex items-center gap-1">
                                     <div className="w-3 h-3 bg-green-500 rounded-sm"></div> Победы
@@ -195,28 +197,48 @@ export default function DashboardPage() {
                                     <div
                                       className="h-full bg-green-500"
                                       style={{
-                                        width: `${(user.stats.wins / user.stats.gamesPlayed) * 100}%`
+                                        width: `${(user.stats.wins / user.stats.gamesPlayed) * 100}%`,
                                       }}
                                     ></div>
                                     <div
                                       className="h-full bg-red-500"
                                       style={{
-                                        width: `${(user.stats.losses / user.stats.gamesPlayed) * 100}%`
+                                        width: `${(user.stats.losses / user.stats.gamesPlayed) * 100}%`,
                                       }}
                                     ></div>
                                     <div
                                       className="h-full bg-yellow-500"
                                       style={{
-                                        width: `${(user.stats.draws / user.stats.gamesPlayed) * 100}%`
+                                        width: `${(user.stats.draws / user.stats.gamesPlayed) * 100}%`,
                                       }}
                                     ></div>
                                   </>
                                 )}
                               </div>
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>Побед: {user.stats.gamesPlayed ? ((user.stats.wins / user.stats.gamesPlayed) * 100).toFixed(1) : 0}%</span>
-                                <span>Поражений: {user.stats.gamesPlayed ? ((user.stats.losses / user.stats.gamesPlayed) * 100).toFixed(1) : 0}%</span>
-                                <span>Ничьих: {user.stats.gamesPlayed ? ((user.stats.draws / user.stats.gamesPlayed) * 100).toFixed(1) : 0}%</span>
+                                <span>
+                                  Побед:{' '}
+                                  {user.stats.gamesPlayed
+                                    ? ((user.stats.wins / user.stats.gamesPlayed) * 100).toFixed(1)
+                                    : 0}
+                                  %
+                                </span>
+                                <span>
+                                  Поражений:{' '}
+                                  {user.stats.gamesPlayed
+                                    ? ((user.stats.losses / user.stats.gamesPlayed) * 100).toFixed(
+                                        1
+                                      )
+                                    : 0}
+                                  %
+                                </span>
+                                <span>
+                                  Ничьих:{' '}
+                                  {user.stats.gamesPlayed
+                                    ? ((user.stats.draws / user.stats.gamesPlayed) * 100).toFixed(1)
+                                    : 0}
+                                  %
+                                </span>
                               </div>
                             </div>
 
@@ -241,7 +263,9 @@ export default function DashboardPage() {
                           <div className="grid grid-cols-3 gap-4">
                             <div className="flex flex-col items-center justify-center p-3 bg-green-500/10 rounded-lg">
                               <p className="text-sm text-muted-foreground">Максимальный</p>
-                              <p className="text-xl font-bold text-green-500">{user.stats.maxRating || user.stats.rating}</p>
+                              <p className="text-xl font-bold text-green-500">
+                                {user.stats.maxRating || user.stats.rating}
+                              </p>
                             </div>
                             <div className="flex flex-col items-center justify-center p-3 bg-primary/10 rounded-lg">
                               <p className="text-sm text-muted-foreground">Текущий</p>
@@ -249,7 +273,9 @@ export default function DashboardPage() {
                             </div>
                             <div className="flex flex-col items-center justify-center p-3 bg-red-500/10 rounded-lg">
                               <p className="text-sm text-muted-foreground">Минимальный</p>
-                              <p className="text-xl font-bold text-red-500">{user.stats.minRating || 0}</p>
+                              <p className="text-xl font-bold text-red-500">
+                                {user.stats.minRating || 0}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -260,7 +286,16 @@ export default function DashboardPage() {
                       <div className="bg-card rounded-lg border border-border/40 shadow-sm overflow-hidden">
                         <div className="bg-primary/5 px-4 py-3 border-b border-border/40">
                           <h3 className="text-lg font-semibold flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="h-5 w-5 text-primary"
+                            >
                               <rect width="18" height="18" x="3" y="3" rx="2" />
                               <path d="M3 9h18M9 21V9" />
                             </svg>
@@ -272,21 +307,29 @@ export default function DashboardPage() {
                             <div className="grid grid-cols-3 gap-4">
                               <div className="space-y-1 text-center">
                                 <p className="text-sm font-medium">Победы</p>
-                                <p className="text-xl font-bold text-green-500">{user.stats.winsDivisions || 0}</p>
+                                <p className="text-xl font-bold text-green-500">
+                                  {user.stats.winsDivisions || 0}
+                                </p>
                               </div>
                               <div className="space-y-1 text-center">
                                 <p className="text-sm font-medium">Поражения</p>
-                                <p className="text-xl font-bold text-red-500">{user.stats.lossesDivisions || 0}</p>
+                                <p className="text-xl font-bold text-red-500">
+                                  {user.stats.lossesDivisions || 0}
+                                </p>
                               </div>
                               <div className="space-y-1 text-center">
                                 <p className="text-sm font-medium">Ничьи</p>
-                                <p className="text-xl font-bold text-yellow-500">{user.stats.drawsDivisions || 0}</p>
+                                <p className="text-xl font-bold text-yellow-500">
+                                  {user.stats.drawsDivisions || 0}
+                                </p>
                               </div>
                             </div>
 
                             <div className="space-y-2">
                               <div className="flex justify-between items-center">
-                                <p className="text-sm font-medium">Всего дивизионов: {user.stats.totalDivisions || 0}</p>
+                                <p className="text-sm font-medium">
+                                  Всего дивизионов: {user.stats.totalDivisions || 0}
+                                </p>
                                 <div className="flex items-center gap-2 text-xs">
                                   <span className="flex items-center gap-1">
                                     <div className="w-3 h-3 bg-green-500 rounded-sm"></div> Победы
@@ -305,28 +348,55 @@ export default function DashboardPage() {
                                     <div
                                       className="h-full bg-green-500"
                                       style={{
-                                        width: `${(user.stats.winsDivisions / user.stats.totalDivisions) * 100}%`
+                                        width: `${(user.stats.winsDivisions / user.stats.totalDivisions) * 100}%`,
                                       }}
                                     ></div>
                                     <div
                                       className="h-full bg-red-500"
                                       style={{
-                                        width: `${(user.stats.lossesDivisions / user.stats.totalDivisions) * 100}%`
+                                        width: `${(user.stats.lossesDivisions / user.stats.totalDivisions) * 100}%`,
                                       }}
                                     ></div>
                                     <div
                                       className="h-full bg-yellow-500"
                                       style={{
-                                        width: `${(user.stats.drawsDivisions / user.stats.totalDivisions) * 100}%`
+                                        width: `${(user.stats.drawsDivisions / user.stats.totalDivisions) * 100}%`,
                                       }}
                                     ></div>
                                   </>
                                 )}
                               </div>
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>Побед: {user.stats.totalDivisions ? ((user.stats.winsDivisions / user.stats.totalDivisions) * 100).toFixed(1) : 0}%</span>
-                                <span>Поражений: {user.stats.totalDivisions ? ((user.stats.lossesDivisions / user.stats.totalDivisions) * 100).toFixed(1) : 0}%</span>
-                                <span>Ничьих: {user.stats.totalDivisions ? ((user.stats.drawsDivisions / user.stats.totalDivisions) * 100).toFixed(1) : 0}%</span>
+                                <span>
+                                  Побед:{' '}
+                                  {user.stats.totalDivisions
+                                    ? (
+                                        (user.stats.winsDivisions / user.stats.totalDivisions) *
+                                        100
+                                      ).toFixed(1)
+                                    : 0}
+                                  %
+                                </span>
+                                <span>
+                                  Поражений:{' '}
+                                  {user.stats.totalDivisions
+                                    ? (
+                                        (user.stats.lossesDivisions / user.stats.totalDivisions) *
+                                        100
+                                      ).toFixed(1)
+                                    : 0}
+                                  %
+                                </span>
+                                <span>
+                                  Ничьих:{' '}
+                                  {user.stats.totalDivisions
+                                    ? (
+                                        (user.stats.drawsDivisions / user.stats.totalDivisions) *
+                                        100
+                                      ).toFixed(1)
+                                    : 0}
+                                  %
+                                </span>
                               </div>
                             </div>
                           </div>
