@@ -121,7 +121,7 @@ export const authRouter = router({
             hasJoinedBot: true,
             stats: {
               create: {
-                rating: 1800,
+                rating: 1100,
                 gamesPlayed: 0,
                 wins: 0,
                 losses: 0,

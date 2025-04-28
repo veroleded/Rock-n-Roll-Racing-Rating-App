@@ -51,7 +51,7 @@ async function main() {
             image: avatarUrl,
             stats: {
               create: {
-                rating: 1800,
+                rating: 1100,
                 gamesPlayed: 0,
                 wins: 0,
                 losses: 0,

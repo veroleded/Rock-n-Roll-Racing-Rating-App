@@ -70,7 +70,7 @@ export class UsersService {
           hasJoinedBot: true,
           stats: {
             create: {
-              rating: 1800,
+              rating: 1100,
               gamesPlayed: 0,
               wins: 0,
               losses: 0,
@@ -203,8 +203,13 @@ export class UsersService {
       orderBy: [{ stats: { rating: 'desc' } }, { stats: { totalScore: 'desc' } }],
     });
 
+    const usersWithRank = allUsers.map((user, index) => ({
+      ...user,
+      rank: index + 1,
+    }));
+
     // Находим индекс текущего игрока
-    const userIndex = allUsers.findIndex((user) => user.id === userId);
+    const userIndex = usersWithRank.findIndex((user) => user.id === userId);
 
     if (userIndex === -1) {
       throw new Error('Пользователь не найден');
@@ -229,15 +234,15 @@ export class UsersService {
     }
 
     // Выбираем 10 игроков
-    const neighbors = allUsers.slice(startIndex, endIndex);
+    const neighbors = usersWithRank.slice(startIndex, endIndex);
 
     // Если получилось меньше 10 (маловероятно, но на всякий случай)
     while (neighbors.length < 10 && allUsers.length >= 10) {
       if (startIndex > 0) {
         startIndex--;
-        neighbors.unshift(allUsers[startIndex]);
+        neighbors.unshift(usersWithRank[startIndex]);
       } else if (endIndex < allUsers.length) {
-        neighbors.push(allUsers[endIndex]);
+        neighbors.push(usersWithRank[endIndex]);
         endIndex++;
       } else {
         break; // Невозможно добавить больше игроков

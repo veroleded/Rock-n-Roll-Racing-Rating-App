@@ -40,9 +40,9 @@ const formSchema = z.object({
   role: z.enum(['ADMIN', 'MODERATOR', 'PLAYER']),
   stats: z
     .object({
-      rating: z.number().min(0).max(50000),
-      maxRating: z.number().min(0).max(50000),
-      minRating: z.number().min(0).max(50000),
+      rating: z.number(),
+      maxRating: z.number(),
+      minRating: z.number(),
       totalScore: z.number().min(0),
       gamesPlayed: z.number().min(0),
       wins: z.number().min(0),
@@ -61,6 +61,7 @@ type FormValues = z.infer<typeof formSchema>;
 function EditUserContent({ userId }: { userId: string }) {
   const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [userRole, setUserRole] = useState<Role | undefined>(undefined);
 
   const { data: session } = trpc.auth.getSession.useQuery();
   const { data: userData, isLoading } = trpc.users.byId.useQuery(userId);
@@ -69,8 +70,8 @@ function EditUserContent({ userId }: { userId: string }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       id: userId,
-      role: userData?.role || 'PLAYER',
-      stats: userData?.stats || null,
+      role: undefined as unknown as Role,
+      stats: null,
     },
   });
 
@@ -100,10 +101,11 @@ function EditUserContent({ userId }: { userId: string }) {
 
   useEffect(() => {
     if (userData) {
+      setUserRole(userData.role);
       form.reset({
         id: userData.id,
         role: userData.role,
-        stats: userData.stats,
+        stats: userData.stats || null,
       });
     }
   }, [userData, form]);
@@ -247,20 +249,25 @@ function EditUserContent({ userId }: { userId: string }) {
 
               <div className="grid gap-2">
                 <label className="text-sm font-medium">Роль</label>
-                <Select
-                  value={form.watch('role')}
-                  onValueChange={(value: Role) => form.setValue('role', value)}
-                  disabled={userData.role === 'ADMIN'}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PLAYER">Игрок</SelectItem>
-                    <SelectItem value="MODERATOR">Модератор</SelectItem>
-                    <SelectItem value="ADMIN">Администратор</SelectItem>
-                  </SelectContent>
-                </Select>
+                {userData && userRole && (
+                  <Select
+                    value={userRole}
+                    onValueChange={(value: Role) => {
+                      setUserRole(value);
+                      form.setValue('role', value);
+                    }}
+                    disabled={userData.role === 'ADMIN'}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PLAYER">Игрок</SelectItem>
+                      <SelectItem value="MODERATOR">Модератор</SelectItem>
+                      <SelectItem value="ADMIN">Администратор</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
                 {form.formState.errors.role && (
                   <p className="text-sm text-destructive">{form.formState.errors.role.message}</p>
                 )}
@@ -284,6 +291,7 @@ function EditUserContent({ userId }: { userId: string }) {
                   <Input
                     id="rating"
                     type="number"
+                    step="0.01"
                     {...form.register('stats.rating', { setValueAs: (value) => Number(value) })}
                   />
                   {form.formState.errors.stats?.rating && (
@@ -300,6 +308,7 @@ function EditUserContent({ userId }: { userId: string }) {
                   <Input
                     id="maxRating"
                     type="number"
+                    step="0.01"
                     {...form.register('stats.maxRating', { setValueAs: (value) => Number(value) })}
                   />
                 </div>
@@ -311,6 +320,7 @@ function EditUserContent({ userId }: { userId: string }) {
                   <Input
                     id="minRating"
                     type="number"
+                    step="0.01"
                     {...form.register('stats.minRating', { setValueAs: (value) => Number(value) })}
                   />
                 </div>

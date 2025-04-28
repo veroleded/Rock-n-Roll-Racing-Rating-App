@@ -57,13 +57,6 @@ export const statCommand: Command = {
         const totalGames = user.stats.wins + user.stats.losses + user.stats.draws;
         const winRate = Math.round((user.stats.wins / (totalGames || 1)) * 100);
 
-        // Заглушки для данных о дивизионах и очках
-        const divTotal = 0;
-        const divWon = 0;
-        const divLost = 0;
-        const divDraw = 0;
-        const totalScores = 0;
-
         const embed = createEmbed.stats(user).addFields(
           {
             name: '👑 Ранг',
@@ -77,12 +70,12 @@ export const statCommand: Command = {
           },
           {
             name: '🏆 Дивизионы',
-            value: `Всего: ${divTotal}\nПобед: ${divWon}\nПоражений: ${divLost}\nНичьих: ${divDraw}`,
+            value: `Всего: ${user.stats.totalDivisions}\nПобед: ${user.stats.winsDivisions}\nПоражений: ${user.stats.lossesDivisions}\nНичьих: ${user.stats.drawsDivisions}`,
             inline: false,
           },
           {
             name: '📊 Очки',
-            value: `Всего очков: ${totalScores}`,
+            value: `Всего очков: ${user.stats.totalScore}`,
             inline: false,
           }
         );

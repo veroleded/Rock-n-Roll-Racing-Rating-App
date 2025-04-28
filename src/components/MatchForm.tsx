@@ -106,6 +106,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [openPopover, setOpenPopover] = useState<string | null>(null);
 
   const [statsData, setStatsData] = useState<CreateStatsData | null>(null);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -336,136 +337,145 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
     }
   };
 
-  const renderPlayerSelect = (teamIndex: number, playerIndex: number) => (
-    <FormField
-      control={form.control}
-      name={`teams.${teamIndex}.players.${playerIndex}.id`}
-      render={({ field }) => (
-        <FormItem className="flex-1">
-          <FormLabel className="text-base">Игрок {playerIndex + 1}</FormLabel>
-          <Popover>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button variant="outline" role="combobox" className="w-full justify-between">
-                  {field.value ? (
-                    <div className="flex items-center gap-2">
-                      {field.value.startsWith('bot_') ? (
-                        <Bot className="h-4 w-4" />
-                      ) : (
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage
-                            src={users.find((user) => user.id === field.value)?.image || ''}
-                            alt="Avatar"
-                          />
-                          <AvatarFallback>
-                            <User className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                      <span>
+  const renderPlayerSelect = (teamIndex: number, playerIndex: number) => {
+    const popoverId = `team-${teamIndex}-player-${playerIndex}`;
+
+    return (
+      <FormField
+        control={form.control}
+        name={`teams.${teamIndex}.players.${playerIndex}.id`}
+        render={({ field }) => (
+          <FormItem className="flex-1">
+            <FormLabel className="text-base">Игрок {playerIndex + 1}</FormLabel>
+            <Popover
+              open={openPopover === popoverId}
+              onOpenChange={(open) => setOpenPopover(open ? popoverId : null)}
+            >
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button variant="outline" role="combobox" className="w-full justify-between">
+                    {field.value ? (
+                      <div className="flex items-center gap-2">
                         {field.value.startsWith('bot_') ? (
-                          <span>
-                            <span className="text-muted-foreground">[БОТ]</span>{' '}
-                            {bots.find((bot) => bot.id === field.value)?.name ||
-                              field.value.replace('bot_', '')}
-                          </span>
+                          <Bot className="h-4 w-4" />
                         ) : (
-                          users.find((user) => user.id === field.value)?.name || 'Выберите игрока'
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage
+                              src={users.find((user) => user.id === field.value)?.image || ''}
+                              alt="Avatar"
+                            />
+                            <AvatarFallback>
+                              <User className="h-4 w-4" />
+                            </AvatarFallback>
+                          </Avatar>
                         )}
-                      </span>
-                    </div>
-                  ) : (
-                    'Выберите игрока'
-                  )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0" align="start">
-              <div className="flex flex-col">
-                <div className="flex items-center border-b p-2">
-                  <input
-                    className="flex h-9 w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder="Поиск игрока..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div className="max-h-[300px] overflow-y-auto">
-                  {isLoadingUsers ? (
-                    <div className="flex items-center justify-center py-6">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col py-2">
-                      {getAvailablePlayers(teamIndex, playerIndex, searchTerm).map((player) => (
-                        <button
-                          type="button"
-                          key={player.id}
-                          className={cn(
-                            'relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground',
-                            field.value === player.id ? 'bg-accent text-accent-foreground' : ''
-                          )}
-                          onClick={() => {
-                            form.setValue(
-                              `teams.${teamIndex}.players.${playerIndex}.id`,
-                              player.id
-                            );
-                            form.setValue(
-                              `teams.${teamIndex}.players.${playerIndex}.isBot`,
-                              player.id.startsWith('bot_')
-                            );
-                            setSearchTerm('');
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              field.value === player.id ? 'opacity-100' : 'opacity-0'
-                            )}
-                          />
-                          <div className="flex items-center gap-2">
-                            {player.id.startsWith('bot_') ? (
-                              <Bot className="h-4 w-4" />
-                            ) : (
-                              <Avatar className="h-6 w-6">
-                                <AvatarImage src={player.image || ''} alt="Avatar" />
-                                <AvatarFallback>
-                                  <User className="h-4 w-4" />
-                                </AvatarFallback>
-                              </Avatar>
-                            )}
+                        <span>
+                          {field.value.startsWith('bot_') ? (
                             <span>
-                              {player.id.startsWith('bot_') ? (
-                                <span>
-                                  <span className="text-muted-foreground">[БОТ]</span> {player.name}
-                                </span>
-                              ) : (
-                                player.name
-                              )}
+                              <span className="text-muted-foreground">[БОТ]</span>{' '}
+                              {bots.find((bot) => bot.id === field.value)?.name ||
+                                field.value.replace('bot_', '')}
                             </span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {!isLoadingUsers &&
-                    getAvailablePlayers(teamIndex, playerIndex, searchTerm).length === 0 && (
-                      <div className="p-4 text-sm text-muted-foreground">
-                        {searchTerm
-                          ? 'Нет игроков, соответствующих поиску'
-                          : 'Нет доступных игроков'}
+                          ) : (
+                            users.find((user) => user.id === field.value)?.name || 'Выберите игрока'
+                          )}
+                        </span>
+                      </div>
+                    ) : (
+                      'Выберите игрока'
+                    )}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0" align="start">
+                <div className="flex flex-col">
+                  <div className="flex items-center border-b p-2">
+                    <input
+                      className="flex h-9 w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="Поиск игрока..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto">
+                    {isLoadingUsers ? (
+                      <div className="flex items-center justify-center py-6">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col py-2">
+                        {getAvailablePlayers(teamIndex, playerIndex, searchTerm).map((player) => (
+                          <button
+                            type="button"
+                            key={player.id}
+                            className={cn(
+                              'relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground',
+                              field.value === player.id ? 'bg-accent text-accent-foreground' : ''
+                            )}
+                            onClick={() => {
+                              form.setValue(
+                                `teams.${teamIndex}.players.${playerIndex}.id`,
+                                player.id
+                              );
+                              form.setValue(
+                                `teams.${teamIndex}.players.${playerIndex}.isBot`,
+                                player.id.startsWith('bot_')
+                              );
+                              setSearchTerm('');
+                              setOpenPopover(null);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                field.value === player.id ? 'opacity-100' : 'opacity-0'
+                              )}
+                            />
+                            <div className="flex items-center gap-2">
+                              {player.id.startsWith('bot_') ? (
+                                <Bot className="h-4 w-4" />
+                              ) : (
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={player.image || ''} alt="Avatar" />
+                                  <AvatarFallback>
+                                    <User className="h-4 w-4" />
+                                  </AvatarFallback>
+                                </Avatar>
+                              )}
+                              <span>
+                                {player.id.startsWith('bot_') ? (
+                                  <span>
+                                    <span className="text-muted-foreground">[БОТ]</span>{' '}
+                                    {player.name}
+                                  </span>
+                                ) : (
+                                  player.name
+                                )}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
                       </div>
                     )}
+                    {!isLoadingUsers &&
+                      getAvailablePlayers(teamIndex, playerIndex, searchTerm).length === 0 && (
+                        <div className="p-4 text-sm text-muted-foreground">
+                          {searchTerm
+                            ? 'Нет игроков, соответствующих поиску'
+                            : 'Нет доступных игроков'}
+                        </div>
+                      )}
+                  </div>
                 </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
+              </PopoverContent>
+            </Popover>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    );
+  };
 
   if (isLoadingUsers || isLoadingBots) {
     return (

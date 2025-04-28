@@ -49,7 +49,7 @@ export const rankCommand: Command = {
           .setDescription(`[Перейти к списку игроков](${APP_URL}/users)`)
           .setTimestamp();
 
-        const fields = neighbors.map((player, index) => {
+        const fields = neighbors.map((player) => {
           const rating = player.stats?.rating || 0;
           const minRating = player.stats?.minRating || 0;
           const maxRating = player.stats?.maxRating || 0;
@@ -60,7 +60,7 @@ export const rankCommand: Command = {
           const divs = player.stats?.totalDivisions || 0;
           const score = player.stats?.totalScore || 0;
           const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 100) : 0;
-          const rank = index + 1;
+          const rank = player.rank;
 
           // Определяем ранговую иконку
           let rankIcon = '';
