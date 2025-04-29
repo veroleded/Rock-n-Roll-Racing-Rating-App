@@ -11,7 +11,7 @@ import { createEmbed } from '../utils/embeds';
 dotenv.config();
 
 const APP_URL =
-  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54:3000';
+  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54';
 
 const usersService = new UsersService(prisma);
 

@@ -1,8 +1,14 @@
 import { MatchService } from '@/server/services/match/match.service';
 import { Match, MatchPlayer, PrismaClient, Stats, User } from '@prisma/client';
 import { Client, EmbedBuilder, TextChannel } from 'discord.js';
+import dotenv from 'dotenv';
 import { COLORS } from '../constants/colors';
 import { EMOJIS } from '../constants/emojis';
+
+dotenv.config();
+
+const APP_URL =
+  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54';
 
 // Тип для расширенных данных матча с игроками
 type MatchWithPlayers = Match & {
@@ -186,7 +192,7 @@ export class MatchNotificationService {
             },
             {
               name: `${EMOJIS.LINK} Ссылка на матч`,
-              value: `[Открыть детали матча](http://80.76.34.54:3000/matches/${match.id})`,
+              value: `[Открыть детали матча](${APP_URL}/matches/${match.id})`,
             },
           ])
           .setTimestamp();

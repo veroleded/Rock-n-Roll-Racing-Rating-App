@@ -3,7 +3,13 @@ import { QueuesService } from '@/server/services/queues/queues.service';
 import { UsersService } from '@/server/services/users/users.service';
 import { Queue, Stats, User } from '@prisma/client';
 import { Message, TextChannel } from 'discord.js';
+import dotenv from 'dotenv';
 import { createEmbed } from '../utils/embeds';
+
+dotenv.config();
+
+const APP_URL =
+  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54';
 
 type PlayerWithStats = User & { stats: Stats | null };
 type QueueWithPlayers = Queue & { players: PlayerWithStats[] };
@@ -126,7 +132,7 @@ export class TeamFormationService {
       // Оцениваем каждое разбиение: ищем разницу между максимальной и минимальной суммой рейтингов
       for (const partition of allPartitions) {
         const sums = partition.map((group) =>
-          group.reduce((acc, player) => acc + (player.stats?.rating ||  0), 0)
+          group.reduce((acc, player) => acc + (player.stats?.rating || 0), 0)
         );
         const maxSum = Math.max(...sums);
         const minSum = Math.min(...sums);
@@ -188,7 +194,7 @@ export class TeamFormationService {
       gameType === 'THREE_VS_THREE' ? '3x3' : gameType === 'TWO_VS_TWO' ? '2x2' : '2x2x2';
 
     embed.setTitle(
-      `Команды сформированы (${gameTypeText}).\nhttp://80.76.34.54:3000/matches\nРазница: ${ratingDifference}.`
+      `Команды сформированы (${gameTypeText}).\n${APP_URL}/matches\nРазница: ${ratingDifference}.`
     );
 
     await message.reply({ embeds: [embed] });
