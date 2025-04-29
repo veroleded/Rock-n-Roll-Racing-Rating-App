@@ -1,0 +1,37 @@
+# Зависимости
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Сборка
+.next
+dist
+out
+build
+
+# Временные файлы
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Кеши
+.npm
+.cache
+
+# Логи
+logs
+*.log
+
+# Прочее
+.vscode
+.idea
+.git
+.gitignore
+README.md
+LICENSE
+docker-compose*
+Dockerfile*
+nginx* 

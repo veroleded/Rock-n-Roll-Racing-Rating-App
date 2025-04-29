@@ -18,7 +18,7 @@ import { useParams } from "next/navigation";
 export default function UserPage() {
   const params = useParams();
   const { data: session } = trpc.auth.getSession.useQuery();
-  const { data: user, isLoading } = trpc.users.byId.useQuery(params.id as string);
+  const { data: user, isLoading } = trpc.users.byId.useQuery(params?.id as string);
 
   if (isLoading) {
     return (

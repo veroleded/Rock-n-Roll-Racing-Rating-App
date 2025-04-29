@@ -6,17 +6,33 @@ services:
     container_name: rnr_racing_app
     env_file:
       - .env.prod
-    ports:
-      - "3000:3000"
     restart: always
     depends_on:
       - postgres
     networks:
       - app_network
+    volumes:
+      - ./prisma:/app/prisma
+      - ./scripts:/app/scripts
+      - ./src:/app/src
+      - ./bot:/app/bot
     command: >
       sh -c "npx prisma migrate deploy &&
              npm run init-bots &&
-             (npm run start & npm run bot)"
+             (node server.js & tsx src/bot/index.ts)"
+
+  nginx:
+    image: nginx:alpine
+    container_name: rnr_racing_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - app_network
+    restart: always
 
   postgres:
     image: postgres:16-alpine
@@ -31,21 +47,6 @@ services:
     networks:
       - app_network
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: rnr_racing_pgadmin
-    env_file:
-      - .env.prod
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@admin.com}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
-    ports:
-      - "5050:80"
-    restart: always
-    depends_on:
-      - postgres
-    networks:
-      - app_network
 
 networks:
   app_network:

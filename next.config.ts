@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  output: 'standalone',
+  poweredByHeader: false,
+  compress: true,
+  swcMinify: true,
+  reactStrictMode: false,
   images: {
     remotePatterns: [
       {
@@ -17,6 +22,7 @@ const nextConfig: NextConfig = {
         hostname: 'discord.com',
       },
     ],
+    unoptimized: true,
   },
 };
 

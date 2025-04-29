@@ -14,7 +14,7 @@ export default function EditBotPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = trpc.auth.getSession.useQuery();
-  const { data: bot, isLoading } = trpc.users.byId.useQuery(params.id as string);
+  const { data: bot, isLoading } = trpc.users.byId.useQuery(params?.id as string);
   const updateBot = trpc.users.update.useMutation({
     onSuccess: () => {
       router.back();
