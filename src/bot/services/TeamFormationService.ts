@@ -153,6 +153,8 @@ export class TeamFormationService {
   ): Promise<void> {
     const embed = createEmbed.info('Команды сформированы', 'Распределение игроков по командам:');
 
+    const teamRatings: number[] = [];
+
     teams.forEach((team, index) => {
       const shuffledTeam = [...team].sort(() => Math.random() - 0.5);
       const teamRating = Math.round(
@@ -160,25 +162,34 @@ export class TeamFormationService {
           shuffledTeam.length
       );
 
-      const sumTeamRating = shuffledTeam
-        .reduce((sum, player) => sum + (player.stats?.rating || 0), 0)
-        .toFixed(2);
+      const sumTeamRating = shuffledTeam.reduce(
+        (sum, player) => sum + (player.stats?.rating || 0),
+        0
+      );
+
+      teamRatings.push(sumTeamRating);
 
       const teamInfo = shuffledTeam
         .map((player) => `${player.name} (${player.stats?.rating || 0})`)
         .join('\n');
 
       embed.addFields({
-        name: `Команда ${index + 1} (ср. рейтинг: ${teamRating} / ${sumTeamRating})`,
+        name: `Команда ${index + 1} (ср. рейтинг: ${teamRating} / ${sumTeamRating.toFixed(2)})`,
         value: teamInfo,
         inline: false,
       });
     });
 
+    const maxRating = Math.max(...teamRatings);
+    const minRating = Math.min(...teamRatings);
+    const ratingDifference = (maxRating - minRating).toFixed(2);
+
     const gameTypeText =
       gameType === 'THREE_VS_THREE' ? '3x3' : gameType === 'TWO_VS_TWO' ? '2x2' : '2x2x2';
 
-    embed.setTitle(`Команды сформированы (${gameTypeText}). http://80.76.34.54:3000/matches`);
+    embed.setTitle(
+      `Команды сформированы (${gameTypeText}).\nhttp://80.76.34.54:3000/matches\nРазница: ${ratingDifference}.`
+    );
 
     await message.reply({ embeds: [embed] });
 
