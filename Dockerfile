@@ -12,7 +12,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Устанавливаем переменную для оптимизации памяти
-ENV NODE_OPTIONS="--max-old-space-size=512"
+ENV NODE_OPTIONS="--max-old-space-size=900"
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
