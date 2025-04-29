@@ -156,26 +156,19 @@ const PlayerStatsCard: React.FC<{
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-sm flex items-center truncate">
+            <h3
+              className={cn(
+                'font-bold text-sm flex items-center truncate',
+                isTopWipeouts && 'px-1.5 py-0.5 rounded border border-pink-400 bg-pink-400',
+                isTopScore && 'px-1.5 py-0.5 rounded border border-primary bg-primary'
+              )}
+            >
               {player.userId.startsWith('bot_')
                 ? player.userId.replace('bot_', '')
                 : player.user?.name}
               {isCurrentUser && (
                 <Badge variant="secondary" className="ml-1 text-[9px] py-0 h-4">
                   Вы
-                </Badge>
-              )}
-              {isTopWipeouts && (
-                <Badge
-                  variant="destructive"
-                  className="ml-1 text-[9px] py-0 h-4 bg-pink-400 border-pink-500 hover:bg-pink-500/90 hover:border-pink-400/90"
-                >
-                  ХУЕСОС
-                </Badge>
-              )}
-              {isTopScore && (
-                <Badge variant="default" className="ml-1 text-[9px] py-0 h-4">
-                  ПИЗДОЛИЗ
                 </Badge>
               )}
             </h3>
@@ -191,22 +184,6 @@ const PlayerStatsCard: React.FC<{
             >
               {resultNames[player.result]}
             </Badge>
-          </div>
-          <div className={cn('text-[9px]')}>
-            Рейтинг:
-            <span
-              className={cn(
-                'ml-1 font-semibold',
-                player.ratingChange > 0
-                  ? 'text-green-500'
-                  : player.ratingChange < 0
-                    ? 'text-red-500'
-                    : ''
-              )}
-            >
-              {player.ratingChange > 0 ? '+' : ''}
-              {player.ratingChange}
-            </span>
           </div>
         </div>
       </div>

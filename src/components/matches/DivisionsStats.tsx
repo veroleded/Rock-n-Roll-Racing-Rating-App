@@ -128,6 +128,9 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
       2: {
         text: isDark ? 'text-red-300' : 'text-red-600',
       },
+      3: {
+        text: isDark ? 'text-yellow-300' : 'text-yellow-600',
+      },
     },
     result: {
       WIN: {
@@ -183,7 +186,7 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
                       <TableRow key={player.userId} className="hover:bg-muted/5 transition-colors">
                         <TableCell
                           className={`font-medium sticky left-0 z-10 shadow-sm border-r bg-card ${
-                            colors.team[player.team as 1 | 2].text
+                            colors.team[player.team as 1 | 2 | 3].text
                           }`}
                         >
                           {player.user.name || 'Игрок'}

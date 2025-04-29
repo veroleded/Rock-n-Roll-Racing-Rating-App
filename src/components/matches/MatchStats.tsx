@@ -21,8 +21,10 @@ const COLORS = {
   light: {
     team1: '#2563eb', // синий
     team2: '#dc2626', // красный
+    team3: '#ca8a04', // желтый
     gradient1: ['#60a5fa', '#2563eb'], // градиент для синей команды (светлее -> темнее)
     gradient2: ['#f87171', '#dc2626'], // градиент для красной команды (светлее -> темнее)
+    gradient3: ['#fcd34d', '#ca8a04'], // градиент для желтой команды (светлее -> темнее)
     text: '#1e293b', // темно-синий текст
     grid: '#e2e8f0', // светло-серая сетка
     labelText: '#1e293b', // цвет текста для меток
@@ -39,8 +41,10 @@ const COLORS = {
   dark: {
     team1: '#60a5fa', // более яркий синий
     team2: '#f87171', // более яркий красный
+    team3: '#facc15', // более яркий желтый
     gradient1: ['#93c5fd', '#3b82f6'], // градиент для синей команды (светлее -> темнее)
     gradient2: ['#fca5a5', '#ef4444'], // градиент для красной команды (светлее -> темнее)
+    gradient3: ['#fde68a', '#eab308'], // градиент для желтой команды (светлее -> темнее)
     text: '#f8fafc', // светло-серый текст
     grid: '#334155', // темно-серая сетка
     labelText: '#f8fafc', // цвет текста для меток
@@ -140,7 +144,19 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
   // Кастомный компонент для тултипа
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
-      const teamColor = payload[0].payload.team === 1 ? colors.team1 : colors.team2;
+      const teamNumber = payload[0].payload.team;
+      let teamColor;
+
+      if (teamNumber === 1) {
+        teamColor = colors.team1;
+      } else if (teamNumber === 2) {
+        teamColor = colors.team2;
+      } else if (teamNumber === 3) {
+        teamColor = colors.team3;
+      } else {
+        teamColor = colors.text;
+      }
+
       return (
         <div
           className="p-3 rounded-md shadow-md"
@@ -194,6 +210,10 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                     <stop offset="5%" stopColor={colors.gradient2[0]} stopOpacity={0.95} />
                     <stop offset="95%" stopColor={colors.gradient2[1]} stopOpacity={0.85} />
                   </linearGradient>
+                  <linearGradient id="damageGradient3" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={colors.gradient3[0]} stopOpacity={0.95} />
+                    <stop offset="95%" stopColor={colors.gradient3[1]} stopOpacity={0.85} />
+                  </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -215,14 +235,30 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                 <Tooltip content={<CustomTooltip />} cursor={{ opacity: 0.15 }} />
                 <Bar dataKey="damage" name="Урон" radius={[5, 5, 0, 0]} maxBarSize={60}>
                   <LabelList dataKey="damage" {...labelListProps} />
-                  {damageData.map((entry, index) => (
-                    <Cell
-                      key={`cell-dmg-${index}`}
-                      fill={entry.team === 1 ? 'url(#damageGradient1)' : 'url(#damageGradient2)'}
-                      stroke={entry.team === 1 ? colors.team1 : colors.team2}
-                      strokeWidth={1}
-                    />
-                  ))}
+                  {damageData.map((entry, index) => {
+                    let fillGradient;
+                    let strokeColor;
+
+                    if (entry.team === 1) {
+                      fillGradient = 'url(#damageGradient1)';
+                      strokeColor = colors.team1;
+                    } else if (entry.team === 2) {
+                      fillGradient = 'url(#damageGradient2)';
+                      strokeColor = colors.team2;
+                    } else if (entry.team === 3) {
+                      fillGradient = 'url(#damageGradient3)';
+                      strokeColor = colors.team3;
+                    }
+
+                    return (
+                      <Cell
+                        key={`cell-dmg-${index}`}
+                        fill={fillGradient}
+                        stroke={strokeColor}
+                        strokeWidth={1}
+                      />
+                    );
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -245,6 +281,10 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                     <stop offset="5%" stopColor={colors.gradient2[0]} stopOpacity={0.95} />
                     <stop offset="95%" stopColor={colors.gradient2[1]} stopOpacity={0.85} />
                   </linearGradient>
+                  <linearGradient id="takenGradient3" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={colors.gradient3[0]} stopOpacity={0.95} />
+                    <stop offset="95%" stopColor={colors.gradient3[1]} stopOpacity={0.85} />
+                  </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -266,14 +306,30 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                 <Tooltip content={<CustomTooltip />} cursor={{ opacity: 0.15 }} />
                 <Bar dataKey="damage" name="Урон" radius={[5, 5, 0, 0]} maxBarSize={60}>
                   <LabelList dataKey="damage" {...labelListProps} />
-                  {damageTakenData.map((entry, index) => (
-                    <Cell
-                      key={`cell-taken-${index}`}
-                      fill={entry.team === 1 ? 'url(#takenGradient1)' : 'url(#takenGradient2)'}
-                      stroke={entry.team === 1 ? colors.team1 : colors.team2}
-                      strokeWidth={1}
-                    />
-                  ))}
+                  {damageTakenData.map((entry, index) => {
+                    let fillGradient;
+                    let strokeColor;
+
+                    if (entry.team === 1) {
+                      fillGradient = 'url(#takenGradient1)';
+                      strokeColor = colors.team1;
+                    } else if (entry.team === 2) {
+                      fillGradient = 'url(#takenGradient2)';
+                      strokeColor = colors.team2;
+                    } else if (entry.team === 3) {
+                      fillGradient = 'url(#takenGradient3)';
+                      strokeColor = colors.team3;
+                    }
+
+                    return (
+                      <Cell
+                        key={`cell-taken-${index}`}
+                        fill={fillGradient}
+                        stroke={strokeColor}
+                        strokeWidth={1}
+                      />
+                    );
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -296,6 +352,10 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                     <stop offset="5%" stopColor={colors.gradient2[0]} stopOpacity={0.95} />
                     <stop offset="95%" stopColor={colors.gradient2[1]} stopOpacity={0.85} />
                   </linearGradient>
+                  <linearGradient id="moneyGradient3" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={colors.gradient3[0]} stopOpacity={0.95} />
+                    <stop offset="95%" stopColor={colors.gradient3[1]} stopOpacity={0.85} />
+                  </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -317,14 +377,30 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                 <Tooltip content={<CustomTooltip />} cursor={{ opacity: 0.15 }} />
                 <Bar dataKey="money" name="Деньги" radius={[5, 5, 0, 0]} maxBarSize={60}>
                   <LabelList dataKey="money" {...labelListProps} />
-                  {moneyData.map((entry, index) => (
-                    <Cell
-                      key={`cell-money-${index}`}
-                      fill={entry.team === 1 ? 'url(#moneyGradient1)' : 'url(#moneyGradient2)'}
-                      stroke={entry.team === 1 ? colors.team1 : colors.team2}
-                      strokeWidth={1}
-                    />
-                  ))}
+                  {moneyData.map((entry, index) => {
+                    let fillGradient;
+                    let strokeColor;
+
+                    if (entry.team === 1) {
+                      fillGradient = 'url(#moneyGradient1)';
+                      strokeColor = colors.team1;
+                    } else if (entry.team === 2) {
+                      fillGradient = 'url(#moneyGradient2)';
+                      strokeColor = colors.team2;
+                    } else if (entry.team === 3) {
+                      fillGradient = 'url(#moneyGradient3)';
+                      strokeColor = colors.team3;
+                    }
+
+                    return (
+                      <Cell
+                        key={`cell-money-${index}`}
+                        fill={fillGradient}
+                        stroke={strokeColor}
+                        strokeWidth={1}
+                      />
+                    );
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -347,6 +423,10 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                     <stop offset="5%" stopColor={colors.gradient2[0]} stopOpacity={0.95} />
                     <stop offset="95%" stopColor={colors.gradient2[1]} stopOpacity={0.85} />
                   </linearGradient>
+                  <linearGradient id="armorGradient3" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={colors.gradient3[0]} stopOpacity={0.95} />
+                    <stop offset="95%" stopColor={colors.gradient3[1]} stopOpacity={0.85} />
+                  </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -368,14 +448,30 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                 <Tooltip content={<CustomTooltip />} cursor={{ opacity: 0.15 }} />
                 <Bar dataKey="armor" name="Броня" radius={[5, 5, 0, 0]} maxBarSize={60}>
                   <LabelList dataKey="armor" {...labelListProps} />
-                  {armorData.map((entry, index) => (
-                    <Cell
-                      key={`cell-armor-${index}`}
-                      fill={entry.team === 1 ? 'url(#armorGradient1)' : 'url(#armorGradient2)'}
-                      stroke={entry.team === 1 ? colors.team1 : colors.team2}
-                      strokeWidth={1}
-                    />
-                  ))}
+                  {armorData.map((entry, index) => {
+                    let fillGradient;
+                    let strokeColor;
+
+                    if (entry.team === 1) {
+                      fillGradient = 'url(#armorGradient1)';
+                      strokeColor = colors.team1;
+                    } else if (entry.team === 2) {
+                      fillGradient = 'url(#armorGradient2)';
+                      strokeColor = colors.team2;
+                    } else if (entry.team === 3) {
+                      fillGradient = 'url(#armorGradient3)';
+                      strokeColor = colors.team3;
+                    }
+
+                    return (
+                      <Cell
+                        key={`cell-armor-${index}`}
+                        fill={fillGradient}
+                        stroke={strokeColor}
+                        strokeWidth={1}
+                      />
+                    );
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -398,6 +494,10 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                     <stop offset="5%" stopColor={colors.gradient2[0]} stopOpacity={0.95} />
                     <stop offset="95%" stopColor={colors.gradient2[1]} stopOpacity={0.85} />
                   </linearGradient>
+                  <linearGradient id="wipeoutGradient3" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={colors.gradient3[0]} stopOpacity={0.95} />
+                    <stop offset="95%" stopColor={colors.gradient3[1]} stopOpacity={0.85} />
+                  </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -419,14 +519,30 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                 <Tooltip content={<CustomTooltip />} cursor={{ opacity: 0.15 }} />
                 <Bar dataKey="wipeouts" name="Вайпауты" radius={[5, 5, 0, 0]} maxBarSize={60}>
                   <LabelList dataKey="wipeouts" {...labelListProps} />
-                  {wipeoutsData.map((entry, index) => (
-                    <Cell
-                      key={`cell-wipeout-${index}`}
-                      fill={entry.team === 1 ? 'url(#wipeoutGradient1)' : 'url(#wipeoutGradient2)'}
-                      stroke={entry.team === 1 ? colors.team1 : colors.team2}
-                      strokeWidth={1}
-                    />
-                  ))}
+                  {wipeoutsData.map((entry, index) => {
+                    let fillGradient;
+                    let strokeColor;
+
+                    if (entry.team === 1) {
+                      fillGradient = 'url(#wipeoutGradient1)';
+                      strokeColor = colors.team1;
+                    } else if (entry.team === 2) {
+                      fillGradient = 'url(#wipeoutGradient2)';
+                      strokeColor = colors.team2;
+                    } else if (entry.team === 3) {
+                      fillGradient = 'url(#wipeoutGradient3)';
+                      strokeColor = colors.team3;
+                    }
+
+                    return (
+                      <Cell
+                        key={`cell-wipeout-${index}`}
+                        fill={fillGradient}
+                        stroke={strokeColor}
+                        strokeWidth={1}
+                      />
+                    );
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -449,6 +565,10 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                     <stop offset="0%" stopColor={colors.gradient2[0]} stopOpacity={0.95} />
                     <stop offset="100%" stopColor={colors.gradient2[1]} stopOpacity={0.85} />
                   </linearGradient>
+                  <linearGradient id="pieGradient3" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={colors.gradient3[0]} stopOpacity={0.95} />
+                    <stop offset="100%" stopColor={colors.gradient3[1]} stopOpacity={0.85} />
+                  </linearGradient>
                 </defs>
                 <Pie
                   data={
@@ -467,14 +587,33 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                   paddingAngle={4}
                 >
                   {minesDamageData.length > 0 ? (
-                    minesDamageData.map((entry, index) => (
-                      <Cell
-                        key={`cell-mines-${index}`}
-                        fill={entry.team === 1 ? 'url(#pieGradient1)' : 'url(#pieGradient2)'}
-                        stroke={entry.team === 1 ? colors.team1 : colors.team2}
-                        strokeWidth={1}
-                      />
-                    ))
+                    minesDamageData.map((entry, index) => {
+                      let fillGradient;
+                      let strokeColor;
+
+                      if (entry.team === 1) {
+                        fillGradient = 'url(#pieGradient1)';
+                        strokeColor = colors.team1;
+                      } else if (entry.team === 2) {
+                        fillGradient = 'url(#pieGradient2)';
+                        strokeColor = colors.team2;
+                      } else if (entry.team === 3) {
+                        fillGradient = 'url(#pieGradient3)';
+                        strokeColor = colors.team3;
+                      } else {
+                        fillGradient = '#94a3b8';
+                        strokeColor = '#64748b';
+                      }
+
+                      return (
+                        <Cell
+                          key={`cell-mines-${index}`}
+                          fill={fillGradient}
+                          stroke={strokeColor}
+                          strokeWidth={1}
+                        />
+                      );
+                    })
                   ) : (
                     <Cell fill="#94a3b8" />
                   )}

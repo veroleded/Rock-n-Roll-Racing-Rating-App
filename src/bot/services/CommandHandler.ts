@@ -28,8 +28,8 @@ export class CommandHandler {
       if (userData && (userData.image !== currentAvatar || userData.name !== currentUsername)) {
         const updateData = {
           id: message.author.id,
-          username: currentUsername,
-          avatar: currentAvatar,
+          name: currentUsername,
+          image: currentAvatar,
         };
 
         // Обновляем данные пользователя

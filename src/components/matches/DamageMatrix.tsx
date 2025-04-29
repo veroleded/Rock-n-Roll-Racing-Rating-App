@@ -67,6 +67,9 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
       2: {
         text: isDark ? 'text-red-300' : 'text-red-600',
       },
+      3: {
+        text: isDark ? 'text-yellow-300' : 'text-yellow-600',
+      },
     },
     damage: {
       friendly: {
@@ -141,7 +144,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
                     {teamPlayers.map((player) => (
                       <TableHead
                         key={player.userId}
-                        className={`${colors.team[player.team as 1 | 2].text} text-center`}
+                        className={`${colors.team[player.team as 1 | 2 | 3].text} text-center`}
                       >
                         {player.user.name || 'Игрок'}
                       </TableHead>
@@ -181,7 +184,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
                         >
                           <TableCell
                             className={`font-medium sticky left-0 z-10 shadow-sm border-r bg-card ${
-                              colors.team[row.team as 1 | 2].text
+                              colors.team[row.team as 1 | 2 | 3].text
                             }`}
                           >
                             {row.attackerName}
