@@ -6,7 +6,6 @@ services:
     container_name: rnr_racing_app
     env_file:
       - .env.prod
-    mem_limit: 700m
     restart: always
     depends_on:
       - postgres

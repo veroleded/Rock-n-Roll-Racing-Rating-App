@@ -3,7 +3,6 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Увеличиваем доступную память для Node.js
-ENV NODE_OPTIONS="--max-old-space-size=900"
 ENV NODE_ENV=production
 
 # Отключаем телеметрию Next.js
