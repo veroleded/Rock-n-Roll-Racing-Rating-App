@@ -96,7 +96,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
     }
 
     if (isTeammate) {
-      return colors.damage.friendly.text;
+      return colors.damage.friendly.text + ' font-semibold';
     }
 
     // Найдем максимальный урон для масштабирования
@@ -111,7 +111,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
     } else if (damageRatio > 0.3) {
       return colors.damage.enemy.medium;
     } else {
-      return colors.damage.enemy.low;
+      return colors.damage.enemy.low + ' font-medium';
     }
   };
 
@@ -144,7 +144,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
                     {teamPlayers.map((player) => (
                       <TableHead
                         key={player.userId}
-                        className={`${colors.team[player.team as 1 | 2 | 3].text} text-center`}
+                        className={`${colors.team[player.team as 1 | 2 | 3].text} text-center font-semibold`}
                       >
                         {player.user.name || 'Игрок'}
                       </TableHead>

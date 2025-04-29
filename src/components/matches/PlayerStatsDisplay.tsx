@@ -174,7 +174,7 @@ const PlayerStatsCard: React.FC<{
             </h3>
             <Badge
               className={cn(
-                'ml-1 text-[9px] py-0 h-4 whitespace-nowrap',
+                'ml-1 text-[10px] py-0 h-4 whitespace-nowrap font-semibold',
                 player.result === 'WIN'
                   ? 'bg-green-500 hover:bg-green-500/90'
                   : player.result === 'LOSS'
@@ -193,13 +193,13 @@ const PlayerStatsCard: React.FC<{
           {/* Колонка 1: Урон */}
           <div className="flex flex-col space-y-1.5">
             <div className="bg-muted/80 rounded-lg p-1">
-              <div className="text-[9px] font-medium">Нанесенный урон</div>
+              <div className="text-[10px] font-semibold">Нанесенный урон</div>
               <div className="flex items-center gap-1 text-base font-bold">
                 <Target className="h-3 w-3 text-red-400" />
                 {player.totalDamageDealt}
               </div>
               {hasAllyDamage && (
-                <div className="text-[9px] text-red-400 flex items-center">
+                <div className="text-[10px] text-red-400 flex items-center font-medium">
                   <AlertTriangle className="h-2 w-2 mr-0.5" />
                   Урон по союзникам: {totalAllyDamage} (
                   {((totalAllyDamage / player.totalDamageDealt) * 100).toFixed(1)}%)
@@ -297,7 +297,7 @@ const PlayerDamageSection: React.FC<{
 
   return (
     <div className="bg-muted/50 rounded-lg p-1 h-full flex flex-col">
-      <h4 className="text-xs font-medium mb-1">{title}</h4>
+      <h4 className="text-xs font-semibold mb-1">{title}</h4>
 
       <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 flex-1">
         {/* Левая колонка - урон по врагам */}
@@ -306,7 +306,9 @@ const PlayerDamageSection: React.FC<{
             renderDamageEntry(targetId, damageInfo, allPlayers, false)
           )}
           {enemyDamage.length === 0 && (
-            <div className="text-[9px] text-center text-muted-foreground py-0.5">Нет урона</div>
+            <div className="text-[10px] text-center text-muted-foreground py-0.5 font-medium">
+              Нет урона
+            </div>
           )}
         </div>
 
@@ -316,13 +318,15 @@ const PlayerDamageSection: React.FC<{
             renderDamageEntry(targetId, damageInfo, allPlayers, true)
           )}
           {allyDamage.length === 0 && (
-            <div className="text-[9px] text-center text-muted-foreground py-0.5">Нет урона</div>
+            <div className="text-[10px] text-center text-muted-foreground py-0.5 font-medium">
+              Нет урона
+            </div>
           )}
         </div>
 
         {/* Если есть больше игроков, показываем общее количество */}
         {totalPlayers > displayedPlayers && (
-          <div className="text-[9px] text-muted-foreground text-center col-span-2">
+          <div className="text-[10px] text-muted-foreground text-center col-span-2 font-medium">
             + ещё {totalPlayers - displayedPlayers} игроков
           </div>
         )}
@@ -366,7 +370,7 @@ const renderDamageEntry = (
             )}
           </AvatarFallback>
         </Avatar>
-        <span className="truncate font-medium text-[10px]">{displayName}</span>
+        <span className="truncate font-semibold text-[11px]">{displayName}</span>
       </div>
       <div className="flex items-center">
         <span className="font-bold tabular-nums text-[11px]">{damageInfo.damage}</span>
@@ -394,7 +398,7 @@ const StatCard: React.FC<StatCardProps> = ({
 }) => {
   return (
     <div className="bg-muted rounded-lg p-1">
-      <div className="font-medium text-[8px]">{label}</div>
+      <div className="font-semibold text-[10px]">{label}</div>
       <div className={cn('flex items-center gap-0.5 font-bold', valueClassName)}>
         {icon}
         {showSign && value > 0 ? '+' : ''}
