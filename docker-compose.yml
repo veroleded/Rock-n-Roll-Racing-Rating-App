@@ -1,6 +1,39 @@
 version: "3.8"
 
 services:
+  app:
+    build: .
+    container_name: rnr_racing_app
+    env_file:
+      - .env
+    mem_limit: 700m
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+    volumes:
+      - ./prisma:/app/prisma
+      - ./src:/app/src
+    command: >
+      sh -c "npx prisma generate &&
+             npm run build &&
+             npm run init-bots &&
+             (npm run start & tsx src/bot/index.ts)"
+
+  nginx:
+    image: nginx:alpine
+    container_name: rnr_racing_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - app_network
+    restart: always
+
   postgres:
     image: postgres:16-alpine
     container_name: rnr_racing_db
@@ -13,22 +46,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: rnr_racing_pgadmin
-    env_file:
-      - .env
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@admin.com}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
-    ports:
-      - "5050:80"
-    restart: always
-    depends_on:
-      - postgres
-    networks:
-      - app_network
+    command: postgres -c shared_buffers=64MB -c work_mem=4MB -c max_connections=10
 
 networks:
   app_network:

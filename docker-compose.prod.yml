@@ -6,6 +6,7 @@ services:
     container_name: rnr_racing_app
     env_file:
       - .env.prod
+    mem_limit: 700m
     restart: always
     depends_on:
       - postgres
@@ -15,9 +16,10 @@ services:
       - ./prisma:/app/prisma
       - ./src:/app/src
     command: >
-      sh -c "npx prisma migrate deploy &&
+      sh -c "npx prisma generate &&
+             npm run build &&
              npm run init-bots &&
-             (node server.js & tsx src/bot/index.ts)"
+             (npm run start & tsx src/bot/index.ts)"
 
   nginx:
     image: nginx:alpine
@@ -44,6 +46,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
+    command: postgres -c shared_buffers=64MB -c work_mem=4MB -c max_connections=10
 
 networks:
   app_network:
