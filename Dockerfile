@@ -14,7 +14,7 @@ RUN npm install -g tsx
 
 # Копируем файлы зависимостей и устанавливаем зависимости
 COPY package*.json ./
-RUN npm ci && npm install --save-dev eslint && npm cache clean --force
+RUN npm ci 
 
 # Копируем весь код проекта
 COPY . .
