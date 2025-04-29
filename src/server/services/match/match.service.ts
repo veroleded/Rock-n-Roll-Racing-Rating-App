@@ -568,7 +568,7 @@ export class MatchService {
       if (uniqueDamages === 1 && teamSize > 1) {
         // Все нанесли одинаковый урон
         teamPlayerIds.forEach((playerId) => {
-          damageBonus[playerId] = isWinningTeam ? 0.5 : -0.5;
+          damageBonus[playerId] = isWinningTeam ? 0.33 : -0.33;
         });
       } else if (teamSize === 2) {
         if (isWinningTeam) {
@@ -674,7 +674,7 @@ export class MatchService {
       if (uniqueScores === 1 && teamSize > 1) {
         // Все набрали одинаковое количество очков
         teamPlayerIds.forEach((playerId) => {
-          scoreBonus[playerId] = isWinningTeam ? 0.5 : -0.5;
+          scoreBonus[playerId] = isWinningTeam ? 0.33 : -0.33;
         });
       } else if (teamSize === 2) {
         if (isWinningTeam) {
@@ -1011,7 +1011,11 @@ export class MatchService {
       include: {
         players: {
           include: {
-            user: true,
+            user: {
+              include: {
+                stats: true,
+              },
+            },
           },
         },
         creator: true,

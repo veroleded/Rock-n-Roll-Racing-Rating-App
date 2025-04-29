@@ -12,6 +12,7 @@ import { GAME_GATHERING_PREFIX, GATHERING_COMMANDS } from './constants/commands'
 import { MESSAGES } from './constants/messages';
 import { CommandHandler } from './services/CommandHandler';
 import { GatheringCommandsHandler } from './services/GatheringCommandsHandler';
+import { MatchNotificationService } from './services/MatchNotificationService';
 import { createEmbed } from './utils/embeds';
 
 // Загружаем переменные окружения
@@ -96,6 +97,16 @@ client.on(Events.Error, (error) => {
 // Обработчик готовности бота
 client.once(Events.ClientReady, (c) => {
   console.log(`Бот готов! Вошел как ${c.user.tag}`);
+
+  // Инициализируем и запускаем сервис уведомлений о матчах
+  const matchNotificationService = new MatchNotificationService(prisma, client);
+
+  // Инициализируем сервис
+  (async () => {
+    await matchNotificationService.initialize();
+    // Запускаем проверку матчей каждые 10 секунд
+    matchNotificationService.startChecker(10000);
+  })();
 
   // Запускаем планировщик проверки очередей
   setInterval(async () => {
