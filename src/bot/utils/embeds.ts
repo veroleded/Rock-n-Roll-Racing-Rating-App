@@ -9,7 +9,7 @@ dotenv.config();
 const APP_URL =
   process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54';
 
-// Утилиты для создания embed сообщений
+
 export const createEmbed = {
   success: (title: string, description?: string) => {
     return new EmbedBuilder()

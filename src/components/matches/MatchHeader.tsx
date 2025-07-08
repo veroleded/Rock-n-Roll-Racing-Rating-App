@@ -6,7 +6,7 @@ import { ru } from 'date-fns/locale';
 import { Shield } from 'lucide-react';
 import React from 'react';
 
-// Типы режимов игры
+
 export const gameModeNames = {
   TWO_VS_TWO: '2 на 2',
   THREE_VS_THREE: '3 на 3',

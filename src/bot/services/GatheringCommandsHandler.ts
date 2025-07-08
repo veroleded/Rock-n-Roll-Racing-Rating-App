@@ -48,7 +48,6 @@ export class GatheringCommandsHandler {
           break;
       }
 
-      // Очищаем старые очереди после каждой команды
       await this.cleanOldQueues();
     } catch (error) {
       console.error('Ошибка при обработке команды очереди:', error);
@@ -98,7 +97,6 @@ export class GatheringCommandsHandler {
 
   private async handleJoinCommand(message: Message, channelName: string) {
     try {
-      // Проверяем, присоединился ли пользователь к боту
       const statusCheck = await this.usersService.getUserById(message.author.id);
 
       if (!statusCheck?.hasJoinedBot) {
@@ -113,16 +111,13 @@ export class GatheringCommandsHandler {
         return;
       }
 
-      // Добавляем игрока в очередь
       const result = await this.queueService.addPlayerToQueue(message.author.id, channelName);
 
-      // Формируем сообщение о текущем составе очереди
       const queueInfo = formatQueueInfo(result.queue);
       await message.reply({
         embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
       });
 
-      // Если очередь заполнена, начинаем формирование команд
       if (result.isComplete) {
         await message.reply({
           embeds: [createEmbed.success('Очередь заполнена', 'Начинаем формирование команд...')],
@@ -146,13 +141,11 @@ export class GatheringCommandsHandler {
   private async handleJoinBotCommand(message: Message, channelName: string) {
     const result = await this.queueService.addBotToQueue(channelName);
 
-    // Формируем сообщение о текущем составе очереди
     const queueInfo = formatQueueInfo(result.queue);
     await message.reply({
       embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
     });
 
-    // Если очередь заполнена, начинаем формирование команд
     if (result.isComplete) {
       await message.reply({
         embeds: [createEmbed.success('Очередь заполнена', 'Начинаем формирование команд...')],
@@ -175,7 +168,6 @@ export class GatheringCommandsHandler {
           ],
         });
       } else {
-        // Формируем сообщение о текущем составе очереди
         const queueInfo = formatQueueInfo(result.queue);
         await message.reply({
           embeds: [createEmbed.info('Очередь обновлена', queueInfo)],
@@ -215,7 +207,6 @@ export class GatheringCommandsHandler {
           ],
         });
       } else {
-        // Формируем сообщение о текущем составе очереди
         const queueInfo = formatQueueInfo(result.queue);
         await message.reply({
           embeds: [createEmbed.info('Очередь обновлена', queueInfo)],

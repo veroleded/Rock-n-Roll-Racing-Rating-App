@@ -16,7 +16,6 @@ export class QueuesService {
   }
 
   async addPlayerToQueue(userId: string, channelName: string) {
-    // Определяем тип игры на основе названия канала
     let gameType: GameMode;
     if (channelName.includes('3x3')) {
       gameType = 'THREE_VS_THREE';
@@ -31,7 +30,6 @@ export class QueuesService {
       });
     }
 
-    // Проверяем существующую очередь или создаем новую
     let queue = await this.prisma.queue.findFirst({
       where: {
         gameType,
@@ -46,7 +44,6 @@ export class QueuesService {
       },
     });
 
-    // Проверяем, не находится ли игрок уже в очереди
     if (queue?.players.some((player) => player.id === userId)) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -54,7 +51,6 @@ export class QueuesService {
       });
     }
 
-    // Если очереди нет, создаем новую
     if (!queue) {
       queue = await this.prisma.queue.create({
         data: {
@@ -73,7 +69,6 @@ export class QueuesService {
         },
       });
     } else {
-      // Добавляем игрока в существующую очередь
       queue = await this.prisma.queue.update({
         where: { id: queue.id },
         data: {
@@ -99,7 +94,6 @@ export class QueuesService {
   }
 
   async addBotToQueue(channelName: string) {
-    // Определяем тип игры на основе названия канала
     let gameType: GameMode;
     if (channelName.includes('3x3')) {
       gameType = 'THREE_VS_THREE';
@@ -114,7 +108,6 @@ export class QueuesService {
       });
     }
 
-    // Проверяем существующую очередь или создаем новую
     let queue = await this.prisma.queue.findFirst({
       where: {
         gameType,
@@ -129,7 +122,6 @@ export class QueuesService {
       },
     });
 
-    // Если очереди нет, создаем новую
     if (!queue) {
       queue = await this.prisma.queue.create({
         data: {
@@ -146,7 +138,6 @@ export class QueuesService {
         },
       });
     } else {
-      // Увеличиваем счетчик ботов
       queue = await this.prisma.queue.update({
         where: { id: queue.id },
         data: {
@@ -170,7 +161,6 @@ export class QueuesService {
   }
 
   async removePlayerFromQueue(userId: string, channelName: string) {
-    // Определяем тип игры на основе названия канала
     let gameType: GameMode;
     if (channelName.includes('3x3')) {
       gameType = 'THREE_VS_THREE';
@@ -185,7 +175,6 @@ export class QueuesService {
       });
     }
 
-    // Находим очередь
     let queue = await this.prisma.queue.findFirst({
       where: {
         gameType,
@@ -207,7 +196,6 @@ export class QueuesService {
       });
     }
 
-    // Проверяем, находится ли игрок в очереди
     if (!queue.players.some((player) => player.id === userId)) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -215,7 +203,6 @@ export class QueuesService {
       });
     }
 
-    // Удаляем игрока из очереди
     queue = await this.prisma.queue.update({
       where: { id: queue.id },
       data: {
@@ -233,7 +220,6 @@ export class QueuesService {
       },
     });
 
-    // Если в очереди не осталось игроков и нет ботов, удаляем её
     if (queue.players.length === 0) {
       await this.prisma.queue.delete({
         where: { id: queue.id },
@@ -245,7 +231,6 @@ export class QueuesService {
   }
 
   async removeBotFromQueue(channelName: string) {
-    // Определяем тип игры на основе названия канала
     let gameType: GameMode;
     if (channelName.includes('3x3')) {
       gameType = 'THREE_VS_THREE';
@@ -260,7 +245,6 @@ export class QueuesService {
       });
     }
 
-    // Находим очередь
     let queue = await this.prisma.queue.findFirst({
       where: {
         gameType,
@@ -282,7 +266,6 @@ export class QueuesService {
       });
     }
 
-    // Проверяем, есть ли боты в очереди
     if (queue.botsCount === 0) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -290,7 +273,6 @@ export class QueuesService {
       });
     }
 
-    // Уменьшаем количество ботов
     queue = await this.prisma.queue.update({
       where: { id: queue.id },
       data: {
@@ -306,7 +288,6 @@ export class QueuesService {
       },
     });
 
-    // Если в очереди не осталось игроков
     if (queue.players.length === 0) {
       await this.prisma.queue.delete({
         where: { id: queue.id },
@@ -350,7 +331,6 @@ export class QueuesService {
   }
 
   async cleanQueueByChannel(channelName: string) {
-    // Определяем тип игры на основе названия канала
     let gameType: GameMode;
     if (channelName.includes('3x3')) {
       gameType = 'THREE_VS_THREE';
@@ -365,7 +345,6 @@ export class QueuesService {
       });
     }
 
-    // Находим очередь
     const queue = await this.prisma.queue.findFirst({
       where: {
         gameType,
@@ -387,7 +366,6 @@ export class QueuesService {
       });
     }
 
-    // Удаляем очередь
     await this.prisma.queue.delete({
       where: { id: queue.id },
     });

@@ -4,17 +4,11 @@ import { createHmac } from "crypto";
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 
-// Функция для проверки подписи бота
-function verifyBotSignature(
-  timestamp: string,
-  signature: string,
-  body: string = ""
-) {
+function verifyBotSignature(timestamp: string, signature: string, body: string = '') {
   try {
-    const hmac = createHmac("sha256", process.env.BOT_SECRET_KEY || "");
-    const expectedSignature = hmac.update(`${timestamp}.${body}`).digest("hex");
+    const hmac = createHmac('sha256', process.env.BOT_SECRET_KEY || '');
+    const expectedSignature = hmac.update(`${timestamp}.${body}`).digest('hex');
 
-    // Проверяем актуальность timestamp (5 минут)
     const timestampMs = parseInt(timestamp);
     if (isNaN(timestampMs) || Date.now() - timestampMs > 5 * 60 * 1000) {
       return false;

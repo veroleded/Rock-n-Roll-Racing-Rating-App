@@ -1,6 +1,5 @@
 import { GameMode, Role } from '@prisma/client';
 
-// Типы для JSON полей
 export type DamageDealt = Record<string, { isAlly: boolean; damage: number }>;
 export type DamageReceived = Record<string, { isAlly: boolean; damage: number }>;
 export type Divisions = Record<string, { scores: number; result: 'WIN' | 'LOSS' | 'DRAW' }>;

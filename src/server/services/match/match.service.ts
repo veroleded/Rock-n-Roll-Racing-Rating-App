@@ -19,7 +19,7 @@ import {
   NormalizedStatsData,
 } from './schemas';
 
-// Локальное определение типа StatsData
+
 
 
 type MatchWithRelations = Match & {
@@ -191,7 +191,6 @@ export class MatchService {
     divisions: NormalizedDivisionData,
     players: CreateMatchPlayer[]
   ) {
-    // Сначала собираем информацию о очках пользователей по дивизиям и командам
     const teamsScores = Object.entries(divisions).reduce(
       (acc, [divisionName, playersResult]) => {
         players.forEach((player) => {
@@ -213,7 +212,6 @@ export class MatchService {
       >
     );
 
-    // Теперь определяем результаты для каждой команды
     const teamsResult = Object.entries(teamsScores).reduce(
       (acc, [divisionName, teams]) => {
         const maxScore = Math.max(...Object.values(teams).map((team) => team.scoresSum));
@@ -516,7 +514,6 @@ export class MatchService {
     normalizedDamage: Record<string, Record<string, number>>,
     totalPoints: Record<string, { points: number; result: MatchResult }>
   ) {
-    // Группируем игроков по командам
     const teamPlayers: Record<number, string[]> = {};
     players.forEach((player) => {
       if (!teamPlayers[player.team]) {
@@ -525,7 +522,6 @@ export class MatchService {
       teamPlayers[player.team].push(player.userId);
     });
 
-    // Рассчитываем урон против врагов для каждого игрока
     const playerEnemyDamage: Record<string, number> = {};
 
     Object.entries(normalizedDamage).forEach(([attackerId, victims]) => {
@@ -544,7 +540,6 @@ export class MatchService {
       });
     });
 
-    // Рассчитываем бонусы урона для каждой команды
     const damageBonus: Record<string, number> = {};
 
     Object.entries(teamPlayers).forEach(([teamStr, teamPlayerIds]) => {
@@ -555,39 +550,31 @@ export class MatchService {
         }))
         .sort((a, b) => b.damage - a.damage);
 
-      // Проверяем совпадение урона
       const uniqueDamages = new Set(teamResult.map((p) => p.damage)).size;
 
-      // Определяем бонусы в зависимости от размера команды и результата
       const teamSize = teamPlayerIds.length;
-      // Проверяем результат команды через ID первого игрока и информацию о нём в totalPoints
       const teamId = parseInt(teamStr);
       const isWinningTeam =
         totalPoints && totalPoints[teamId] ? totalPoints[teamId].result === 'WIN' : false;
 
       if (uniqueDamages === 1 && teamSize > 1) {
-        // Все нанесли одинаковый урон
         teamPlayerIds.forEach((playerId) => {
           damageBonus[playerId] = isWinningTeam ? 0.33 : -0.33;
         });
       } else if (teamSize === 2) {
         if (isWinningTeam) {
-          // Для выигравшей команды из 2 игроков
           damageBonus[teamResult[0].playerId] = 0.5;
           damageBonus[teamResult[1].playerId] = 0;
         } else {
-          // Для проигравшей команды из 2 игроков
           damageBonus[teamResult[0].playerId] = 0;
           damageBonus[teamResult[1].playerId] = -0.5;
         }
       } else if (teamSize === 3) {
         if (isWinningTeam) {
-          // Для выигравшей команды из 3 игроков
           if (
             teamResult[0].damage === teamResult[1].damage &&
             teamResult[0].damage > teamResult[2].damage
           ) {
-            // Первые два игрока наносят одинаковый урон и больше третьего
             damageBonus[teamResult[0].playerId] = 0.5;
             damageBonus[teamResult[1].playerId] = 0.5;
             damageBonus[teamResult[2].playerId] = 0;
@@ -595,23 +582,19 @@ export class MatchService {
             teamResult[1].damage === teamResult[2].damage &&
             teamResult[0].damage > teamResult[1].damage
           ) {
-            // Второй и третий наносят одинаковый урон, меньше первого
             damageBonus[teamResult[0].playerId] = 0.5;
             damageBonus[teamResult[1].playerId] = 0;
             damageBonus[teamResult[2].playerId] = 0;
           } else {
-            // Все наносят разный урон
             damageBonus[teamResult[0].playerId] = 1;
             damageBonus[teamResult[1].playerId] = 0.5;
             damageBonus[teamResult[2].playerId] = 0;
           }
         } else {
-          // Для проигравшей команды из 3 игроков
           if (
             teamResult[0].damage === teamResult[1].damage &&
             teamResult[0].damage > teamResult[2].damage
           ) {
-            // Первые два игрока наносят одинаковый урон и больше третьего
             damageBonus[teamResult[0].playerId] = 0;
             damageBonus[teamResult[1].playerId] = 0;
             damageBonus[teamResult[2].playerId] = -0.5;
@@ -619,12 +602,10 @@ export class MatchService {
             teamResult[1].damage === teamResult[2].damage &&
             teamResult[0].damage > teamResult[1].damage
           ) {
-            // Второй и третий наносят одинаковый урон, меньше первого
             damageBonus[teamResult[0].playerId] = 0;
             damageBonus[teamResult[1].playerId] = -0.5;
             damageBonus[teamResult[2].playerId] = -0.5;
           } else {
-            // Все наносят разный урон
             damageBonus[teamResult[0].playerId] = 0;
             damageBonus[teamResult[1].playerId] = -0.5;
             damageBonus[teamResult[2].playerId] = -1;
@@ -641,7 +622,6 @@ export class MatchService {
     scores: Record<string, number>,
     totalPoints: Record<string, { points: number; result: MatchResult }>
   ) {
-    // Группируем игроков по командам
     const teamPlayers: Record<number, string[]> = {};
     players.forEach((player) => {
       if (!teamPlayers[player.team]) {
@@ -650,7 +630,6 @@ export class MatchService {
       teamPlayers[player.team].push(player.userId);
     });
 
-    // Рассчитываем бонусы очков для каждой команды
     const scoreBonus: Record<string, number> = {};
 
     Object.entries(teamPlayers).forEach(([teamStr, teamPlayerIds]) => {
@@ -661,39 +640,31 @@ export class MatchService {
         }))
         .sort((a, b) => b.score - a.score);
 
-      // Проверяем совпадение очков
       const uniqueScores = new Set(teamResult.map((p) => p.score)).size;
 
-      // Определяем бонусы в зависимости от размера команды и результата
       const teamSize = teamPlayerIds.length;
-      // Проверяем результат команды через ID первого игрока и информацию о нём в totalPoints
       const teamId = parseInt(teamStr);
       const isWinningTeam =
         totalPoints && totalPoints[teamId] ? totalPoints[teamId].result === 'WIN' : false;
 
       if (uniqueScores === 1 && teamSize > 1) {
-        // Все набрали одинаковое количество очков
         teamPlayerIds.forEach((playerId) => {
           scoreBonus[playerId] = isWinningTeam ? 0.33 : -0.33;
         });
       } else if (teamSize === 2) {
         if (isWinningTeam) {
-          // Для выигравшей команды из 2 игроков
           scoreBonus[teamResult[0].playerId] = 0.5;
           scoreBonus[teamResult[1].playerId] = 0;
         } else {
-          // Для проигравшей команды из 2 игроков
           scoreBonus[teamResult[0].playerId] = 0;
           scoreBonus[teamResult[1].playerId] = -0.5;
         }
       } else if (teamSize === 3) {
         if (isWinningTeam) {
-          // Для выигравшей команды из 3 игроков
           if (
             teamResult[0].score === teamResult[1].score &&
             teamResult[0].score > teamResult[2].score
           ) {
-            // Первые два игрока набрали одинаковое количество очков и больше третьего
             scoreBonus[teamResult[0].playerId] = 0.5;
             scoreBonus[teamResult[1].playerId] = 0.5;
             scoreBonus[teamResult[2].playerId] = 0;
@@ -701,23 +672,19 @@ export class MatchService {
             teamResult[1].score === teamResult[2].score &&
             teamResult[0].score > teamResult[1].score
           ) {
-            // Второй и третий набрали одинаковое количество очков, меньше первого
             scoreBonus[teamResult[0].playerId] = 0.5;
             scoreBonus[teamResult[1].playerId] = 0;
             scoreBonus[teamResult[2].playerId] = 0;
           } else {
-            // Все набрали разное количество очков
             scoreBonus[teamResult[0].playerId] = 1;
             scoreBonus[teamResult[1].playerId] = 0.5;
             scoreBonus[teamResult[2].playerId] = 0;
           }
         } else {
-          // Для проигравшей команды из 3 игроков
           if (
             teamResult[0].score === teamResult[1].score &&
             teamResult[0].score > teamResult[2].score
           ) {
-            // Первые два игрока набрали одинаковое количество очков и больше третьего
             scoreBonus[teamResult[0].playerId] = 0;
             scoreBonus[teamResult[1].playerId] = 0;
             scoreBonus[teamResult[2].playerId] = -0.5;
@@ -725,12 +692,10 @@ export class MatchService {
             teamResult[1].score === teamResult[2].score &&
             teamResult[0].score > teamResult[1].score
           ) {
-            // Второй и третий набрали одинаковое количество очков, меньше первого
             scoreBonus[teamResult[0].playerId] = 0;
             scoreBonus[teamResult[1].playerId] = -0.5;
             scoreBonus[teamResult[2].playerId] = -0.5;
           } else {
-            // Все набрали разное количество очков
             scoreBonus[teamResult[0].playerId] = 0;
             scoreBonus[teamResult[1].playerId] = -0.5;
             scoreBonus[teamResult[2].playerId] = -1;
@@ -850,7 +815,6 @@ export class MatchService {
           );
         }
 
-        // Рассчитываем дополнительные бонусы
         const damageBonus = this.calculateDamageBonus(
           data.players,
           normalizedStatsData.damage,
@@ -876,13 +840,11 @@ export class MatchService {
           const wipeouts = normalizedStatsData.wipeouts[userId];
           const result = totalPoints[player.team.toString()].result;
 
-          // Добавляем бонусы к изменению рейтинга
           let playerRatingChange =
             !isRated || player.userId.startsWith('bot_')
               ? 0
               : Number(ratingsChange.get(userId)?.toFixed(2)) || 0;
 
-          // Применяем дополнительные бонусы, только если матч рейтинговый и игрок не бот
           if (isRated && !player.userId.startsWith('bot_')) {
             playerRatingChange +=
               Number((damageBonus[userId] || 0).toFixed(2)) +
@@ -1109,7 +1071,6 @@ export class MatchService {
         throw new Error(`Match with id ${id} not found`);
       }
 
-      // Сохраняем копию данных матча для возврата после удаления
       const matchData = { ...match };
 
       await Promise.all(
@@ -1161,17 +1122,14 @@ export class MatchService {
           })
       );
 
-      // Удаляем связанные записи игроков
       await tx.matchPlayer.deleteMany({
         where: { matchId: id },
       });
 
-      // Удаляем сам матч
       await tx.match.delete({
         where: { id },
       });
 
-      // Возвращаем сохраненные данные матча
       return matchData;
     });
   }

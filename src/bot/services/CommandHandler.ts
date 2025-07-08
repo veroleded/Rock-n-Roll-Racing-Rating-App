@@ -11,20 +11,16 @@ export class CommandHandler {
     this.userService = new UsersService(prisma);
   }
 
-  // Проверка и обновление данных пользователя
   private async checkAndUpdateUserData(message: Message): Promise<void> {
     try {
-      // Получаем текущий аватар и имя пользователя
       const currentAvatar = message.author.avatar
         ? `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png`
         : 'https://discord.com/assets/1f0bfc0865d324c2587920a7d80c609b.png';
 
       const currentUsername = message.author.globalName || message.author.username;
 
-      // Получаем текущие данные пользователя из базы
       const userData = await this.userService.getUserById(message.author.id);
 
-      // Проверяем, нужно ли обновление
       if (userData && (userData.image !== currentAvatar || userData.name !== currentUsername)) {
         const updateData = {
           id: message.author.id,
@@ -32,7 +28,6 @@ export class CommandHandler {
           image: currentAvatar,
         };
 
-        // Обновляем данные пользователя
         await this.userService.updateUser(updateData);
 
         console.log(`Обновлены данные пользователя ${currentUsername}`);
@@ -51,15 +46,12 @@ export class CommandHandler {
   }
 
   async handleMessage(message: Message) {
-    // Игнорируем сообщения от ботов
     if (message.author.bot) return;
 
-    // Проверяем, является ли сообщение командой
     if (!message.content.startsWith('!')) return;
 
     await this.checkAndUpdateUserData(message);
 
-    // Разбиваем сообщение на команду и аргументы
     const args = message.content.slice(1).trim().split(/ +/);
     const rawCommandName = args.shift();
 
@@ -67,11 +59,9 @@ export class CommandHandler {
 
     const commandName = rawCommandName.toLowerCase();
 
-    // Ищем команду
     const command = this.commands.get(commandName);
     if (!command) return;
 
-    // Выполняем команду
     try {
       await command.execute(message);
     } catch (error) {
@@ -86,7 +76,6 @@ export class CommandHandler {
     }
   }
 
-  // Получение списка всех команд
   getCommands(): Command[] {
     return Array.from(this.commands.values());
   }

@@ -20,13 +20,10 @@ export const rankCommand: Command = {
   description: 'Показывает позицию игрока в рейтинге и соседей',
   execute: async (message: Message) => {
     try {
-      // Получаем ID пользователя
       const content = message.content.trim();
       let discordId = message.author.id;
 
-      // Если указан другой пользователь
       if (content.length > 5) {
-        // !rank + пробел + ID
         const mentionedId = content.slice(6).trim();
         if (mentionedId) {
           discordId = mentionedId;
@@ -62,14 +59,12 @@ export const rankCommand: Command = {
           const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 100) : 0;
           const rank = player.rank;
 
-          // Определяем ранговую иконку
           let rankIcon = '';
           if (rank === 1) rankIcon = '🥇';
           else if (rank === 2) rankIcon = '🥈';
           else if (rank === 3) rankIcon = '🥉';
           else rankIcon = `${rank}`;
 
-          // Если это целевой пользователь - добавляем указатель
           const namePrefix = player.id === discordId ? '➡️ ' : '';
 
           return {

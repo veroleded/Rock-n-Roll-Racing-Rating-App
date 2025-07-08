@@ -15,12 +15,10 @@ import { GatheringCommandsHandler } from './services/GatheringCommandsHandler';
 import { MatchNotificationService } from './services/MatchNotificationService';
 import { createEmbed } from './utils/embeds';
 
-// Загружаем переменные окружения
 dotenv.config();
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
-// Создаем клиент Discord с необходимыми разрешениями
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -29,17 +27,13 @@ const client = new Client({
   ],
 });
 
-// Создаем обработчики команд
 const commandHandler = new CommandHandler();
 const gatheringCommandsHandler = new GatheringCommandsHandler();
 
-// Регистрируем стандартные команды
 const commands = [joinCommand, statCommand, topCommand, bottomCommand, rankCommand];
 commands.forEach((command) => commandHandler.register(command));
-// Регистрируем команду help после всех остальных команд
 commandHandler.register(new HelpCommand(commands));
 
-// Вспомогательная функция для проверки команд сбора
 function isGatheringCommand(
   content: string
 ): content is (typeof GATHERING_COMMANDS)[keyof typeof GATHERING_COMMANDS] {
@@ -48,21 +42,16 @@ function isGatheringCommand(
   );
 }
 
-// Обработчик сообщений
 client.on(Events.MessageCreate, async (message: Message) => {
-  // Игнорируем сообщения от ботов
   if (message.author.bot) return;
 
-  // Проверяем, что это не личное сообщение и канал текстовый
   if (!message.guild || !(message.channel instanceof TextChannel)) return;
 
   const channelName = message.channel.name;
   const isGatheringChannel = channelName.startsWith(GAME_GATHERING_PREFIX);
   const content = message.content.trim();
 
-  // Обработка команд в каналах сбора
   if (isGatheringChannel) {
-    // Если пытаются использовать стандартные команды в канале сбора
     if (content.startsWith('!')) {
       await message.reply({
         embeds: [createEmbed.error('Неверный канал', MESSAGES.ERROR.WRONG_CHANNEL_STANDARD)],
@@ -70,14 +59,12 @@ client.on(Events.MessageCreate, async (message: Message) => {
       return;
     }
 
-    // Проверяем, является ли сообщение командой сбора
     if (isGatheringCommand(content)) {
       await gatheringCommandsHandler.handleCommand(message, channelName);
     }
     return;
   }
 
-  // Если пытаются использовать команды сбора в обычном канале
   if (isGatheringCommand(content)) {
     await message.reply({
       embeds: [createEmbed.error('Неверный канал', MESSAGES.ERROR.WRONG_CHANNEL_GATHERING)],
@@ -85,40 +72,31 @@ client.on(Events.MessageCreate, async (message: Message) => {
     return;
   }
 
-  // Обработка стандартных команд только в не-сборочных каналах
   await commandHandler.handleMessage(message);
 });
 
-// Обработка ошибок
 client.on(Events.Error, (error) => {
   console.error('Discord client error:', error);
 });
 
-// Обработчик готовности бота
 client.once(Events.ClientReady, (c) => {
   console.log(`Бот готов! Вошел как ${c.user.tag}`);
 
-  // Инициализируем и запускаем сервис уведомлений о матчах
   const matchNotificationService = new MatchNotificationService(prisma, client);
 
-  // Инициализируем сервис
   (async () => {
     await matchNotificationService.initialize();
-    // Запускаем проверку матчей каждые 10 секунд
     matchNotificationService.startChecker(10000);
   })();
 
-  // Запускаем планировщик проверки очередей
   setInterval(async () => {
     console.log('Проверка старых очередей');
     try {
       const queuesService = new QueuesService(prisma);
       const oldQueues = await queuesService.cleanOldQueues();
 
-      // Если есть устаревшие очереди, отправляем уведомления
       if (oldQueues.length > 0) {
         for (const queue of oldQueues) {
-          // Находим канал, в котором была очередь
           const channelName =
             queue.gameType === 'THREE_VS_THREE'
               ? 'сбор_на_игру_3x3'
@@ -126,7 +104,6 @@ client.once(Events.ClientReady, (c) => {
                 ? 'сбор_на_игру_2x2x2'
                 : 'сбор_на_игру_2x2';
 
-          // Ищем канал во всех гильдиях
           for (const guild of client.guilds.cache.values()) {
             const channel = guild.channels.cache.find(
               (ch) => ch.name === channelName && ch.type === 0
@@ -149,8 +126,7 @@ client.once(Events.ClientReady, (c) => {
     } catch (error) {
       console.error('Ошибка при проверке старых очередей:', error);
     }
-  }, 10000); // Проверяем каждые 10 секунд
+  }, 10000);
 });
 
-// Подключаемся к Discord
 client.login(DISCORD_BOT_TOKEN);

@@ -71,7 +71,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex-1 min-h-0 py-6 space-y-6">
-        {/* Основная информация */}
         <Card className="border-border/40 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle>Основная информация</CardTitle>
@@ -129,7 +128,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Статистика и матчи */}
         {user.stats && (
           <Tabs defaultValue="stats" className="w-full">
             <TabsList className="grid w-full grid-cols-2">

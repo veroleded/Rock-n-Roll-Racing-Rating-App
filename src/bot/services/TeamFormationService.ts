@@ -21,7 +21,7 @@ export class TeamFormationService {
     this.userService = new UsersService(prisma);
     this.queueService = new QueuesService(prisma);
   }
-  // Вспомогательная функция для получения всех комбинаций из массива длины k
+
   private combinations<T>(arr: T[], k: number): T[][] {
     const result: T[][] = [];
     function combine(start: number, comb: T[]) {
@@ -39,7 +39,6 @@ export class TeamFormationService {
     return result;
   }
 
-  // Функция генерирует все разбиения массива arr на группы с указанными размерами
   private partitions<T>(arr: T[], sizes: number[]): T[][][] {
     const result: T[][][] = [];
     const combinations = this.combinations.bind(this);
@@ -63,30 +62,26 @@ export class TeamFormationService {
     return result;
   }
 
-  // Формирует команды на основе очереди
   async formTeams(queue: QueueWithPlayers, message: Message): Promise<void> {
     const { players, botsCount, gameType } = queue;
 
-    // Получаем список доступных ботов
     const bots = await this.userService.getBotListForEdit();
 
-    // Определяем параметры распределения
     let condition: number;
     switch (gameType) {
       case 'TWO_VS_TWO':
-        condition = 1; // 2 группы по 2 игрока
+        condition = 1;
         break;
       case 'THREE_VS_THREE':
-        condition = 2; // 2 группы по 3 игрока
+        condition = 2;
         break;
       case 'TWO_VS_TWO_VS_TWO':
-        condition = 3; // 3 группы по 2 игрока
+        condition = 3;
         break;
       default:
         throw new Error('Неизвестный тип игры');
     }
 
-    // Получаем размеры групп
     let groupCount: number, groupSize: number;
     switch (condition) {
       case 1:
@@ -108,11 +103,9 @@ export class TeamFormationService {
     const totalNeeded = groupCount * groupSize;
     const missingCount = totalNeeded - players.length;
 
-    // Переменные для хранения лучшего разбиения
     let bestPartition: PlayerWithStats[][] | null = null;
     let bestDiff = Infinity;
 
-    // Получаем все возможные наборы недостающих ботов
     let candidateMissingSets: PlayerWithStats[][] = [];
     if (missingCount > 0 && botsCount > 0) {
       candidateMissingSets = this.combinations(bots, Math.min(missingCount, botsCount));
@@ -120,16 +113,13 @@ export class TeamFormationService {
       candidateMissingSets = [[]];
     }
 
-    // Перебираем каждый вариант недостающих ботов
     for (const missingSet of candidateMissingSets) {
       const fullSet = [...players, ...missingSet];
       if (fullSet.length !== totalNeeded) continue;
 
-      // Генерируем все разбиения fullSet на группы нужного размера
       const groupSizes = Array(groupCount).fill(groupSize);
       const allPartitions = this.partitions(fullSet, groupSizes);
 
-      // Оцениваем каждое разбиение: ищем разницу между максимальной и минимальной суммой рейтингов
       for (const partition of allPartitions) {
         const sums = partition.map((group) =>
           group.reduce((acc, player) => acc + (player.stats?.rating || 0), 0)
@@ -148,7 +138,6 @@ export class TeamFormationService {
       throw new Error('Не удалось распределить игроков');
     }
 
-    // Отправляем сформированные команды в чат
     await this.sendTeamsToChat(bestPartition, message, gameType);
   }
 
@@ -199,13 +188,11 @@ export class TeamFormationService {
 
     await message.reply({ embeds: [embed] });
 
-    // Проверяем, что канал является текстовым
     if (!(message.channel instanceof TextChannel)) {
       console.error('Канал не является текстовым');
       return;
     }
 
-    // Удаляем очередь после отправки сообщения о командах
     const channelName = message.channel.name;
 
     try {

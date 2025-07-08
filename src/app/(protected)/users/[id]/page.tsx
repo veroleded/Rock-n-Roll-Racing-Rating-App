@@ -136,7 +136,6 @@ export default function UserPage() {
           </CardContent>
         </Card>
 
-        {/* Статистика и матчи */}
         {user.stats && (
           <Tabs defaultValue="stats" className="w-full">
             <TabsList className="grid w-full grid-cols-2">

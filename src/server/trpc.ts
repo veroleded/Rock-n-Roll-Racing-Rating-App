@@ -6,7 +6,6 @@ import { getServerSession } from 'next-auth';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
 
-// Создаем контекст для каждого запроса
 export async function createTRPCContext() {
   const session = await getServerSession(authOptions);
 
@@ -31,7 +30,6 @@ const t = initTRPC.context<TRPCContext>().create({
   },
 });
 
-// Базовый middleware для проверки аутентификации
 const isAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session?.user) {
     throw new TRPCError({ code: 'UNAUTHORIZED' });
@@ -57,7 +55,6 @@ const isModeratorOrAdmin = t.middleware(({ ctx, next }) => {
   });
 });
 
-// Базовый middleware для проверки роли администратора
 const isAdmin = t.middleware(({ ctx, next }) => {
   if (!ctx.session?.user) {
     throw new TRPCError({ code: 'UNAUTHORIZED' });

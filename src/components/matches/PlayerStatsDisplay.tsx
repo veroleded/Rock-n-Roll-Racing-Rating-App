@@ -11,11 +11,7 @@ interface PlayerStatsDisplayProps {
   sessionUserId?: string;
 }
 
-export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
-  players,
-  sessionUserId,
-}) => {
-  // Группируем игроков по командам
+export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({ players, sessionUserId }) => {
   const teams = players.reduce(
     (acc, player) => {
       if (!acc[player.team]) {
@@ -27,12 +23,10 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
     {} as Record<number, typeof players>
   );
 
-  // Находим игрока с максимальным количеством вайпаутов
   const playerWithMaxWipeouts = players.reduce((maxPlayer, currentPlayer) => {
     return currentPlayer.wipeouts > (maxPlayer?.wipeouts || 0) ? currentPlayer : maxPlayer;
   }, players[0]);
 
-  // Находим игрока с максимальным количеством очков
   const playerWithMaxScore = players.reduce((maxPlayer, currentPlayer) => {
     return currentPlayer.score > (maxPlayer?.score || 0) ? currentPlayer : maxPlayer;
   }, players[0]);
@@ -41,13 +35,11 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
     <div className="w-full">
       <div className="grid md:grid-cols-2 gap-4">
         {Object.entries(teams).map(([teamId, teamPlayers]) => {
-          // Считаем сумму очков команды
           const teamTotalScore = teamPlayers.reduce((sum, player) => sum + player.score, 0);
           const hasWin = teamPlayers.some((player) => player.result === 'WIN');
 
           return (
             <div key={teamId} className="space-y-2">
-              {/* Заголовок команды с суммой очков */}
               <TeamScoreHeader
                 teamName={`Команда ${parseInt(teamId)}`}
                 totalScore={teamTotalScore}
@@ -76,7 +68,6 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({
   );
 };
 
-// Компонент заголовка команды с общим счетом
 const TeamScoreHeader: React.FC<{
   teamName: string;
   totalScore: number;
@@ -100,19 +91,16 @@ const PlayerStatsCard: React.FC<{
   isTopWipeouts?: boolean;
   isTopScore?: boolean;
 }> = ({ player, allPlayers, isCurrentUser, isTopWipeouts = false, isTopScore = false }) => {
-  // Отображаемые названия результатов
   const resultNames = {
     WIN: 'Победа',
     LOSS: 'Поражение',
     DRAW: 'Ничья',
   };
 
-  // Рассчитываем общий урон, нанесенный по союзникам
   const totalAllyDamage = Object.values(player.damageDealt)
     .filter((info) => info.isAlly)
     .reduce((sum, info) => sum + info.damage, 0);
 
-  // Есть ли урон по союзникам вообще
   const hasAllyDamage = totalAllyDamage > 0;
 
   return (
@@ -127,7 +115,6 @@ const PlayerStatsCard: React.FC<{
               : 'rgb(250, 204, 21)',
       }}
     >
-      {/* Хедер с аватаром и именем */}
       <div
         className={cn(
           'p-1.5 flex items-center gap-1.5',
@@ -190,7 +177,6 @@ const PlayerStatsCard: React.FC<{
 
       <CardContent className="p-1.5">
         <div className="grid md:grid-cols-2 gap-1.5 h-full">
-          {/* Колонка 1: Урон */}
           <div className="flex flex-col space-y-1.5">
             <div className="bg-muted/80 rounded-lg p-1">
               <div className="text-[10px] font-semibold">Нанесенный урон</div>
@@ -216,7 +202,6 @@ const PlayerStatsCard: React.FC<{
             </div>
           </div>
 
-          {/* Колонка 2: Другая статистика (2x3 сетка) */}
           <div className="grid grid-cols-2 grid-rows-3 gap-1 h-full">
             <StatCard
               label="Очки"
@@ -280,18 +265,16 @@ const PlayerDamageSection: React.FC<{
   damageDealt: DamageDealt;
   allPlayers: MatchPlayer[];
 }> = ({ title, damageDealt, allPlayers }) => {
-  // Разделяем урон на урон по союзникам и урон по врагам
   const allyDamage = Object.entries(damageDealt)
     .filter(([, info]) => info.isAlly)
     .sort((a, b) => b[1].damage - a[1].damage)
-    .slice(0, 3); // Максимум 3 союзника
+    .slice(0, 3);
 
   const enemyDamage = Object.entries(damageDealt)
     .filter(([, info]) => !info.isAlly)
     .sort((a, b) => b[1].damage - a[1].damage)
-    .slice(0, 3); // Максимум 3 врага
+    .slice(0, 3);
 
-  // Общее количество игроков, по которым наносился урон
   const totalPlayers = Object.keys(damageDealt).length;
   const displayedPlayers = allyDamage.length + enemyDamage.length;
 
@@ -300,7 +283,6 @@ const PlayerDamageSection: React.FC<{
       <h4 className="text-xs font-semibold mb-1">{title}</h4>
 
       <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 flex-1">
-        {/* Левая колонка - урон по врагам */}
         <div className="bg-green-500/10 rounded p-0.5 space-y-0.5">
           {enemyDamage.map(([targetId, damageInfo]) =>
             renderDamageEntry(targetId, damageInfo, allPlayers, false)
@@ -312,7 +294,6 @@ const PlayerDamageSection: React.FC<{
           )}
         </div>
 
-        {/* Правая колонка - урон по союзникам */}
         <div className="bg-red-500/10 rounded p-0.5 space-y-0.5">
           {allyDamage.map(([targetId, damageInfo]) =>
             renderDamageEntry(targetId, damageInfo, allPlayers, true)
@@ -324,7 +305,6 @@ const PlayerDamageSection: React.FC<{
           )}
         </div>
 
-        {/* Если есть больше игроков, показываем общее количество */}
         {totalPlayers > displayedPlayers && (
           <div className="text-[10px] text-muted-foreground text-center col-span-2 font-medium">
             + ещё {totalPlayers - displayedPlayers} игроков
@@ -335,7 +315,6 @@ const PlayerDamageSection: React.FC<{
   );
 };
 
-// Вспомогательная функция для рендеринга записи об уроне
 const renderDamageEntry = (
   targetId: string,
   damageInfo: { damage: number; isAlly: boolean },

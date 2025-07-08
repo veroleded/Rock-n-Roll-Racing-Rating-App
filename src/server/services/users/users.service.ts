@@ -193,7 +193,6 @@ export class UsersService {
   }
 
   async getUserWithNeighbors(userId: string) {
-    // Получаем всех игроков в отсортированном порядке
     const allUsers = await this.prisma.user.findMany({
       where: {
         hasJoinedBot: true,
@@ -208,35 +207,28 @@ export class UsersService {
       rank: index + 1,
     }));
 
-    // Находим индекс текущего игрока
     const userIndex = usersWithRank.findIndex((user) => user.id === userId);
 
     if (userIndex === -1) {
       throw new Error('Пользователь не найден');
     }
 
-    // Определяем границы для выборки соседей
     let startIndex: number;
     let endIndex: number;
 
     if (userIndex < 5) {
-      // Если игрок близко к началу списка
       startIndex = 0;
       endIndex = Math.min(10, allUsers.length);
     } else if (userIndex >= allUsers.length - 5) {
-      // Если игрок близко к концу списка
       endIndex = allUsers.length;
       startIndex = Math.max(0, endIndex - 10);
     } else {
-      // Игрок где-то в середине
       startIndex = userIndex - 5;
       endIndex = userIndex + 5;
     }
 
-    // Выбираем 10 игроков
     const neighbors = usersWithRank.slice(startIndex, endIndex);
 
-    // Если получилось меньше 10 (маловероятно, но на всякий случай)
     while (neighbors.length < 10 && allUsers.length >= 10) {
       if (startIndex > 0) {
         startIndex--;
@@ -245,7 +237,7 @@ export class UsersService {
         neighbors.push(usersWithRank[endIndex]);
         endIndex++;
       } else {
-        break; // Невозможно добавить больше игроков
+        break;
       }
     }
 

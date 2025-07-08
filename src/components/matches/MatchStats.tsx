@@ -16,18 +16,17 @@ import {
 } from 'recharts';
 import { MatchPlayer } from './types';
 
-// Цветовая схема
 const COLORS = {
   light: {
-    team1: '#2563eb', // синий
-    team2: '#dc2626', // красный
-    team3: '#ca8a04', // желтый
-    gradient1: ['#60a5fa', '#2563eb'], // градиент для синей команды (светлее -> темнее)
-    gradient2: ['#f87171', '#dc2626'], // градиент для красной команды (светлее -> темнее)
-    gradient3: ['#fcd34d', '#ca8a04'], // градиент для желтой команды (светлее -> темнее)
-    text: '#1e293b', // темно-синий текст
-    grid: '#e2e8f0', // светло-серая сетка
-    labelText: '#1e293b', // цвет текста для меток
+    team1: '#2563eb',
+    team2: '#dc2626',
+    team3: '#ca8a04',
+    gradient1: ['#60a5fa', '#2563eb'],
+    gradient2: ['#f87171', '#dc2626'],
+    gradient3: ['#fcd34d', '#ca8a04'],
+    text: '#1e293b',
+    grid: '#e2e8f0',
+    labelText: '#1e293b',
     tooltip: {
       background: 'rgba(255, 255, 255, 0.95)',
       border: '#cbd5e1',
@@ -39,15 +38,15 @@ const COLORS = {
     },
   },
   dark: {
-    team1: '#60a5fa', // более яркий синий
-    team2: '#f87171', // более яркий красный
-    team3: '#facc15', // более яркий желтый
-    gradient1: ['#93c5fd', '#3b82f6'], // градиент для синей команды (светлее -> темнее)
-    gradient2: ['#fca5a5', '#ef4444'], // градиент для красной команды (светлее -> темнее)
-    gradient3: ['#fde68a', '#eab308'], // градиент для желтой команды (светлее -> темнее)
-    text: '#f8fafc', // светло-серый текст
-    grid: '#334155', // темно-серая сетка
-    labelText: '#f8fafc', // цвет текста для меток
+    team1: '#60a5fa',
+    team2: '#f87171',
+    team3: '#facc15',
+    gradient1: ['#93c5fd', '#3b82f6'],
+    gradient2: ['#fca5a5', '#ef4444'],
+    gradient3: ['#fde68a', '#eab308'],
+    text: '#f8fafc',
+    grid: '#334155',
+    labelText: '#f8fafc',
     tooltip: {
       background: 'rgba(15, 23, 42, 0.98)',
       border: '#475569',
@@ -85,10 +84,8 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
   const theme = isDark ? 'dark' : 'light';
   const colors = COLORS[theme];
 
-  // Сортируем игроков по командам, чтобы союзники были рядом
   const sortedPlayers = [...players].sort((a, b) => a.team - b.team);
 
-  // Улучшенные стили для карточки
   const cardStyles = {
     headerBg: 'bg-primary/10',
     shadow: isDark ? 'shadow-md shadow-primary/5' : 'shadow-lg shadow-primary/10',
@@ -97,42 +94,36 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
     chartBorder: isDark ? 'border-slate-800' : 'border-slate-200',
   };
 
-  // Подготовка данных для графика урона
   const damageData = sortedPlayers.map((player) => ({
     name: player.user.name || 'Игрок',
     damage: player.totalDamageDealt,
     team: player.team,
   }));
 
-  // Подготовка данных для графика полученного урона
   const damageTakenData = sortedPlayers.map((player) => ({
     name: player.user.name || 'Игрок',
     damage: player.totalDamageReceived,
     team: player.team,
   }));
 
-  // Подготовка данных для графика собранных денег
   const moneyData = sortedPlayers.map((player) => ({
     name: player.user.name || 'Игрок',
     money: player.moneyTaken,
     team: player.team,
   }));
 
-  // Подготовка данных для графика собранной брони
   const armorData = sortedPlayers.map((player) => ({
     name: player.user.name || 'Игрок',
     armor: player.armorTaken,
     team: player.team,
   }));
 
-  // Подготовка данных для графика вайпаутов
   const wipeoutsData = sortedPlayers.map((player) => ({
     name: player.user.name || 'Игрок',
     wipeouts: player.wipeouts,
     team: player.team,
   }));
 
-  // Подготовка данных для круговой диаграммы урона от мин
   const minesDamageData = sortedPlayers
     .map((player) => ({
       name: player.user.name || 'Игрок',
@@ -141,7 +132,6 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
     }))
     .filter((item) => item.value > 0);
 
-  // Кастомный компонент для тултипа
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
       const teamNumber = payload[0].payload.team;
@@ -178,7 +168,6 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
     return null;
   };
 
-  // Общие настройки для меток
   const labelListProps = {
     position: 'top' as const,
     fill: colors.labelText,
@@ -193,7 +182,6 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
       </CardHeader>
       <CardContent className="pt-4 pb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* График нанесенного урона */}
           <div
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
@@ -264,7 +252,6 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* График полученного урона */}
           <div
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
@@ -335,7 +322,6 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* График собранных денег */}
           <div
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
@@ -406,7 +392,6 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* График собранной брони */}
           <div
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
@@ -477,7 +462,6 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* График вайпаутов */}
           <div
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
@@ -548,7 +532,6 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             </ResponsiveContainer>
           </div>
 
-          {/* Круговая диаграмма урона от мин */}
           <div
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}

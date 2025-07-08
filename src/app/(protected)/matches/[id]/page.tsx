@@ -21,7 +21,6 @@ export default function MatchPage() {
   const { toast } = useToast();
   const { data: session } = useSession();
 
-  // Запрос данных матча
   const { data: match, isLoading } = trpc.matches.byId.useQuery(params?.id as string, {
     refetchOnWindowFocus: false,
     retry: false,
@@ -32,7 +31,6 @@ export default function MatchPage() {
     },
   });
 
-  // Мутация для удаления матча
   const { mutate: deleteMatch, isLoading: isDeleting } = trpc.matches.delete.useMutation({
     onSuccess: () => {
       toast({
@@ -50,28 +48,23 @@ export default function MatchPage() {
     },
   });
 
-  // Проверка прав на редактирование/удаление
   const canChange =
     session?.user.role === Role.ADMIN || (session?.user.role === Role.MODERATOR && match?.isLast);
 
-  // Обработчик удаления матча
   const handleDelete = () => {
     if (window.confirm('Вы уверены, что хотите удалить этот матч? Это действие нельзя отменить.')) {
       deleteMatch(match!.id);
     }
   };
 
-  // Обработка состояния загрузки
   if (isLoading) {
     return <MatchLoading />;
   }
 
-  // Обработка отсутствия данных
   if (!match) {
     return <MatchNotFound />;
   }
 
-  // Приводим данные JSON к нужным типам
   const typedPlayers = match.players.map((player) => ({
     ...player,
     damageDealt: player.damageDealt as DamageDealt,
@@ -81,7 +74,6 @@ export default function MatchPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      {/* Заголовок матча */}
       <MatchHeader
         id={match.id}
         createdAt={match.createdAt}
@@ -99,21 +91,16 @@ export default function MatchPage() {
         }
       />
 
-      {/* Статистика игроков */}
       <div className="relative">
         <PlayerStatsDisplay players={typedPlayers} sessionUserId={session?.user.id} />
       </div>
 
-      {/* Графики статистики */}
       <MatchStats players={typedPlayers} />
 
-      {/* Матрица урона */}
       <DamageMatrix players={typedPlayers} />
 
-      {/* Статистика по дивизиям */}
       <DivisionsStats players={typedPlayers} />
 
-      {/* Детали матча */}
       <MatchDetails
         creator={match.creator}
         createdAt={match.createdAt}

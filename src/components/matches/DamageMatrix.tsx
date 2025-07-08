@@ -30,19 +30,13 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
-  // Сортируем игроков по командам, чтобы союзники были рядом
   const sortedPlayers = [...players].sort((a, b) => a.team - b.team);
 
-  // Подготовка данных для матрицы урона
   const matrixData: MatrixRow[] = sortedPlayers.map((attacker) => {
     const damages: DamageData = {};
 
-    // Заполняем урон по каждому игроку
     sortedPlayers.forEach((victim) => {
-      // Получаем урон по ключу (ID игрока)
       const damageEntry = attacker.damageDealt[victim.userId];
-
-      // Если есть запись о нанесенном уроне
       if (damageEntry) {
         damages[victim.userId] = damageEntry.damage;
       } else {
@@ -58,7 +52,6 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
     };
   });
 
-  // Минималистичная цветовая схема
   const colors = {
     team: {
       1: {
@@ -89,7 +82,6 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
     },
   };
 
-  // Функция для определения цвета урона в зависимости от его величины
   const getDamageStyle = (damage: number, isTeammate: boolean) => {
     if (damage === 0) {
       return colors.damage.none;
@@ -99,7 +91,6 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
       return colors.damage.friendly.text + ' font-semibold';
     }
 
-    // Найдем максимальный урон для масштабирования
     const maxDamage = Math.max(
       ...matrixData.flatMap((row) => Object.values(row.damages).filter((d) => d > 0))
     );
@@ -115,7 +106,6 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
     }
   };
 
-  // Группируем игроков по команде для заголовков
   const teamGroups = sortedPlayers.reduce<Record<number, MatchPlayer[]>>((acc, player) => {
     if (!acc[player.team]) {
       acc[player.team] = [];
@@ -138,7 +128,6 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
                   Атакующий \ Получатель
                 </TableHead>
 
-                {/* Заголовки команд */}
                 {Object.entries(teamGroups).map(([team, teamPlayers]) => (
                   <React.Fragment key={`team-header-${team}`}>
                     {teamPlayers.map((player) => (
@@ -160,19 +149,16 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* Строки по командам */}
               {Object.entries(teamGroups).map(([team]) => (
                 <React.Fragment key={`team-rows-${team}`}>
                   {matrixData
                     .filter((row) => row.team === parseInt(team))
                     .map((row) => {
-                      // Вычисляем общий нанесенный урон
                       const totalDamage = sortedPlayers.reduce(
                         (sum, victim) => sum + (row.damages[victim.userId] || 0),
                         0
                       );
 
-                      // Урон по союзникам
                       const teamDamage = sortedPlayers
                         .filter((p) => p.team === row.team && p.userId !== row.attackerId)
                         .reduce((sum, victim) => sum + (row.damages[victim.userId] || 0), 0);
@@ -190,7 +176,6 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
                             {row.attackerName}
                           </TableCell>
 
-                          {/* Ячейки с уроном по командам */}
                           {Object.entries(teamGroups).map(([victimTeam, victimPlayers]) => (
                             <React.Fragment key={`damage-cells-${row.attackerId}-${victimTeam}`}>
                               {victimPlayers.map((victim) => {
@@ -198,7 +183,6 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
                                 const isTeammate = victim.team === row.team;
                                 const isSelf = victim.userId === row.attackerId;
 
-                                // Определяем стиль ячейки в зависимости от урона
                                 const cellStyle = getDamageStyle(damage, isTeammate && !isSelf);
 
                                 return (

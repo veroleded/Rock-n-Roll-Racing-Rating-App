@@ -12,13 +12,10 @@ export const statCommand: Command = {
   description: 'Показывает всю информацию про игрока',
   execute: async (message: Message) => {
     try {
-      // Получаем ID пользователя
       const content = message.content.trim();
       let discordId = message.author.id;
 
-      // Если указан другой пользователь
       if (content.length > 5) {
-        // !stat + пробел + ID
         const mentionedId = content.slice(6).trim();
         if (mentionedId) {
           discordId = mentionedId;
@@ -26,7 +23,6 @@ export const statCommand: Command = {
       }
 
       try {
-        // Получаем информацию о пользователе
         const user = await usersService.getUserById(discordId);
         if (!user?.stats) {
           await message.reply({

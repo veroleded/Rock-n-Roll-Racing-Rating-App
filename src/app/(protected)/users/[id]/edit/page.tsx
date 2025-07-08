@@ -34,7 +34,6 @@ import { Suspense, use, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-// Схема валидации формы
 const formSchema = z.object({
   id: z.string(),
   role: z.enum(['ADMIN', 'MODERATOR', 'PLAYER']),
@@ -110,7 +109,6 @@ function EditUserContent({ userId }: { userId: string }) {
     }
   }, [userData, form]);
 
-  // Проверяем права доступа
   if (!session?.user || session.user.role !== 'ADMIN') {
     return (
       <div className="flex items-center justify-center h-96">
@@ -458,11 +456,7 @@ function EditUserContent({ userId }: { userId: string }) {
   );
 }
 
-export default function EditUserPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
 
   return (

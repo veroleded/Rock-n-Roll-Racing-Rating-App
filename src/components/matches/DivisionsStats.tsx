@@ -19,10 +19,9 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
-  // Сортируем игроков по командам, чтобы союзники были рядом
+
   const sortedPlayers = [...players].sort((a, b) => a.team - b.team);
 
-  // Собираем уникальные дивизии из всех игроков
   const allDivisions = new Set<string>();
   sortedPlayers.forEach((player) => {
     Object.keys(player.divisions).forEach((divisionKey) => {
@@ -30,7 +29,6 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
     });
   });
 
-  // Кастомный порядок дивизионов без суффиксов
   const divisionBaseOrder = [
     'chem_vi',
     'drakonis',
@@ -46,7 +44,6 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
     'sigmia_vii',
   ];
 
-  // Получаем базовое имя дивизиона без суффикса (_a или _b)
   const getBaseName = (division: string) => {
     if (division.endsWith('_a') || division.endsWith('_b')) {
       return division.slice(0, -2);
@@ -54,7 +51,6 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
     return division;
   };
 
-  // Функция форматирования имени дивизиона для отображения
   const formatDivisionName = (division: string) => {
     const baseNames: Record<string, string> = {
       chem_vi: 'CHEM VI',
@@ -77,7 +73,6 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
     return (baseNames[base] || base) + suffix;
   };
 
-  // Сортируем дивизии в правильном порядке, учитывая суффиксы
   const sortedDivisions = Array.from(allDivisions).sort((a, b) => {
     const baseA = getBaseName(a);
     const baseB = getBaseName(b);
@@ -85,32 +80,25 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
     const indexA = divisionBaseOrder.indexOf(baseA);
     const indexB = divisionBaseOrder.indexOf(baseB);
 
-    // Если у обоих одинаковая база, сортируем по суффиксу (_b раньше _a)
     if (baseA === baseB) {
-      // Инвертируем порядок сравнения, чтобы _b шел раньше _a
       return a > b ? -1 : 1;
     }
 
-    // Если оба есть в порядке, сортируем по порядку
     if (indexA !== -1 && indexB !== -1) {
       return indexA - indexB;
     }
 
-    // Если только baseA в порядке, a идет первым
     if (indexA !== -1) {
       return -1;
     }
 
-    // Если только baseB в порядке, b идет первым
     if (indexB !== -1) {
       return 1;
     }
 
-    // Если ни одного нет в порядке, сортируем по алфавиту
     return a.localeCompare(b);
   });
 
-  // Группируем игроков по командам
   const teamGroups = sortedPlayers.reduce<Record<number, MatchPlayer[]>>((acc, player) => {
     if (!acc[player.team]) {
       acc[player.team] = [];
@@ -119,7 +107,6 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
     return acc;
   }, {});
 
-  // Минималистичная цветовая схема
   const colors = {
     team: {
       1: {

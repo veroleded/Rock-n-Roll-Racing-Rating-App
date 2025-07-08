@@ -1,6 +1,6 @@
 import { Queue, Stats, User } from '@prisma/client';
 
-// Вспомогательная функция для форматирования информации об очереди
+
 export function formatQueueInfo(
   queue: (Queue & { players: (User & { stats: Stats | null })[] }) | null
 ) {
