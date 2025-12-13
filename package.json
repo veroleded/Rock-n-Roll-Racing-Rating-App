@@ -13,6 +13,7 @@
     "clean": "tsx prisma/clean.ts",
     "init-bots": "tsx prisma/init-bots.ts",
     "delete-bots": "tsx prisma/delete-bots.ts",
+    "cleanup-old-data": "tsx prisma/cleanup-old-data.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
