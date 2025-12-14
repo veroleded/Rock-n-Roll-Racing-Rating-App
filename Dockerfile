@@ -3,24 +3,18 @@ FROM node:20-alpine
 WORKDIR /app
 
 ENV NODE_ENV=production
+
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install tsx globally
-RUN npm install -g tsx && \
-    npm cache clean --force
+RUN npm install -g tsx
 
-# Copy package files
 COPY package*.json ./
+RUN npm ci 
 
-# Install dependencies (including devDependencies for build)
-RUN npm ci && \
-    npm cache clean --force
-
-# Copy source code and config files
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p public scripts
+RUN mkdir -p public
+RUN mkdir -p scripts
 
 EXPOSE 3000
 
