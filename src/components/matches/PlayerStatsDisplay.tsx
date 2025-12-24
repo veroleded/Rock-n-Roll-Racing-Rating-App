@@ -277,15 +277,23 @@ const PlayerDamageSection: React.FC<{
   damageDealt: DamageDealt;
   allPlayers: MatchPlayer[];
 }> = ({ title, damageDealt, allPlayers }) => {
-  const allyDamage = Object.entries(damageDealt)
-    .filter(([, info]) => info.isAlly)
-    .sort((a, b) => b[1].damage - a[1].damage)
-    .slice(0, 3);
+  const allyDamage = useMemo(
+    () =>
+      Object.entries(damageDealt)
+        .filter(([, info]) => info.isAlly)
+        .sort((a, b) => b[1].damage - a[1].damage)
+        .slice(0, 3),
+    [damageDealt]
+  );
 
-  const enemyDamage = Object.entries(damageDealt)
-    .filter(([, info]) => !info.isAlly)
-    .sort((a, b) => b[1].damage - a[1].damage)
-    .slice(0, 3);
+  const enemyDamage = useMemo(
+    () =>
+      Object.entries(damageDealt)
+        .filter(([, info]) => !info.isAlly)
+        .sort((a, b) => b[1].damage - a[1].damage)
+        .slice(0, 3),
+    [damageDealt]
+  );
 
   const totalPlayers = Object.keys(damageDealt).length;
   const displayedPlayers = allyDamage.length + enemyDamage.length;
@@ -379,22 +387,25 @@ interface StatCardProps {
   showSign?: boolean;
 }
 
-const StatCard: React.FC<StatCardProps> = ({
-  label,
-  value,
-  icon,
-  valueClassName,
-  format = (v) => v.toString(),
-  showSign = false,
-}) => {
-  return (
-    <div className="bg-muted rounded-lg p-1">
-      <div className="font-semibold text-[10px]">{label}</div>
-      <div className={cn('flex items-center gap-0.5 font-bold', valueClassName)}>
-        {icon}
-        {showSign && value > 0 ? '+' : ''}
-        {format(value)}
+const StatCard: React.FC<StatCardProps> = React.memo(
+  ({
+    label,
+    value,
+    icon,
+    valueClassName,
+    format = (v: number) => v.toString(),
+    showSign = false,
+  }) => {
+    return (
+      <div className="bg-muted rounded-lg p-1">
+        <div className="font-semibold text-[10px]">{label}</div>
+        <div className={cn('flex items-center gap-0.5 font-bold', valueClassName)}>
+          {icon}
+          {showSign && value > 0 ? '+' : ''}
+          {format(value)}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
+StatCard.displayName = 'StatCard';

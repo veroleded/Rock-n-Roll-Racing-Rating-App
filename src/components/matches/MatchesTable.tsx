@@ -74,7 +74,7 @@ export function MatchesTable({
     }, []);
   }, []);
 
-  const getGameModeText = (mode: GameMode): string => {
+  const getGameModeText = React.useCallback((mode: GameMode): string => {
     switch (mode) {
       case 'TWO_VS_TWO':
         return '2 vs 2';
@@ -85,9 +85,9 @@ export function MatchesTable({
       default:
         return mode;
     }
-  };
+  }, []);
 
-  const renderTeam = (players: (MatchPlayer & { user: User })[], isRated: boolean) => {
+  const renderTeam = React.useCallback((players: (MatchPlayer & { user: User })[], isRated: boolean) => {
     return (
       <div className="flex flex-col gap-1">
         {players.map((player) => {
@@ -126,27 +126,14 @@ export function MatchesTable({
         })}
       </div>
     );
-  };
+  }, []);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-sm text-muted-foreground">Загрузка...</div>
-      </div>
-    );
-  }
+  const totalPages = React.useMemo(
+    () => (matchesData ? Math.ceil(matchesData.total / ITEMS_PER_PAGE) : 1),
+    [matchesData]
+  );
 
-  if (!matchesData?.matches || matchesData.matches.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-sm text-muted-foreground">История матчей пуста</div>
-      </div>
-    );
-  }
-
-  const totalPages = Math.ceil(matchesData.total / ITEMS_PER_PAGE);
-
-  const renderPaginationItems = () => {
+  const renderPaginationItems = React.useCallback(() => {
     const items = [];
     const maxVisiblePages = 5;
     const halfVisible = Math.floor(maxVisiblePages / 2);
@@ -224,7 +211,23 @@ export function MatchesTable({
     }
 
     return items;
-  };
+  }, [page, totalPages]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-sm text-muted-foreground">Загрузка...</div>
+      </div>
+    );
+  }
+
+  if (!matchesData?.matches || matchesData.matches.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-sm text-muted-foreground">История матчей пуста</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full gap-4">
@@ -249,7 +252,16 @@ export function MatchesTable({
                   <TableRow
                     key={match.id}
                     className="cursor-pointer hover:bg-muted/50"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Открыть матч от ${format(new Date(match.createdAt), "dd.MM.yyyy HH:mm", { locale: ru })}`}
                     onClick={() => router.push(`/matches/${match.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        router.push(`/matches/${match.id}`);
+                      }
+                    }}
                   >
                     <TableCell className="py-2">
                       {format(new Date(match.createdAt), "dd.MM.yyyy HH:mm", {

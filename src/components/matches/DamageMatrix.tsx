@@ -8,7 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useTheme } from 'next-themes';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { MatchPlayer } from './types';
 
 interface DamageMatrixProps {
@@ -56,37 +56,50 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
     [sortedPlayers]
   );
 
-  const colors = {
-    team: {
-      1: {
-        text: isDark ? 'text-blue-300' : 'text-blue-600',
+  const colors = useMemo(
+    () => ({
+      team: {
+        1: {
+          text: isDark ? 'text-blue-300' : 'text-blue-600',
+        },
+        2: {
+          text: isDark ? 'text-red-300' : 'text-red-600',
+        },
+        3: {
+          text: isDark ? 'text-yellow-300' : 'text-yellow-600',
+        },
       },
-      2: {
-        text: isDark ? 'text-red-300' : 'text-red-600',
+      damage: {
+        friendly: {
+          text: isDark ? 'text-red-300' : 'text-red-500',
+        },
+        enemy: {
+          high: isDark ? 'text-primary font-bold' : 'text-primary font-bold',
+          medium: isDark ? 'text-primary/95 font-semibold' : 'text-primary/90 font-semibold',
+          low: isDark ? 'text-primary/85' : 'text-primary/80',
+        },
+        none: isDark ? 'text-muted-foreground opacity-30' : 'text-muted-foreground opacity-40',
+        self: isDark ? 'bg-accent/30' : 'bg-accent/20',
       },
-      3: {
-        text: isDark ? 'text-yellow-300' : 'text-yellow-600',
+      total: {
+        bg: isDark ? 'bg-muted/40' : 'bg-muted/50',
+        text: 'text-foreground',
       },
-    },
-    damage: {
-      friendly: {
-        text: isDark ? 'text-red-300' : 'text-red-500',
-      },
-      enemy: {
-        high: isDark ? 'text-primary font-bold' : 'text-primary font-bold',
-        medium: isDark ? 'text-primary/95 font-semibold' : 'text-primary/90 font-semibold',
-        low: isDark ? 'text-primary/85' : 'text-primary/80',
-      },
-      none: isDark ? 'text-muted-foreground opacity-30' : 'text-muted-foreground opacity-40',
-      self: isDark ? 'bg-accent/30' : 'bg-accent/20',
-    },
-    total: {
-      bg: isDark ? 'bg-muted/40' : 'bg-muted/50',
-      text: 'text-foreground',
-    },
-  };
+    }),
+    [isDark]
+  );
 
-  const getDamageStyle = (damage: number, isTeammate: boolean) => {
+  const maxDamage = useMemo(
+    () =>
+      Math.max(
+        ...matrixData.flatMap((row) => Object.values(row.damages).filter((d) => d > 0)),
+        0
+      ),
+    [matrixData]
+  );
+
+  const getDamageStyle = useCallback(
+    (damage: number, isTeammate: boolean) => {
     if (damage === 0) {
       return colors.damage.none;
     }
@@ -95,9 +108,9 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
       return colors.damage.friendly.text + ' font-semibold';
     }
 
-    const maxDamage = Math.max(
-      ...matrixData.flatMap((row) => Object.values(row.damages).filter((d) => d > 0))
-    );
+    if (maxDamage === 0) {
+      return colors.damage.none;
+    }
 
     const damageRatio = damage / maxDamage;
 
@@ -108,7 +121,9 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
     } else {
       return colors.damage.enemy.low + ' font-medium';
     }
-  };
+    },
+    [colors, maxDamage]
+  );
 
   const teamGroups = useMemo(
     () =>

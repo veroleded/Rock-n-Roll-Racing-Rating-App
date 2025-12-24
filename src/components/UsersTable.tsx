@@ -243,6 +243,9 @@ export function UsersTable({
             <TableRow
               key={user.id}
               className="group cursor-pointer hover:bg-muted/50"
+              role="button"
+              tabIndex={0}
+              aria-label={`Перейти к профилю ${user.name}`}
               onClick={(e) => {
                 // Предотвращаем переход если клик был по кнопке редактирования
                 if ((e.target as HTMLElement).closest('a[href*="/edit"]')) {
@@ -251,6 +254,14 @@ export function UsersTable({
                   return;
                 }
                 router.push(`/users/${user.id}`);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  if (!(e.target as HTMLElement).closest('a[href*="/edit"]')) {
+                    router.push(`/users/${user.id}`);
+                  }
+                }
               }}
             >
               <TableCell className="text-center">
