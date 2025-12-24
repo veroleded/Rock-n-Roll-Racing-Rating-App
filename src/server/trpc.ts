@@ -34,11 +34,8 @@ const isAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session?.user) {
     throw new TRPCError({ code: 'UNAUTHORIZED' });
   }
-  return next({
-    ctx: {
-      session: ctx.session,
-    },
-  });
+  // Важно: не "обрезаем" ctx, иначе потеряем ctx.prisma в protected процедурах.
+  return next({ ctx: { ...ctx, session: ctx.session } });
 });
 
 const isModeratorOrAdmin = t.middleware(({ ctx, next }) => {
@@ -48,11 +45,8 @@ const isModeratorOrAdmin = t.middleware(({ ctx, next }) => {
   if (ctx.session.user.role !== 'ADMIN' && ctx.session.user.role !== 'MODERATOR') {
     throw new TRPCError({ code: 'FORBIDDEN' });
   }
-  return next({
-    ctx: {
-      session: ctx.session,
-    },
-  });
+  // Важно: не "обрезаем" ctx, иначе потеряем ctx.prisma в protected процедурах.
+  return next({ ctx: { ...ctx, session: ctx.session } });
 });
 
 const isAdmin = t.middleware(({ ctx, next }) => {
@@ -62,11 +56,8 @@ const isAdmin = t.middleware(({ ctx, next }) => {
   if (ctx.session.user.role !== 'ADMIN') {
     throw new TRPCError({ code: 'FORBIDDEN' });
   }
-  return next({
-    ctx: {
-      session: ctx.session,
-    },
-  });
+  // Важно: не "обрезаем" ctx, иначе потеряем ctx.prisma в protected процедурах.
+  return next({ ctx: { ...ctx, session: ctx.session } });
 });
 
 export const router = t.router;

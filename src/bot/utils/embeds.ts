@@ -3,11 +3,11 @@ import { EmbedBuilder } from 'discord.js';
 import dotenv from 'dotenv';
 import { COLORS } from '../constants/colors';
 import { EMOJIS } from '../constants/emojis';
+import { getAppUrl } from './appUrl';
 
 dotenv.config();
 
-const APP_URL =
-  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54';
+const APP_URL = getAppUrl();
 
 
 export const createEmbed = {

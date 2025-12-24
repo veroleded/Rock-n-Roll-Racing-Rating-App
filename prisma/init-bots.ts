@@ -33,43 +33,46 @@ async function main() {
     'bot_slash',
   ];
 
-  await Promise.all(
-    botIds.map(async (botId) => {
-      const existingBot = await prisma.user.findUnique({
-        where: { id: botId },
-      });
+  // Важно: создаём ботов последовательно, чтобы не выбить лимит соединений Postgres
+  // (в dev docker-compose он ограничен `max_connections=10`).
+  for (const botId of botIds) {
+    const existingBot = await prisma.user.findUnique({
+      where: { id: botId },
+    });
 
-      if (!existingBot) {
-        const set = getRandomItem(sets);
-        const bg = getRandomItem(backgrounds);
-        const avatarUrl = `https://robohash.org/${botId}?set=${set}&bgset=${bg}&size=300x300`;
-        await prisma.user.create({
-          data: {
-            id: botId,
-            name: botId,
-            role: 'PLAYER',
-            image: avatarUrl,
-            stats: {
-              create: {
-                rating: 1100,
-                gamesPlayed: 0,
-                wins: 0,
-                losses: 0,
-                draws: 0,
-              },
+    if (!existingBot) {
+      const set = getRandomItem(sets);
+      const bg = getRandomItem(backgrounds);
+      const avatarUrl = `https://robohash.org/${botId}?set=${set}&bgset=${bg}&size=300x300`;
+      await prisma.user.create({
+        data: {
+          id: botId,
+          name: botId,
+          role: 'PLAYER',
+          image: avatarUrl,
+          stats: {
+            create: {
+              rating: 1100,
+              gamesPlayed: 0,
+              wins: 0,
+              losses: 0,
+              draws: 0,
             },
           },
-        });
-        console.log(`Bot ${botId} created`);
-      }
-    })
-  );
+        },
+      });
+      console.log(`Bot ${botId} created`);
+    }
+  }
 
   console.log('All bots initialized');
 }
 
 main()
   .catch((e) => {
-    console.error("Ошибка при инициализации ботов:", e);
-    process.exit(1);
-  }); 
+    console.error('Ошибка при инициализации ботов:', e);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

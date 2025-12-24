@@ -4,12 +4,12 @@ import { UsersService } from '@/server/services/users/users.service';
 import { Queue, Stats, User } from '@prisma/client';
 import { Message, TextChannel } from 'discord.js';
 import dotenv from 'dotenv';
+import { getAppUrl } from '../utils/appUrl';
 import { createEmbed } from '../utils/embeds';
 
 dotenv.config();
 
-const APP_URL =
-  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54';
+const APP_URL = getAppUrl();
 
 type PlayerWithStats = User & { stats: Stats | null };
 type QueueWithPlayers = Queue & { players: PlayerWithStats[] };

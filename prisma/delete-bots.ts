@@ -24,22 +24,25 @@ async function main() {
     'bot_slash',
   ];
 
-  await Promise.all(
-    botIds.map(async (botId) => {
-      const bot = await prisma.user.findUnique({
-        where: { id: botId },
-      });
+  // Последовательно, чтобы не упереться в лимит соединений Postgres в dev.
+  for (const botId of botIds) {
+    const bot = await prisma.user.findUnique({
+      where: { id: botId },
+    });
 
-      if (bot) {
-        await prisma.user.delete({ where: { id: botId } });
-      }
-    })
-  );
+    if (bot) {
+      await prisma.user.delete({ where: { id: botId } });
+    }
+  }
 
   console.log('All bots initialized');
 }
 
-main().catch((e) => {
-  console.error('Ошибка при инициализации ботов:', e);
-  process.exit(1);
-});
+main()
+  .catch((e) => {
+    console.error('Ошибка при инициализации ботов:', e);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

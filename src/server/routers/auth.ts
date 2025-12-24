@@ -1,24 +1,8 @@
 import { isAdminUser } from "@/lib/adminUtils";
 import { TRPCError } from "@trpc/server";
-import { createHmac } from "crypto";
 import { z } from "zod";
+import { verifyBotSignature } from "../utils/botSignature";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
-
-function verifyBotSignature(timestamp: string, signature: string, body: string = '') {
-  try {
-    const hmac = createHmac('sha256', process.env.BOT_SECRET_KEY || '');
-    const expectedSignature = hmac.update(`${timestamp}.${body}`).digest('hex');
-
-    const timestampMs = parseInt(timestamp);
-    if (isNaN(timestampMs) || Date.now() - timestampMs > 5 * 60 * 1000) {
-      return false;
-    }
-
-    return signature === expectedSignature;
-  } catch {
-    return false;
-  }
-}
 
 export const authRouter = router({
   getSession: publicProcedure.query(({ ctx }) => {

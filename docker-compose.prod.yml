@@ -45,7 +45,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
-    command: postgres -c shared_buffers=64MB -c work_mem=4MB -c max_connections=10
+    command: postgres -c shared_buffers=64MB -c work_mem=4MB
 
 networks:
   app_network:

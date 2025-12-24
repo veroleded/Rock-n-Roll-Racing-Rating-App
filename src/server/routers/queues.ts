@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { QueuesService } from '../services/queues/queues.service';
 import { publicProcedure, router } from '../trpc';
+import { verifyBotSignature } from '../utils/botSignature';
 
 export const queuesRouter = router({
   addPlayer: publicProcedure
@@ -15,8 +16,12 @@ export const queuesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        const { timestamp, signature, ...data } = input;
+        if (!verifyBotSignature(timestamp, signature, JSON.stringify(data))) {
+          throw new TRPCError({ code: 'UNAUTHORIZED' });
+        }
         const queuesService = new QueuesService(ctx.prisma);
-        return queuesService.addPlayerToQueue(input.userId, input.channelName);
+        return queuesService.addPlayerToQueue(data.userId, data.channelName);
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
@@ -36,8 +41,12 @@ export const queuesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        const { timestamp, signature, ...data } = input;
+        if (!verifyBotSignature(timestamp, signature, JSON.stringify(data))) {
+          throw new TRPCError({ code: 'UNAUTHORIZED' });
+        }
         const queuesService = new QueuesService(ctx.prisma);
-        return queuesService.addBotToQueue(input.channelName);
+        return queuesService.addBotToQueue(data.channelName);
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
@@ -54,8 +63,11 @@ export const queuesRouter = router({
         signature: z.string(),
       })
     )
-    .mutation(async ({ ctx }) => {
+    .mutation(async ({ ctx, input }) => {
       try {
+        if (!verifyBotSignature(input.timestamp, input.signature)) {
+          throw new TRPCError({ code: 'UNAUTHORIZED' });
+        }
         const queuesService = new QueuesService(ctx.prisma);
         const oldQueues = await queuesService.cleanOldQueues();
         return oldQueues;
@@ -78,8 +90,12 @@ export const queuesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        const { timestamp, signature, ...data } = input;
+        if (!verifyBotSignature(timestamp, signature, JSON.stringify(data))) {
+          throw new TRPCError({ code: 'UNAUTHORIZED' });
+        }
         const queuesService = new QueuesService(ctx.prisma);
-        return queuesService.removePlayerFromQueue(input.userId, input.channelName);
+        return queuesService.removePlayerFromQueue(data.userId, data.channelName);
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
@@ -99,8 +115,12 @@ export const queuesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        const { timestamp, signature, ...data } = input;
+        if (!verifyBotSignature(timestamp, signature, JSON.stringify(data))) {
+          throw new TRPCError({ code: 'UNAUTHORIZED' });
+        }
         const queuesService = new QueuesService(ctx.prisma);
-        return queuesService.removeBotFromQueue(input.channelName);
+        return queuesService.removeBotFromQueue(data.channelName);
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
@@ -120,8 +140,12 @@ export const queuesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        const { timestamp, signature, ...data } = input;
+        if (!verifyBotSignature(timestamp, signature, JSON.stringify(data))) {
+          throw new TRPCError({ code: 'UNAUTHORIZED' });
+        }
         const queuesService = new QueuesService(ctx.prisma);
-        return queuesService.cleanQueueByChannel(input.channelName);
+        return queuesService.cleanQueueByChannel(data.channelName);
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({

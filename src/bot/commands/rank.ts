@@ -6,12 +6,12 @@ import { COLORS } from '../constants/colors';
 import { EMOJIS } from '../constants/emojis';
 import { MESSAGES } from '../constants/messages';
 import { Command } from '../types/command';
+import { getAppUrl } from '../utils/appUrl';
 import { createEmbed } from '../utils/embeds';
 
 dotenv.config();
 
-const APP_URL =
-  process.env.NODE_ENV === 'production' ? (process.env.APP_URL ?? '') : 'http://80.76.34.54';
+const APP_URL = getAppUrl();
 
 const usersService = new UsersService(prisma);
 
