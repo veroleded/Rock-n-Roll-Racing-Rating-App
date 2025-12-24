@@ -245,7 +245,7 @@ const PlayerStatsCard: React.FC<{
               value={player.moneyTaken}
               icon={<Coins className="h-2.5 w-2.5 text-yellow-500" />}
               valueClassName="text-green-500"
-              format={(val) => `$${val.toLocaleString()}00`}
+              format={(val) => `$${val.toLocaleString()}000`}
             />
 
             <StatCard
