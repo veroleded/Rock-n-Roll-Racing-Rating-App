@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { trpc } from "@/utils/trpc";
-import { Role } from "@prisma/client";
+import { getRoleText, getWinRate } from '@/lib/userUtils';
+import { trpc } from '@/utils/trpc';
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ChartPie, Edit, Loader2, Trophy, User } from "lucide-react";
@@ -35,23 +35,6 @@ export default function DashboardPage() {
     );
   }
 
-  const getRoleText = (role: Role) => {
-    switch (role) {
-      case "ADMIN":
-        return "Администратор";
-      case "MODERATOR":
-        return "Модератор";
-      case "PLAYER":
-        return "Игрок";
-      default:
-        return role;
-    }
-  };
-
-  const getWinRate = () => {
-    if (!user.stats || user.stats.gamesPlayed === 0) return "0%";
-    return `${((user.stats.wins / user.stats.gamesPlayed) * 100).toFixed(1)}%`;
-  };
 
   return (
     <div className="container mx-auto h-[calc(100vh-4rem)] flex flex-col">
@@ -109,7 +92,9 @@ export default function DashboardPage() {
                     </div>
                     <div className="space-y-1 bg-primary/5 p-3 rounded-lg">
                       <p className="text-sm text-muted-foreground">Винрейт</p>
-                      <p className="text-2xl font-bold">{getWinRate()}</p>
+                      <p className="text-2xl font-bold">
+                        {getWinRate(user.stats?.wins || 0, user.stats?.gamesPlayed || 0)}
+                      </p>
                     </div>
                     <div className="space-y-1 bg-primary/5 p-3 rounded-lg">
                       <p className="text-sm text-muted-foreground">Присоединился</p>

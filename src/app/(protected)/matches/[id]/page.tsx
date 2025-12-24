@@ -1,5 +1,6 @@
 'use client';
 
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { DamageMatrix } from '@/components/matches/DamageMatrix';
 import { DivisionsStats } from '@/components/matches/DivisionsStats';
 import { MatchActionButtons } from '@/components/matches/MatchActionButtons';
@@ -14,6 +15,7 @@ import { trpc } from '@/utils/trpc';
 import { Role } from '@prisma/client';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
 
 export default function MatchPage() {
   const params = useParams();
@@ -23,6 +25,7 @@ export default function MatchPage() {
 
   const { data: match, isLoading } = trpc.matches.byId.useQuery(params?.id as string, {
     refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 минут - матчи редко меняются
     retry: false,
     onError: (error) => {
       if (error.data?.code === 'NOT_FOUND') {
@@ -48,12 +51,26 @@ export default function MatchPage() {
     },
   });
 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const typedPlayers = useMemo(
+    () =>
+      match?.players.map((player) => ({
+        ...player,
+        damageDealt: player.damageDealt as DamageDealt,
+        damageReceived: player.damageReceived as DamageReceived,
+        divisions: player.divisions as Divisions,
+      })) || [],
+    [match?.players]
+  );
+
   const canChange =
     session?.user.role === Role.ADMIN || (session?.user.role === Role.MODERATOR && match?.isLast);
 
   const handleDelete = () => {
-    if (window.confirm('Вы уверены, что хотите удалить этот матч? Это действие нельзя отменить.')) {
-      deleteMatch(match!.id);
+    if (match) {
+      deleteMatch(match.id);
+      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -65,13 +82,6 @@ export default function MatchPage() {
     return <MatchNotFound />;
   }
 
-  const typedPlayers = match.players.map((player) => ({
-    ...player,
-    damageDealt: player.damageDealt as DamageDealt,
-    damageReceived: player.damageReceived as DamageReceived,
-    divisions: player.divisions as Divisions,
-  }));
-
   return (
     <div className="container mx-auto py-8 space-y-8">
       <MatchHeader
@@ -82,11 +92,21 @@ export default function MatchPage() {
         totalScore={match.totalScore}
         actionButtons={
           canChange && (
-            <MatchActionButtons
-              matchId={match.id}
-              isDeleting={isDeleting}
-              onDelete={handleDelete}
-            />
+            <>
+              <MatchActionButtons
+                matchId={match.id}
+                isDeleting={isDeleting}
+                onDelete={() => setIsDeleteDialogOpen(true)}
+              />
+              <DeleteConfirmDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                onConfirm={handleDelete}
+                isLoading={isDeleting}
+                title="Удалить матч?"
+                description="Вы уверены, что хотите удалить этот матч? Это действие нельзя отменить."
+              />
+            </>
           )
         }
       />

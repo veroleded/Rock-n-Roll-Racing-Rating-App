@@ -48,82 +48,67 @@ export function MatchesTable({
   const router = useRouter();
   const [page, setPage] = React.useState(1);
 
-  const { data: matchesData, isLoading } = trpc.matches.list.useQuery({
-    limit: ITEMS_PER_PAGE,
-    offset: (page - 1) * ITEMS_PER_PAGE,
-    filters: {
-      userId,
-      onlyRated,
-      gameMode,
+  const { data: matchesData, isLoading } = trpc.matches.list.useQuery(
+    {
+      limit: ITEMS_PER_PAGE,
+      offset: (page - 1) * ITEMS_PER_PAGE,
+      filters: {
+        userId,
+        onlyRated,
+        gameMode,
+      },
     },
-  });
+    {
+      staleTime: 1 * 60 * 1000, // 1 минута - список матчей может обновляться чаще
+      refetchOnWindowFocus: false,
+    }
+  );
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-sm text-muted-foreground">Загрузка...</div>
-      </div>
-    );
-  }
-
-  if (!matchesData?.matches || matchesData.matches.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-sm text-muted-foreground">
-          История матчей пуста
-        </div>
-      </div>
-    );
-  }
+  const getTeams = React.useCallback((match: MatchWithRelations) => {
+    return match.players.reduce((acc: (MatchPlayer & { user: User })[][], player) => {
+      if (!acc[player.team - 1]) {
+        acc[player.team - 1] = [];
+      }
+      acc[player.team - 1].push(player);
+      return acc;
+    }, []);
+  }, []);
 
   const getGameModeText = (mode: GameMode): string => {
     switch (mode) {
-      case "TWO_VS_TWO":
-        return "2 vs 2";
-      case "THREE_VS_THREE":
-        return "3 vs 3";
-      case "TWO_VS_TWO_VS_TWO":
-        return "2 vs 2 vs 2";
+      case 'TWO_VS_TWO':
+        return '2 vs 2';
+      case 'THREE_VS_THREE':
+        return '3 vs 3';
+      case 'TWO_VS_TWO_VS_TWO':
+        return '2 vs 2 vs 2';
       default:
         return mode;
     }
   };
 
-  const renderTeam = (
-    players: (MatchPlayer & { user: User })[],
-    isRated: boolean
-  ) => {
+  const renderTeam = (players: (MatchPlayer & { user: User })[], isRated: boolean) => {
     return (
       <div className="flex flex-col gap-1">
         {players.map((player) => {
-          const isBot = player.userId.startsWith("bot_");
+          const isBot = player.userId.startsWith('bot_');
           return (
             <div key={player.id} className="flex items-center gap-1 text-xs">
               {isRated && !isBot && (
                 <span
                   className={
-                    player.result === "WIN"
-                      ? "text-green-500"
-                      : player.result === "LOSS"
-                      ? "text-red-500"
-                      : "text-yellow-500"
+                    player.result === 'WIN'
+                      ? 'text-green-500'
+                      : player.result === 'LOSS'
+                        ? 'text-red-500'
+                        : 'text-yellow-500'
                   }
                 >
-                  {player.result === "WIN"
-                    ? "+"
-                    : player.result === "LOSS"
-                      ? ""
-                      : ""}
+                  {player.result === 'WIN' ? '+' : player.result === 'LOSS' ? '' : ''}
                   {player.ratingChange}
                 </span>
               )}
-              <span
-                className={
-                  isBot
-                    ? "text-muted-foreground"
-                    : "hover:underline cursor-pointer"
-                }
-              >
+              <span className={isBot ? 'text-muted-foreground' : 'hover:underline cursor-pointer'}>
                 {isBot && player.user.name}
                 {!isBot && (
                   <Link
@@ -143,18 +128,21 @@ export function MatchesTable({
     );
   };
 
-  const getTeams = (match: MatchWithRelations) => {
-    return match.players.reduce(
-      (acc: (MatchPlayer & { user: User })[][], player) => {
-        if (!acc[player.team - 1]) {
-          acc[player.team - 1] = [];
-        }
-        acc[player.team - 1].push(player);
-        return acc;
-      },
-      []
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-sm text-muted-foreground">Загрузка...</div>
+      </div>
     );
-  };
+  }
+
+  if (!matchesData?.matches || matchesData.matches.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-sm text-muted-foreground">История матчей пуста</div>
+      </div>
+    );
+  }
 
   const totalPages = Math.ceil(matchesData.total / ITEMS_PER_PAGE);
 

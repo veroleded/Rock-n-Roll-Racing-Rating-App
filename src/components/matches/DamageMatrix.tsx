@@ -8,7 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useTheme } from 'next-themes';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { MatchPlayer } from './types';
 
 interface DamageMatrixProps {
@@ -30,27 +30,31 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
-  const sortedPlayers = [...players].sort((a, b) => a.team - b.team);
+  const sortedPlayers = useMemo(() => [...players].sort((a, b) => a.team - b.team), [players]);
 
-  const matrixData: MatrixRow[] = sortedPlayers.map((attacker) => {
-    const damages: DamageData = {};
+  const matrixData: MatrixRow[] = useMemo(
+    () =>
+      sortedPlayers.map((attacker) => {
+        const damages: DamageData = {};
 
-    sortedPlayers.forEach((victim) => {
-      const damageEntry = attacker.damageDealt[victim.userId];
-      if (damageEntry) {
-        damages[victim.userId] = damageEntry.damage;
-      } else {
-        damages[victim.userId] = 0;
-      }
-    });
+        sortedPlayers.forEach((victim) => {
+          const damageEntry = attacker.damageDealt[victim.userId];
+          if (damageEntry) {
+            damages[victim.userId] = damageEntry.damage;
+          } else {
+            damages[victim.userId] = 0;
+          }
+        });
 
-    return {
-      attackerId: attacker.userId,
-      attackerName: attacker.user.name || 'Игрок',
-      team: attacker.team,
-      damages,
-    };
-  });
+        return {
+          attackerId: attacker.userId,
+          attackerName: attacker.user.name || 'Игрок',
+          team: attacker.team,
+          damages,
+        };
+      }),
+    [sortedPlayers]
+  );
 
   const colors = {
     team: {
@@ -106,13 +110,17 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
     }
   };
 
-  const teamGroups = sortedPlayers.reduce<Record<number, MatchPlayer[]>>((acc, player) => {
-    if (!acc[player.team]) {
-      acc[player.team] = [];
-    }
-    acc[player.team].push(player);
-    return acc;
-  }, {});
+  const teamGroups = useMemo(
+    () =>
+      sortedPlayers.reduce<Record<number, MatchPlayer[]>>((acc, player) => {
+        if (!acc[player.team]) {
+          acc[player.team] = [];
+        }
+        acc[player.team].push(player);
+        return acc;
+      }, {}),
+    [sortedPlayers]
+  );
 
   return (
     <Card className="shadow-sm border rounded-lg overflow-hidden">

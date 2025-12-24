@@ -4,41 +4,42 @@ import { NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
+  const pathname = request.nextUrl.pathname;
 
   if (!token) {
     if (
-      request.nextUrl.pathname.startsWith('/dashboard') ||
-      request.nextUrl.pathname.startsWith('/matches') ||
-      request.nextUrl.pathname.startsWith('/users')
+      pathname.startsWith('/dashboard') ||
+      pathname.startsWith('/matches') ||
+      pathname.startsWith('/users')
     ) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
     return NextResponse.next();
   }
 
-  if (
-    !token.hasJoinedBot &&
-    !request.nextUrl.pathname.startsWith("/join-bot") &&
-    !request.nextUrl.pathname.startsWith("/api")
-  ) {
-    return NextResponse.redirect(new URL("/join-bot", request.url));
+  if (!token.hasJoinedBot && !pathname.startsWith('/join-bot') && !pathname.startsWith('/api')) {
+    return NextResponse.redirect(new URL('/join-bot', request.url));
   }
 
-  if (request.nextUrl.pathname.startsWith("/matches/add")) {
-    if (token.role === "PLAYER") {
-      return NextResponse.redirect(new URL("/matches", request.url));
-    }
-  }
+  const isMatchAdd = pathname === '/matches/add' || pathname.startsWith('/matches/add/');
+  const isMatchEdit = /^\/matches\/[^/]+\/edit$/.test(pathname);
+  const isUserEdit = /^\/users\/[^/]+\/edit$/.test(pathname);
 
-  if (request.nextUrl.pathname.startsWith("/users/[id]/edit")) {
-    if (token.role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/users", request.url));
-    }
-  }
-
-  if (request.nextUrl.pathname.startsWith("/matches/[id]/edit")) {
+  if (isMatchAdd) {
     if (token.role === 'PLAYER') {
-      return NextResponse.redirect(new URL("/matches", request.url));
+      return NextResponse.redirect(new URL('/matches', request.url));
+    }
+  }
+
+  if (isUserEdit) {
+    if (token.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/users', request.url));
+    }
+  }
+
+  if (isMatchEdit) {
+    if (token.role === 'PLAYER') {
+      return NextResponse.redirect(new URL('/matches', request.url));
     }
   }
 

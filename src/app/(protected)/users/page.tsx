@@ -11,7 +11,10 @@ import Link from 'next/link';
 
 export default function UsersPage() {
   const { data: session } = trpc.auth.getSession.useQuery();
-  const { data: users, isLoading } = trpc.users.list.useQuery();
+  const { data: users, isLoading } = trpc.users.list.useQuery(undefined, {
+    staleTime: 2 * 60 * 1000, // 2 минуты - список пользователей обновляется не часто
+    refetchOnWindowFocus: false,
+  });
 
   if (isLoading) {
     return (

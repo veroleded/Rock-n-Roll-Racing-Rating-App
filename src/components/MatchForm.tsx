@@ -20,18 +20,44 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from "@/lib/utils";
-import { CreateStatsData } from "@/server/services/match/schemas";
-import { trpc } from "@/utils/trpc";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { GameMode } from "@prisma/client";
-import { Bot, Check, ChevronsUpDown, Loader2, User } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { createStatsDataSchema, type CreateStatsData } from '@/server/services/match/schemas';
+import { trpc } from '@/utils/trpc';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { GameMode } from '@prisma/client';
+import { Bot, Check, ChevronsUpDown, Loader2, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+
+function getTeamSize(mode: GameMode) {
+  switch (mode) {
+    case 'TWO_VS_TWO':
+      return 2;
+    case 'THREE_VS_THREE':
+      return 3;
+    case 'TWO_VS_TWO_VS_TWO':
+      return 2;
+    default:
+      return 0;
+  }
+}
+
+function getTeamCount(mode: GameMode) {
+  switch (mode) {
+    case 'TWO_VS_TWO':
+      return 2;
+    case 'THREE_VS_THREE':
+      return 2;
+    case 'TWO_VS_TWO_VS_TWO':
+      return 3;
+    default:
+      return 0;
+  }
+}
 
 const playerSchema = z.object({
-  id: z.string().min(1, "Выберите игрока или бота"),
+  id: z.string().min(1, 'Выберите игрока или бота'),
   isBot: z.boolean().default(false),
   hasLeft: z.boolean().default(false),
 });
@@ -42,7 +68,7 @@ const teamSchema = z.object({
       return players.some((player) => !player.isBot);
     },
     {
-      message: "В команде должен быть хотя бы один реальный игрок",
+      message: 'В команде должен быть хотя бы один реальный игрок',
     }
   ),
 });
@@ -51,7 +77,7 @@ const formSchema = z.object({
   mode: z.enum(['TWO_VS_TWO', 'THREE_VS_THREE', 'TWO_VS_TWO_VS_TWO'], {
     required_error: 'Выберите режим игры',
   }),
-  statsData: z.any(),
+  statsData: createStatsDataSchema.optional(),
   teams: z.array(teamSchema).min(2, 'Добавьте как минимум две команды'),
   penaltyFactor: z.number().default(30),
   isTraining: z.boolean().default(false),
@@ -103,7 +129,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
     },
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [openPopover, setOpenPopover] = useState<string | null>(null);
@@ -143,32 +169,6 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
     }
   }, [mode, form]);
 
-  const getTeamSize = (mode: GameMode) => {
-    switch (mode) {
-      case 'TWO_VS_TWO':
-        return 2;
-      case 'THREE_VS_THREE':
-        return 3;
-      case 'TWO_VS_TWO_VS_TWO':
-        return 2;
-      default:
-        return 0;
-    }
-  };
-
-  const getTeamCount = (mode: GameMode) => {
-    switch (mode) {
-      case 'TWO_VS_TWO':
-        return 2;
-      case 'THREE_VS_THREE':
-        return 2;
-      case 'TWO_VS_TWO_VS_TWO':
-        return 3;
-      default:
-        return 0;
-    }
-  };
-
   const getSelectedPlayers = (currentTeamIndex: number, currentPlayerIndex: number) => {
     const teams = form.getValues('teams');
     return teams
@@ -184,13 +184,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
       .filter((id): id is string => id !== null && id !== '');
   };
 
-  // Функция для получения списка доступных ботов
-  const getAvailableBots = (teamIndex: number, playerIndex: number) => {
-    const selectedPlayers = getSelectedPlayers(teamIndex, playerIndex);
-    return bots.filter((bot) => !selectedPlayers.includes(bot.id));
-  };
-
-  // Обновляем функцию для получения доступных игроков
+  // Получаем список доступных игроков/ботов (исключая уже выбранных) + фильтр по поиску.
   const getAvailablePlayers = (teamIndex: number, playerIndex: number, searchTerm: string = '') => {
     const selectedPlayers = getSelectedPlayers(teamIndex, playerIndex);
     const filteredUsers = users.filter(
@@ -199,8 +193,10 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
         user.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const filteredBots = getAvailableBots(teamIndex, playerIndex).filter((bot) =>
-      bot.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredBots = bots.filter(
+      (bot) =>
+        !selectedPlayers.includes(bot.id) &&
+        bot.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return [...filteredUsers, ...filteredBots];
@@ -236,19 +232,31 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
           divisions,
         };
 
-        setStatsData(processedData);
+        const parsed = createStatsDataSchema.safeParse(processedData);
+        if (!parsed.success) {
+          const firstIssue = parsed.error.issues[0];
+          const details = firstIssue
+            ? ` (${firstIssue.path.join('.') || 'root'}: ${firstIssue.message})`
+            : '';
+          setStatsError(`Неверная структура файла статистики. Проверьте формат JSON${details}`);
+          setStatsData(null);
+          form.setValue('statsData', undefined);
+          return;
+        }
+
+        setStatsData(parsed.data);
         setStatsError(null);
-        form.setValue('statsData', processedData);
+        form.setValue('statsData', parsed.data);
       } catch (error) {
         console.error('Ошибка при чтении файла:', error);
         setStatsError('Ошибка при чтении файла. Убедитесь, что это валидный JSON файл.');
         setStatsData(null);
-        form.setValue('statsData', null);
+        form.setValue('statsData', undefined);
       }
     } else {
       setStatsData(null);
       setStatsError(null);
-      form.setValue('statsData', null);
+      form.setValue('statsData', undefined);
     }
   };
 
@@ -313,7 +321,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
         editMatch({
           mode: data.mode,
           players,
-          statsData: data.statsData,
+          statsData,
           penaltyFactor: data.penaltyFactor,
           isTraining: data.isTraining,
           editMatchId,
@@ -322,7 +330,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
         createMatch({
           mode: data.mode,
           players,
-          statsData: data.statsData,
+          statsData,
           penaltyFactor: data.penaltyFactor,
           isTraining: data.isTraining,
         });
@@ -339,6 +347,8 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
 
   const renderPlayerSelect = (teamIndex: number, playerIndex: number) => {
     const popoverId = `team-${teamIndex}-player-${playerIndex}`;
+    const searchTerm = searchTerms[popoverId] ?? '';
+    const options = getAvailablePlayers(teamIndex, playerIndex, searchTerm);
 
     return (
       <FormField
@@ -349,7 +359,14 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
             <FormLabel className="text-base">Игрок {playerIndex + 1}</FormLabel>
             <Popover
               open={openPopover === popoverId}
-              onOpenChange={(open) => setOpenPopover(open ? popoverId : null)}
+              onOpenChange={(open) => {
+                if (open) {
+                  setOpenPopover(popoverId);
+                } else {
+                  setOpenPopover(null);
+                  setSearchTerms((prev) => ({ ...prev, [popoverId]: '' }));
+                }
+              }}
             >
               <PopoverTrigger asChild>
                 <FormControl>
@@ -395,7 +412,9 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                       className="flex h-9 w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="Поиск игрока..."
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e) =>
+                        setSearchTerms((prev) => ({ ...prev, [popoverId]: e.target.value }))
+                      }
                     />
                   </div>
                   <div className="max-h-[300px] overflow-y-auto">
@@ -405,7 +424,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                       </div>
                     ) : (
                       <div className="flex flex-col py-2">
-                        {getAvailablePlayers(teamIndex, playerIndex, searchTerm).map((player) => (
+                        {options.map((player) => (
                           <button
                             type="button"
                             key={player.id}
@@ -422,7 +441,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                                 `teams.${teamIndex}.players.${playerIndex}.isBot`,
                                 player.id.startsWith('bot_')
                               );
-                              setSearchTerm('');
+                              setSearchTerms((prev) => ({ ...prev, [popoverId]: '' }));
                               setOpenPopover(null);
                             }}
                           >
@@ -458,14 +477,13 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                         ))}
                       </div>
                     )}
-                    {!isLoadingUsers &&
-                      getAvailablePlayers(teamIndex, playerIndex, searchTerm).length === 0 && (
-                        <div className="p-4 text-sm text-muted-foreground">
-                          {searchTerm
-                            ? 'Нет игроков, соответствующих поиску'
-                            : 'Нет доступных игроков'}
-                        </div>
-                      )}
+                    {!isLoadingUsers && options.length === 0 && (
+                      <div className="p-4 text-sm text-muted-foreground">
+                        {searchTerm
+                          ? 'Нет игроков, соответствующих поиску'
+                          : 'Нет доступных игроков'}
+                      </div>
+                    )}
                   </div>
                 </div>
               </PopoverContent>

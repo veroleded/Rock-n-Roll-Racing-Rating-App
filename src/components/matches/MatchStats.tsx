@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from 'next-themes';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Bar,
   BarChart,
@@ -84,53 +84,80 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
   const theme = isDark ? 'dark' : 'light';
   const colors = COLORS[theme];
 
-  const sortedPlayers = [...players].sort((a, b) => a.team - b.team);
+  const sortedPlayers = useMemo(() => [...players].sort((a, b) => a.team - b.team), [players]);
 
-  const cardStyles = {
-    headerBg: 'bg-primary/10',
-    shadow: isDark ? 'shadow-md shadow-primary/5' : 'shadow-lg shadow-primary/10',
-    border: isDark ? 'border-slate-800' : 'border-slate-200',
-    chartBg: isDark ? 'bg-slate-900/50' : 'bg-slate-50/80',
-    chartBorder: isDark ? 'border-slate-800' : 'border-slate-200',
-  };
+  const cardStyles = useMemo(
+    () => ({
+      headerBg: 'bg-primary/10',
+      shadow: isDark ? 'shadow-md shadow-primary/5' : 'shadow-lg shadow-primary/10',
+      border: isDark ? 'border-slate-800' : 'border-slate-200',
+      chartBg: isDark ? 'bg-slate-900/50' : 'bg-slate-50/80',
+      chartBorder: isDark ? 'border-slate-800' : 'border-slate-200',
+    }),
+    [isDark]
+  );
 
-  const damageData = sortedPlayers.map((player) => ({
-    name: player.user.name || 'Игрок',
-    damage: player.totalDamageDealt,
-    team: player.team,
-  }));
+  const damageData = useMemo(
+    () =>
+      sortedPlayers.map((player) => ({
+        name: player.user.name || 'Игрок',
+        damage: player.totalDamageDealt,
+        team: player.team,
+      })),
+    [sortedPlayers]
+  );
 
-  const damageTakenData = sortedPlayers.map((player) => ({
-    name: player.user.name || 'Игрок',
-    damage: player.totalDamageReceived,
-    team: player.team,
-  }));
+  const damageTakenData = useMemo(
+    () =>
+      sortedPlayers.map((player) => ({
+        name: player.user.name || 'Игрок',
+        damage: player.totalDamageReceived,
+        team: player.team,
+      })),
+    [sortedPlayers]
+  );
 
-  const moneyData = sortedPlayers.map((player) => ({
-    name: player.user.name || 'Игрок',
-    money: player.moneyTaken,
-    team: player.team,
-  }));
+  const moneyData = useMemo(
+    () =>
+      sortedPlayers.map((player) => ({
+        name: player.user.name || 'Игрок',
+        money: player.moneyTaken,
+        team: player.team,
+      })),
+    [sortedPlayers]
+  );
 
-  const armorData = sortedPlayers.map((player) => ({
-    name: player.user.name || 'Игрок',
-    armor: player.armorTaken,
-    team: player.team,
-  }));
+  const armorData = useMemo(
+    () =>
+      sortedPlayers.map((player) => ({
+        name: player.user.name || 'Игрок',
+        armor: player.armorTaken,
+        team: player.team,
+      })),
+    [sortedPlayers]
+  );
 
-  const wipeoutsData = sortedPlayers.map((player) => ({
-    name: player.user.name || 'Игрок',
-    wipeouts: player.wipeouts,
-    team: player.team,
-  }));
+  const wipeoutsData = useMemo(
+    () =>
+      sortedPlayers.map((player) => ({
+        name: player.user.name || 'Игрок',
+        wipeouts: player.wipeouts,
+        team: player.team,
+      })),
+    [sortedPlayers]
+  );
 
-  const minesDamageData = sortedPlayers
-    .map((player) => ({
-      name: player.user.name || 'Игрок',
-      value: player.minesDamage,
-      team: player.team,
-    }))
-    .filter((item) => item.value > 0);
+  const minesDamageData = useMemo(
+    () =>
+      sortedPlayers
+        .map((player) => ({
+          name: player.user.name || 'Игрок',
+          value: player.minesDamage,
+          team: player.team,
+        }))
+        .filter((item) => item.value > 0),
+    [sortedPlayers]
+  );
 
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {

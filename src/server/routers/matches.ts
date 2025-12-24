@@ -2,7 +2,33 @@ import { GameMode } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { MatchService, createMatchDataSchema, editMatchDataSchema } from "../services/match";
+import type { TRPCContext } from '../trpc';
 import { moderatorOrAdminProcedure, protectedProcedure, router } from "../trpc";
+
+async function assertModeratorCanChangeMatch(ctx: TRPCContext, matchId: string) {
+  if (ctx.session?.user.role !== 'MODERATOR') return;
+
+  const exists = await ctx.prisma.match.findUnique({
+    where: { id: matchId },
+    select: { id: true },
+  });
+
+  if (!exists) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Матч не найден' });
+  }
+
+  const last = await ctx.prisma.match.findFirst({
+    orderBy: { createdAt: 'desc' },
+    select: { id: true },
+  });
+
+  if (!last || last.id !== matchId) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Модератор может изменять или удалять только последний матч',
+    });
+  }
+}
 
 
 
@@ -60,6 +86,7 @@ export const matchesRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      await assertModeratorCanChangeMatch(ctx, input.editMatchId);
       const matchService = new MatchService(ctx.prisma);
       return matchService.edit({ ...input, creatorId: ctx.session.user.id });
     }),
@@ -89,6 +116,7 @@ export const matchesRouter = router({
 
   delete: moderatorOrAdminProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
     try {
+      await assertModeratorCanChangeMatch(ctx, input);
       const matchService = new MatchService(ctx.prisma);
       const match = await matchService.delete(input);
       return match;

@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, Bot, Coins, ShieldHalf, Target, Trophy, User } from 'lucide-react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { DamageDealt, MatchPlayer } from './types';
 
 interface PlayerStatsDisplayProps {
@@ -12,24 +12,36 @@ interface PlayerStatsDisplayProps {
 }
 
 export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({ players, sessionUserId }) => {
-  const teams = players.reduce(
-    (acc, player) => {
-      if (!acc[player.team]) {
-        acc[player.team] = [];
-      }
-      acc[player.team].push(player);
-      return acc;
-    },
-    {} as Record<number, typeof players>
+  const teams = useMemo(
+    () =>
+      players.reduce(
+        (acc, player) => {
+          if (!acc[player.team]) {
+            acc[player.team] = [];
+          }
+          acc[player.team].push(player);
+          return acc;
+        },
+        {} as Record<number, typeof players>
+      ),
+    [players]
   );
 
-  const playerWithMaxWipeouts = players.reduce((maxPlayer, currentPlayer) => {
-    return currentPlayer.wipeouts > (maxPlayer?.wipeouts || 0) ? currentPlayer : maxPlayer;
-  }, players[0]);
+  const playerWithMaxWipeouts = useMemo(
+    () =>
+      players.reduce((maxPlayer, currentPlayer) => {
+        return currentPlayer.wipeouts > (maxPlayer?.wipeouts || 0) ? currentPlayer : maxPlayer;
+      }, players[0]),
+    [players]
+  );
 
-  const playerWithMaxScore = players.reduce((maxPlayer, currentPlayer) => {
-    return currentPlayer.score > (maxPlayer?.score || 0) ? currentPlayer : maxPlayer;
-  }, players[0]);
+  const playerWithMaxScore = useMemo(
+    () =>
+      players.reduce((maxPlayer, currentPlayer) => {
+        return currentPlayer.score > (maxPlayer?.score || 0) ? currentPlayer : maxPlayer;
+      }, players[0]),
+    [players]
+  );
 
   return (
     <div className="w-full">
