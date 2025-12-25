@@ -1,5 +1,8 @@
-import { MatchService } from '@/server/services/match/match.service';
-import { Match, MatchPlayer, PrismaClient, Stats, User } from '@prisma/client';
+import {
+  MatchEventType,
+  MatchWithPlayers,
+  subscribeToMatchEvents,
+} from '@/server/services/match/match-events';
 import { Client, EmbedBuilder, TextChannel } from 'discord.js';
 import dotenv from 'dotenv';
 import { COLORS } from '../constants/colors';
@@ -10,98 +13,43 @@ dotenv.config();
 
 const APP_URL = getAppUrl();
 
-type MatchWithPlayers = Match & {
-  players: (MatchPlayer & {
-    user: User & {
-      stats: Stats | null;
-    };
-  })[];
-};
-
 export class MatchNotificationService {
-  private lastMatchId: string | null = null;
-  private readonly prisma: PrismaClient;
   private readonly discordClient: Client;
 
-  constructor(prisma: PrismaClient, discordClient: Client) {
-    this.prisma = prisma;
+  constructor(discordClient: Client) {
     this.discordClient = discordClient;
   }
 
-  async initialize(): Promise<void> {
-    try {
-      const lastMatch = await this.prisma.match.findFirst({
-        orderBy: { createdAt: 'desc' },
-        select: { id: true },
-      });
+  initialize(): void {
+    console.log(`[MatchNotificationService] Подписываемся на события через Redis`);
 
-      if (lastMatch) {
-        this.lastMatchId = lastMatch.id;
-        console.log(`Инициализирован ID последнего матча: ${this.lastMatchId}`);
-      } else {
-        console.log('Матчей нет в базе данных при инициализации');
-      }
-    } catch (error) {
-      console.error('Ошибка при инициализации ID последнего матча:', error);
-    }
+    // Подписываемся на события через Redis pub/sub
+    subscribeToMatchEvents(MatchEventType.MATCH_CREATED, async (match: MatchWithPlayers) => {
+      console.log(`[MatchNotificationService] Получено событие о создании матча: ${match.id}`);
+      await this.handleNewMatch(match);
+    });
+
+    console.log(`[MatchNotificationService] Инициализирован и слушает события через Redis`);
   }
 
-  startChecker(intervalMs: number = 10000): void {
-    setInterval(async () => {
-      await this.checkForNewMatches();
-    }, intervalMs);
-  }
+  private async handleNewMatch(match: MatchWithPlayers): Promise<void> {
+    console.log(
+      `[MatchNotificationService] Обработка матча: ${match.id}, рейтинговый: ${match.isRated}`
+    );
 
-  async checkForNewMatches(): Promise<void> {
-    console.log('Проверка новых матчей');
+    // ВРЕМЕННО: отправляем уведомления для всех матчей (включая нерейтинговые) для проверки
+    // TODO: Вернуть проверку if (!match.isRated) return; после тестирования
+
     try {
-      const matchService = new MatchService(this.prisma);
-
-      const lastMatch = await this.prisma.match.findFirst({
-        orderBy: { createdAt: 'desc' },
-        select: { id: true },
-      });
-
-      if (!lastMatch) {
-        console.log('Матчей нет в базе данных');
-        return;
-      }
-
-      if (this.lastMatchId === null) {
-        console.log(`Первая инициализация ID последнего матча: ${lastMatch.id}`);
-        this.lastMatchId = lastMatch.id;
-        return;
-      }
-
-      if (this.lastMatchId === lastMatch.id) {
-        console.log('Новых матчей нет');
-        return;
-      }
-
-      console.log(`Найден новый матч. Старый ID: ${this.lastMatchId}, новый ID: ${lastMatch.id}`);
-
-      const newMatch = (await matchService.findById(lastMatch.id)) as MatchWithPlayers | null;
-
-      if (!newMatch) {
-        console.log('Не удалось получить информацию о новом матче');
-        this.lastMatchId = lastMatch.id;
-        return;
-      }
-
-      console.log(`Обнаружен новый матч: ${newMatch.id}`);
-
-      if (!newMatch.isRated) {
-        console.log('Матч не рейтинговый, пропускаем');
-        this.lastMatchId = newMatch.id;
-        return;
-      }
-
-      await this.sendMatchNotification(newMatch);
-
-      this.lastMatchId = newMatch.id;
-      console.log(`ID последнего матча обновлен: ${this.lastMatchId}`);
+      await this.sendMatchNotification(match);
+      console.log(
+        `[MatchNotificationService] Уведомление о матче ${match.id} отправлено в Discord`
+      );
     } catch (error) {
-      console.error('Ошибка при проверке новых матчей:', error);
+      console.error(
+        `[MatchNotificationService] Ошибка при отправке уведомления о матче ${match.id}:`,
+        error
+      );
     }
   }
 
@@ -173,10 +121,7 @@ export class MatchNotificationService {
     }
   }
 
-  private formatTeamStats(
-    team: (MatchPlayer & { user: User & { stats: Stats | null } })[],
-    isWinner: boolean | null
-  ): string {
+  private formatTeamStats(team: MatchWithPlayers['players'], isWinner: boolean | null): string {
     let content = '';
 
     const icon = isWinner === true ? EMOJIS.CROWN : isWinner === false ? '⚔️' : '🔹';
@@ -196,11 +141,8 @@ export class MatchNotificationService {
   }
 
   private separatePlayersByTeam(
-    players: (MatchPlayer & { user: User & { stats: Stats | null } })[]
-  ): [
-    (MatchPlayer & { user: User & { stats: Stats | null } })[],
-    (MatchPlayer & { user: User & { stats: Stats | null } })[],
-  ] {
+    players: MatchWithPlayers['players']
+  ): [MatchWithPlayers['players'], MatchWithPlayers['players']] {
     const team1 = players.filter((player) => player.team === 1);
     const team2 = players.filter((player) => player.team === 2);
     return [team1, team2];

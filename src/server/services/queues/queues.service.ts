@@ -1,5 +1,6 @@
 import { GameMode, PrismaClient } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
+import { publishQueueEvent, QueueEventType } from './queue-events';
 
 export class QueuesService {
   constructor(private prisma: PrismaClient) {}
@@ -331,6 +332,9 @@ export class QueuesService {
           },
         },
       });
+
+      // Публикуем событие о удаленных очередях
+      await publishQueueEvent(QueueEventType.QUEUE_CLEANED, oldQueues);
     }
 
     return oldQueues;

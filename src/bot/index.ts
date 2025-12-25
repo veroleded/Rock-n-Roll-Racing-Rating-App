@@ -1,5 +1,3 @@
-import { prisma } from '@/lib/prisma';
-import { QueuesService } from '@/server/services/queues/queues.service';
 import { Client, Events, GatewayIntentBits, Message, TextChannel } from 'discord.js';
 import * as dotenv from 'dotenv';
 import { bottomCommand } from './commands/bottom';
@@ -13,6 +11,7 @@ import { MESSAGES } from './constants/messages';
 import { CommandHandler } from './services/CommandHandler';
 import { GatheringCommandsHandler } from './services/GatheringCommandsHandler';
 import { MatchNotificationService } from './services/MatchNotificationService';
+import { QueueNotificationService } from './services/QueueNotificationService';
 import { createEmbed } from './utils/embeds';
 
 dotenv.config();
@@ -82,57 +81,11 @@ client.on(Events.Error, (error) => {
 client.once(Events.ClientReady, (c) => {
   console.log(`Бот готов! Вошел как ${c.user.tag}`);
 
-  const matchNotificationService = new MatchNotificationService(prisma, client);
+  const matchNotificationService = new MatchNotificationService(client);
+  matchNotificationService.initialize();
 
-  (async () => {
-    await matchNotificationService.initialize();
-    matchNotificationService.startChecker(10000);
-  })();
-
-  setInterval(async () => {
-    console.log('Проверка старых очередей');
-    try {
-      const queuesService = new QueuesService(prisma);
-      const oldQueues = await queuesService.cleanOldQueues();
-
-      if (oldQueues.length > 0) {
-        for (const queue of oldQueues) {
-          // Определяем название канала на основе gameType
-          const channelName =
-            queue.gameType === 'THREE_VS_THREE'
-              ? 'сбор-на-игру-3x3'
-              : queue.gameType === 'THREE_VS_THREE_HIGH_MMR'
-                ? 'сбор-на-игру-3x3-high-mmr'
-                : queue.gameType === 'TWO_VS_TWO_VS_TWO'
-                  ? 'сбор-на-игру-2x2x2'
-                  : queue.gameType === 'TWO_VS_TWO_HIGH_MMR'
-                    ? 'сбор-на-игру-2x2-high-mmr'
-                    : 'сбор-на-игру-2x2';
-
-          for (const guild of client.guilds.cache.values()) {
-            // Ищем канал по названию из очереди
-            const channel = guild.channels.cache.find(
-              (ch) => ch.name === channelName && ch.type === 0
-            );
-
-            if (channel) {
-              await (channel as TextChannel).send({
-                embeds: [
-                  createEmbed.info(
-                    'Очередь удалена',
-                    'Очередь была автоматически удалена из-за отсутствия активности в течение часа.'
-                  ),
-                ],
-              });
-              break;
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Ошибка при проверке старых очередей:', error);
-    }
-  }, 10000);
+  const queueNotificationService = new QueueNotificationService(client);
+  queueNotificationService.initialize();
 });
 
 client.login(DISCORD_BOT_TOKEN);

@@ -9,6 +9,7 @@ import {
   Stats,
   User,
 } from '@prisma/client';
+import { MatchEventType, MatchWithPlayers, publishMatchEvent } from './match-events';
 import {
   CreateMatchData,
   CreateMatchPlayer,
@@ -18,9 +19,6 @@ import {
   NormalizedDivisionData,
   NormalizedStatsData,
 } from './schemas';
-
-
-
 
 type MatchWithRelations = Match & {
   players: (MatchPlayer & {
@@ -709,7 +707,7 @@ export class MatchService {
 
   async create(data: CreateMatchData) {
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const match = await this.prisma.$transaction(async (tx) => {
         const normalizedStatsData = this.normalizeStatsData(data.statsData, data.players);
 
         const isRated = this.isRated(data.mode, data.players, data.isTraining);
@@ -946,6 +944,35 @@ export class MatchService {
 
         return match;
       });
+
+      // Получаем полную информацию о матче для события (после завершения транзакции)
+      const matchWithStats = await this.prisma.match.findUnique({
+        where: { id: match.id },
+        include: {
+          players: {
+            include: {
+              user: {
+                include: {
+                  stats: true,
+                },
+              },
+            },
+          },
+          creator: true,
+        },
+      });
+
+      // Публикуем событие о создании матча в Redis
+      if (matchWithStats) {
+        console.log(
+          `[MatchService] Публикуем событие MATCH_CREATED для матча ${matchWithStats.id}`
+        );
+        await publishMatchEvent(MatchEventType.MATCH_CREATED, matchWithStats as MatchWithPlayers);
+      } else {
+        console.log(`[MatchService] matchWithStats не найден, событие не отправлено`);
+      }
+
+      return match;
     } catch (error) {
       throw error;
     }
