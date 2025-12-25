@@ -83,6 +83,7 @@ const formSchema = z.object({
       'TWO_VS_TWO',
       'THREE_VS_THREE',
       'TWO_VS_TWO_VS_TWO',
+      // High MMR варианты скрыты от пользователя, но остаются в enum для совместимости с базой
       'TWO_VS_TWO_HIGH_MMR',
       'THREE_VS_THREE_HIGH_MMR',
     ],
@@ -564,8 +565,6 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                     <SelectItem value="TWO_VS_TWO">2 на 2</SelectItem>
                     <SelectItem value="THREE_VS_THREE">3 на 3</SelectItem>
                     <SelectItem value="TWO_VS_TWO_VS_TWO">2 на 2 на 2</SelectItem>
-                    <SelectItem value="TWO_VS_TWO_HIGH_MMR">2 на 2 (High MMR)</SelectItem>
-                    <SelectItem value="THREE_VS_THREE_HIGH_MMR">3 на 3 (High MMR)</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

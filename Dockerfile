@@ -14,7 +14,6 @@ RUN npm ci
 COPY . .
 
 RUN mkdir -p public
-RUN mkdir -p scripts
 
 EXPOSE 3000
 

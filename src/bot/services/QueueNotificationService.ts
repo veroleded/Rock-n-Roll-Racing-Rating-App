@@ -4,6 +4,7 @@ import {
   subscribeToQueueEvents,
 } from '@/server/services/queues/queue-events';
 import { Client, TextChannel } from 'discord.js';
+import { getGatheringChannelName } from '../utils/channels';
 import { createEmbed } from '../utils/embeds';
 
 export class QueueNotificationService {
@@ -40,17 +41,8 @@ export class QueueNotificationService {
   }
 
   private async sendQueueCleanedNotification(queue: QueueWithPlayers): Promise<void> {
-    // Определяем название канала на основе gameType
-    const channelName =
-      queue.gameType === 'THREE_VS_THREE'
-        ? 'сбор-на-игру-3x3'
-        : queue.gameType === 'THREE_VS_THREE_HIGH_MMR'
-          ? 'сбор-на-игру-3x3-high-mmr'
-          : queue.gameType === 'TWO_VS_TWO_VS_TWO'
-            ? 'сбор-на-игру-2x2x2'
-            : queue.gameType === 'TWO_VS_TWO_HIGH_MMR'
-              ? 'сбор-на-игру-2x2-high-mmr'
-              : 'сбор-на-игру-2x2';
+    // Определяем название канала на основе gameType и версии
+    const channelName = getGatheringChannelName(queue.gameType);
 
     for (const guild of this.discordClient.guilds.cache.values()) {
       // Ищем канал по названию

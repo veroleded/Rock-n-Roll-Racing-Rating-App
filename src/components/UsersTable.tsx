@@ -173,15 +173,15 @@ export function UsersTable({
   const sortedUsers = useMemo(
     () =>
       [...users].sort((a, b) => {
-        const aValue = getValue(a, sortConfig.key) ?? 0;
-        const bValue = getValue(b, sortConfig.key) ?? 0;
+    const aValue = getValue(a, sortConfig.key) ?? 0;
+    const bValue = getValue(b, sortConfig.key) ?? 0;
 
-        if (aValue === bValue) return 0;
-        if (sortConfig.direction === "asc") {
-          return aValue < bValue ? -1 : 1;
-        } else {
-          return aValue > bValue ? -1 : 1;
-        }
+    if (aValue === bValue) return 0;
+    if (sortConfig.direction === "asc") {
+      return aValue < bValue ? -1 : 1;
+    } else {
+      return aValue > bValue ? -1 : 1;
+    }
       }),
     [users, sortConfig]
   );
@@ -189,11 +189,11 @@ export function UsersTable({
   // Получаем отсортированных по рейтингу пользователей для определения позиций
   const userPositions = useMemo(
     () => {
-      const usersByRating = [...users].sort((a, b) => {
-        const ratingA = a.stats?.rating || 0;
-        const ratingB = b.stats?.rating || 0;
-        return ratingB - ratingA;
-      });
+  const usersByRating = [...users].sort((a, b) => {
+    const ratingA = a.stats?.rating || 0;
+    const ratingB = b.stats?.rating || 0;
+    return ratingB - ratingA;
+  });
       return new Map(usersByRating.map((user, index) => [user.id, index + 1]));
     },
     [users]

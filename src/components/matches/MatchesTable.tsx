@@ -78,10 +78,10 @@ export function MatchesTable({
     switch (mode) {
       case 'TWO_VS_TWO':
       case 'TWO_VS_TWO_HIGH_MMR':
-        return mode === 'TWO_VS_TWO_HIGH_MMR' ? '2 vs 2 (High MMR)' : '2 vs 2';
+        return '2 vs 2';
       case 'THREE_VS_THREE':
       case 'THREE_VS_THREE_HIGH_MMR':
-        return mode === 'THREE_VS_THREE_HIGH_MMR' ? '3 vs 3 (High MMR)' : '3 vs 3';
+        return '3 vs 3';
       case 'TWO_VS_TWO_VS_TWO':
         return '2 vs 2 vs 2';
       default:

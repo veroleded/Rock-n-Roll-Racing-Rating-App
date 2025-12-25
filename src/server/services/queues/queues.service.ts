@@ -5,6 +5,14 @@ import { publishQueueEvent, QueueEventType } from './queue-events';
 export class QueuesService {
   constructor(private prisma: PrismaClient) {}
 
+  /**
+   * Проверяет, содержит ли название канала указание на high-mmr
+   * Поддерживает оба формата: 'high-mmr' и 'high_mmr'
+   */
+  private hasHighMmr(channelName: string): boolean {
+    return channelName.includes('high-mmr') || channelName.includes('high_mmr');
+  }
+
   private getRequiredPlayersCount(gameType: GameMode): number {
     switch (gameType) {
       case 'THREE_VS_THREE':
@@ -24,9 +32,9 @@ export class QueuesService {
     if (channelName.includes('2x2x2')) {
       gameType = 'TWO_VS_TWO_VS_TWO';
     } else if (channelName.includes('3x3')) {
-      gameType = channelName.includes('high-mmr') ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
+      gameType = this.hasHighMmr(channelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
     } else if (channelName.includes('2x2')) {
-      gameType = channelName.includes('high-mmr') ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
+      gameType = this.hasHighMmr(channelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
     } else {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -103,9 +111,9 @@ export class QueuesService {
     if (channelName.includes('2x2x2')) {
       gameType = 'TWO_VS_TWO_VS_TWO';
     } else if (channelName.includes('3x3')) {
-      gameType = channelName.includes('high-mmr') ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
+      gameType = this.hasHighMmr(channelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
     } else if (channelName.includes('2x2')) {
-      gameType = channelName.includes('high-mmr') ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
+      gameType = this.hasHighMmr(channelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
     } else {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -171,9 +179,9 @@ export class QueuesService {
     if (channelName.includes('2x2x2')) {
       gameType = 'TWO_VS_TWO_VS_TWO';
     } else if (channelName.includes('3x3')) {
-      gameType = channelName.includes('high-mmr') ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
+      gameType = this.hasHighMmr(channelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
     } else if (channelName.includes('2x2')) {
-      gameType = channelName.includes('high-mmr') ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
+      gameType = this.hasHighMmr(channelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
     } else {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -242,9 +250,9 @@ export class QueuesService {
     if (channelName.includes('2x2x2')) {
       gameType = 'TWO_VS_TWO_VS_TWO';
     } else if (channelName.includes('3x3')) {
-      gameType = channelName.includes('high-mmr') ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
+      gameType = this.hasHighMmr(channelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
     } else if (channelName.includes('2x2')) {
-      gameType = channelName.includes('high-mmr') ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
+      gameType = this.hasHighMmr(channelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
     } else {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -346,9 +354,9 @@ export class QueuesService {
     if (channelName.includes('2x2x2')) {
       gameType = 'TWO_VS_TWO_VS_TWO';
     } else if (channelName.includes('3x3')) {
-      gameType = channelName.includes('high-mmr') ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
+      gameType = this.hasHighMmr(channelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
     } else if (channelName.includes('2x2')) {
-      gameType = channelName.includes('high-mmr') ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
+      gameType = this.hasHighMmr(channelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
     } else {
       throw new TRPCError({
         code: 'BAD_REQUEST',

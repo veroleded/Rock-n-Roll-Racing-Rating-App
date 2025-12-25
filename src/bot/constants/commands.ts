@@ -1,5 +1,7 @@
-// Префикс для каналов сбора на игру
-export const GAME_GATHERING_PREFIX = 'сбор-на-игру';
+import { getGatheringPrefix } from '../utils/channels';
+
+// Префикс для каналов сбора на игру (зависит от VERSION)
+export const GAME_GATHERING_PREFIX = getGatheringPrefix();
 
 // Команды для каналов сбора
 export const GATHERING_COMMANDS = {

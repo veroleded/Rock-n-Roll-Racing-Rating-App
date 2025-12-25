@@ -35,56 +35,56 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
   const matrixData: MatrixRow[] = useMemo(
     () =>
       sortedPlayers.map((attacker) => {
-        const damages: DamageData = {};
+    const damages: DamageData = {};
 
-        sortedPlayers.forEach((victim) => {
-          const damageEntry = attacker.damageDealt[victim.userId];
-          if (damageEntry) {
-            damages[victim.userId] = damageEntry.damage;
-          } else {
-            damages[victim.userId] = 0;
-          }
-        });
+    sortedPlayers.forEach((victim) => {
+      const damageEntry = attacker.damageDealt[victim.userId];
+      if (damageEntry) {
+        damages[victim.userId] = damageEntry.damage;
+      } else {
+        damages[victim.userId] = 0;
+      }
+    });
 
-        return {
-          attackerId: attacker.userId,
-          attackerName: attacker.user.name || 'Игрок',
-          team: attacker.team,
-          damages,
-        };
+    return {
+      attackerId: attacker.userId,
+      attackerName: attacker.user.name || 'Игрок',
+      team: attacker.team,
+      damages,
+    };
       }),
     [sortedPlayers]
   );
 
   const colors = useMemo(
     () => ({
-      team: {
-        1: {
-          text: isDark ? 'text-blue-300' : 'text-blue-600',
-        },
-        2: {
-          text: isDark ? 'text-red-300' : 'text-red-600',
-        },
-        3: {
-          text: isDark ? 'text-yellow-300' : 'text-yellow-600',
-        },
+    team: {
+      1: {
+        text: isDark ? 'text-blue-300' : 'text-blue-600',
       },
-      damage: {
-        friendly: {
-          text: isDark ? 'text-red-300' : 'text-red-500',
-        },
-        enemy: {
-          high: isDark ? 'text-primary font-bold' : 'text-primary font-bold',
-          medium: isDark ? 'text-primary/95 font-semibold' : 'text-primary/90 font-semibold',
-          low: isDark ? 'text-primary/85' : 'text-primary/80',
-        },
-        none: isDark ? 'text-muted-foreground opacity-30' : 'text-muted-foreground opacity-40',
-        self: isDark ? 'bg-accent/30' : 'bg-accent/20',
+      2: {
+        text: isDark ? 'text-red-300' : 'text-red-600',
       },
-      total: {
-        bg: isDark ? 'bg-muted/40' : 'bg-muted/50',
-        text: 'text-foreground',
+      3: {
+        text: isDark ? 'text-yellow-300' : 'text-yellow-600',
       },
+    },
+    damage: {
+      friendly: {
+        text: isDark ? 'text-red-300' : 'text-red-500',
+      },
+      enemy: {
+        high: isDark ? 'text-primary font-bold' : 'text-primary font-bold',
+        medium: isDark ? 'text-primary/95 font-semibold' : 'text-primary/90 font-semibold',
+        low: isDark ? 'text-primary/85' : 'text-primary/80',
+      },
+      none: isDark ? 'text-muted-foreground opacity-30' : 'text-muted-foreground opacity-40',
+      self: isDark ? 'bg-accent/30' : 'bg-accent/20',
+    },
+    total: {
+      bg: isDark ? 'bg-muted/40' : 'bg-muted/50',
+      text: 'text-foreground',
+    },
     }),
     [isDark]
   );
@@ -128,11 +128,11 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
   const teamGroups = useMemo(
     () =>
       sortedPlayers.reduce<Record<number, MatchPlayer[]>>((acc, player) => {
-        if (!acc[player.team]) {
-          acc[player.team] = [];
-        }
-        acc[player.team].push(player);
-        return acc;
+    if (!acc[player.team]) {
+      acc[player.team] = [];
+    }
+    acc[player.team].push(player);
+    return acc;
       }, {}),
     [sortedPlayers]
   );

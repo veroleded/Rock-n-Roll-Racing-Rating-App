@@ -8,15 +8,18 @@ services:
       - .env.prod
     restart: always
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - app_network
     volumes:
       - ./prisma:/app/prisma
       - ./src:/app/src
     command: >
-      sh -c "npx prisma generate &&
+      sh -c "npx prisma migrate deploy &&
+             npx prisma generate &&
              npm run build &&
              npm run init-bots &&
              (npm run start & tsx src/bot/index.ts)"
@@ -47,6 +50,11 @@ services:
     networks:
       - app_network
     command: postgres -c shared_buffers=64MB -c work_mem=4MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine

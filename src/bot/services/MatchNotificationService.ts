@@ -7,6 +7,7 @@ import { Client, EmbedBuilder, TextChannel } from 'discord.js';
 import dotenv from 'dotenv';
 import { COLORS } from '../constants/colors';
 import { EMOJIS } from '../constants/emojis';
+import { getMatchNotificationChannelName } from '../utils/channels';
 import { getAppUrl } from '../utils/appUrl';
 
 dotenv.config();
@@ -54,9 +55,11 @@ export class MatchNotificationService {
   }
 
   private async sendMatchNotification(match: MatchWithPlayers): Promise<void> {
+    const channelName = getMatchNotificationChannelName();
+    
     for (const guild of this.discordClient.guilds.cache.values()) {
       const ratingChannel = guild.channels.cache.find(
-        (ch) => ch.name === 'matchmaking' && ch.type === 0
+        (ch) => ch.name === channelName && ch.type === 0
       );
 
       if (ratingChannel) {
