@@ -135,7 +135,7 @@ model MatchPlayer {
 
 model Queue {
   id          Int      @id @default(autoincrement())
-  gameType    GameMode   // Тип игры ("3x3", "2x2", "2x2x2")
+  gameType    GameMode   // Тип игры ("3x3", "2x2", "2x2x2", "2x2-high-mmr", "3x3-high-mmr")
   players     User[]     @relation("QueuePlayers")
   botsCount   Int      @default(0)    // Количество ботов в очереди
   lastAdded   DateTime
@@ -154,6 +154,8 @@ enum GameMode {
   TWO_VS_TWO
   THREE_VS_THREE
   TWO_VS_TWO_VS_TWO
+  TWO_VS_TWO_HIGH_MMR
+  THREE_VS_THREE_HIGH_MMR
 }
 
 enum MatchResult {

@@ -77,9 +77,11 @@ export function MatchesTable({
   const getGameModeText = React.useCallback((mode: GameMode): string => {
     switch (mode) {
       case 'TWO_VS_TWO':
-        return '2 vs 2';
+      case 'TWO_VS_TWO_HIGH_MMR':
+        return mode === 'TWO_VS_TWO_HIGH_MMR' ? '2 vs 2 (High MMR)' : '2 vs 2';
       case 'THREE_VS_THREE':
-        return '3 vs 3';
+      case 'THREE_VS_THREE_HIGH_MMR':
+        return mode === 'THREE_VS_THREE_HIGH_MMR' ? '3 vs 3 (High MMR)' : '3 vs 3';
       case 'TWO_VS_TWO_VS_TWO':
         return '2 vs 2 vs 2';
       default:

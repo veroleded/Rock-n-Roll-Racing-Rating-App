@@ -33,8 +33,10 @@ import * as z from 'zod';
 function getTeamSize(mode: GameMode) {
   switch (mode) {
     case 'TWO_VS_TWO':
+    case 'TWO_VS_TWO_HIGH_MMR':
       return 2;
     case 'THREE_VS_THREE':
+    case 'THREE_VS_THREE_HIGH_MMR':
       return 3;
     case 'TWO_VS_TWO_VS_TWO':
       return 2;
@@ -46,8 +48,10 @@ function getTeamSize(mode: GameMode) {
 function getTeamCount(mode: GameMode) {
   switch (mode) {
     case 'TWO_VS_TWO':
+    case 'TWO_VS_TWO_HIGH_MMR':
       return 2;
     case 'THREE_VS_THREE':
+    case 'THREE_VS_THREE_HIGH_MMR':
       return 2;
     case 'TWO_VS_TWO_VS_TWO':
       return 3;
@@ -74,9 +78,18 @@ const teamSchema = z.object({
 });
 
 const formSchema = z.object({
-  mode: z.enum(['TWO_VS_TWO', 'THREE_VS_THREE', 'TWO_VS_TWO_VS_TWO'], {
-    required_error: 'Выберите режим игры',
-  }),
+  mode: z.enum(
+    [
+      'TWO_VS_TWO',
+      'THREE_VS_THREE',
+      'TWO_VS_TWO_VS_TWO',
+      'TWO_VS_TWO_HIGH_MMR',
+      'THREE_VS_THREE_HIGH_MMR',
+    ],
+    {
+      required_error: 'Выберите режим игры',
+    }
+  ),
   statsData: createStatsDataSchema.optional(),
   teams: z.array(teamSchema).min(2, 'Добавьте как минимум две команды'),
   penaltyFactor: z.number().default(30),
@@ -551,6 +564,8 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                     <SelectItem value="TWO_VS_TWO">2 на 2</SelectItem>
                     <SelectItem value="THREE_VS_THREE">3 на 3</SelectItem>
                     <SelectItem value="TWO_VS_TWO_VS_TWO">2 на 2 на 2</SelectItem>
+                    <SelectItem value="TWO_VS_TWO_HIGH_MMR">2 на 2 (High MMR)</SelectItem>
+                    <SelectItem value="THREE_VS_THREE_HIGH_MMR">3 на 3 (High MMR)</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

@@ -9,12 +9,40 @@ export function formatQueueInfo(
   }
 
   const { players, botsCount, gameType } = queue;
-  const requiredPlayers = gameType === 'TWO_VS_TWO' ? 4 : 6;
+  
+  // Определяем количество требуемых игроков
+  let requiredPlayers: number;
+  if (gameType === 'TWO_VS_TWO' || gameType === 'TWO_VS_TWO_HIGH_MMR') {
+    requiredPlayers = 4;
+  } else {
+    requiredPlayers = 6; // THREE_VS_THREE, THREE_VS_THREE_HIGH_MMR, TWO_VS_TWO_VS_TWO
+  }
+  
   const currentPlayers = players.length + botsCount;
 
-  let info = `Тип игры: ${
-    gameType === 'THREE_VS_THREE' ? '3x3' : gameType === 'TWO_VS_TWO' ? '2x2' : '2x2x2'
-  }\n`;
+  // Определяем текст типа игры
+  let gameTypeText: string;
+  switch (gameType) {
+    case 'THREE_VS_THREE':
+      gameTypeText = '3x3';
+      break;
+    case 'THREE_VS_THREE_HIGH_MMR':
+      gameTypeText = '3x3 (High MMR)';
+      break;
+    case 'TWO_VS_TWO':
+      gameTypeText = '2x2';
+      break;
+    case 'TWO_VS_TWO_HIGH_MMR':
+      gameTypeText = '2x2 (High MMR)';
+      break;
+    case 'TWO_VS_TWO_VS_TWO':
+      gameTypeText = '2x2x2';
+      break;
+    default:
+      gameTypeText = 'Неизвестный режим';
+  }
+
+  let info = `Тип игры: ${gameTypeText}\n`;
   info += `Игроков в очереди: ${currentPlayers}/${requiredPlayers}\n\n`;
 
   if (players.length > 0) {

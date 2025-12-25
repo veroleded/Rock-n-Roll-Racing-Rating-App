@@ -350,7 +350,7 @@ export class MatchService {
     gameMode: GameMode
   ) {
     let K = 60;
-    if (gameMode === 'TWO_VS_TWO') {
+    if (gameMode === 'TWO_VS_TWO' || gameMode === 'TWO_VS_TWO_HIGH_MMR') {
       K = 40;
     }
     const result2 = 1 - result1;

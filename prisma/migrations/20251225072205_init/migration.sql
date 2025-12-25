@@ -2,7 +2,7 @@
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'MODERATOR', 'PLAYER');
 
 -- CreateEnum
-CREATE TYPE "GameMode" AS ENUM ('TWO_VS_TWO', 'THREE_VS_THREE', 'TWO_VS_TWO_VS_TWO');
+CREATE TYPE "GameMode" AS ENUM ('TWO_VS_TWO', 'THREE_VS_THREE', 'TWO_VS_TWO_VS_TWO', 'TWO_VS_TWO_HIGH_MMR', 'THREE_VS_THREE_HIGH_MMR');
 
 -- CreateEnum
 CREATE TYPE "MatchResult" AS ENUM ('WIN', 'LOSS', 'DRAW');
@@ -59,9 +59,9 @@ CREATE TABLE "verification_tokens" (
 CREATE TABLE "stats" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
-    "rating" DOUBLE PRECISION NOT NULL DEFAULT 1800,
-    "max_rating" DOUBLE PRECISION NOT NULL DEFAULT 1800,
-    "min_rating" DOUBLE PRECISION NOT NULL DEFAULT 1800,
+    "rating" DOUBLE PRECISION NOT NULL DEFAULT 1100,
+    "max_rating" DOUBLE PRECISION NOT NULL DEFAULT 1100,
+    "min_rating" DOUBLE PRECISION NOT NULL DEFAULT 1100,
     "total_score" INTEGER NOT NULL DEFAULT 0,
     "games_played" INTEGER NOT NULL DEFAULT 0,
     "wins" INTEGER NOT NULL DEFAULT 0,
@@ -116,6 +116,25 @@ CREATE TABLE "match_players" (
     CONSTRAINT "match_players_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "queues" (
+    "id" SERIAL NOT NULL,
+    "gameType" "GameMode" NOT NULL,
+    "botsCount" INTEGER NOT NULL DEFAULT 0,
+    "lastAdded" TIMESTAMP(3) NOT NULL,
+    "isCompleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "queues_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "_QueuePlayers" (
+    "A" INTEGER NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_QueuePlayers_AB_pkey" PRIMARY KEY ("A","B")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "accounts_provider_provider_account_id_key" ON "accounts"("provider", "provider_account_id");
 
@@ -137,6 +156,9 @@ CREATE UNIQUE INDEX "stats_user_id_key" ON "stats"("user_id");
 -- CreateIndex
 CREATE UNIQUE INDEX "match_players_match_id_user_id_key" ON "match_players"("match_id", "user_id");
 
+-- CreateIndex
+CREATE INDEX "_QueuePlayers_B_index" ON "_QueuePlayers"("B");
+
 -- AddForeignKey
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -154,3 +176,9 @@ ALTER TABLE "match_players" ADD CONSTRAINT "match_players_match_id_fkey" FOREIGN
 
 -- AddForeignKey
 ALTER TABLE "match_players" ADD CONSTRAINT "match_players_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_QueuePlayers" ADD CONSTRAINT "_QueuePlayers_A_fkey" FOREIGN KEY ("A") REFERENCES "queues"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_QueuePlayers" ADD CONSTRAINT "_QueuePlayers_B_fkey" FOREIGN KEY ("B") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

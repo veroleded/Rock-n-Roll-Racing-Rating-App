@@ -1,4 +1,0 @@
--- AlterTable
-ALTER TABLE "stats" ALTER COLUMN "rating" SET DEFAULT 1100,
-ALTER COLUMN "max_rating" SET DEFAULT 1100,
-ALTER COLUMN "min_rating" SET DEFAULT 1100;

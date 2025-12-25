@@ -7,8 +7,10 @@ export class QueuesService {
   private getRequiredPlayersCount(gameType: GameMode): number {
     switch (gameType) {
       case 'THREE_VS_THREE':
+      case 'THREE_VS_THREE_HIGH_MMR':
         return 6;
       case 'TWO_VS_TWO':
+      case 'TWO_VS_TWO_HIGH_MMR':
         return 4;
       case 'TWO_VS_TWO_VS_TWO':
         return 6;
@@ -17,12 +19,13 @@ export class QueuesService {
 
   async addPlayerToQueue(userId: string, channelName: string) {
     let gameType: GameMode;
-    if (channelName.includes('3x3')) {
-      gameType = 'THREE_VS_THREE';
-    } else if (channelName.includes('2x2x2')) {
+    // Проверяем в порядке от более специфичных к менее специфичным
+    if (channelName.includes('2x2x2')) {
       gameType = 'TWO_VS_TWO_VS_TWO';
+    } else if (channelName.includes('3x3')) {
+      gameType = channelName.includes('high-mmr') ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
     } else if (channelName.includes('2x2')) {
-      gameType = 'TWO_VS_TWO';
+      gameType = channelName.includes('high-mmr') ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
     } else {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -95,12 +98,13 @@ export class QueuesService {
 
   async addBotToQueue(channelName: string) {
     let gameType: GameMode;
-    if (channelName.includes('3x3')) {
-      gameType = 'THREE_VS_THREE';
-    } else if (channelName.includes('2x2x2')) {
+    // Проверяем в порядке от более специфичных к менее специфичным
+    if (channelName.includes('2x2x2')) {
       gameType = 'TWO_VS_TWO_VS_TWO';
+    } else if (channelName.includes('3x3')) {
+      gameType = channelName.includes('high-mmr') ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
     } else if (channelName.includes('2x2')) {
-      gameType = 'TWO_VS_TWO';
+      gameType = channelName.includes('high-mmr') ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
     } else {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -162,12 +166,13 @@ export class QueuesService {
 
   async removePlayerFromQueue(userId: string, channelName: string) {
     let gameType: GameMode;
-    if (channelName.includes('3x3')) {
-      gameType = 'THREE_VS_THREE';
-    } else if (channelName.includes('2x2x2')) {
+    // Проверяем в порядке от более специфичных к менее специфичным
+    if (channelName.includes('2x2x2')) {
       gameType = 'TWO_VS_TWO_VS_TWO';
+    } else if (channelName.includes('3x3')) {
+      gameType = channelName.includes('high-mmr') ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
     } else if (channelName.includes('2x2')) {
-      gameType = 'TWO_VS_TWO';
+      gameType = channelName.includes('high-mmr') ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
     } else {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -232,12 +237,13 @@ export class QueuesService {
 
   async removeBotFromQueue(channelName: string) {
     let gameType: GameMode;
-    if (channelName.includes('3x3')) {
-      gameType = 'THREE_VS_THREE';
-    } else if (channelName.includes('2x2x2')) {
+    // Проверяем в порядке от более специфичных к менее специфичным
+    if (channelName.includes('2x2x2')) {
       gameType = 'TWO_VS_TWO_VS_TWO';
+    } else if (channelName.includes('3x3')) {
+      gameType = channelName.includes('high-mmr') ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
     } else if (channelName.includes('2x2')) {
-      gameType = 'TWO_VS_TWO';
+      gameType = channelName.includes('high-mmr') ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
     } else {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -332,12 +338,13 @@ export class QueuesService {
 
   async cleanQueueByChannel(channelName: string) {
     let gameType: GameMode;
-    if (channelName.includes('3x3')) {
-      gameType = 'THREE_VS_THREE';
-    } else if (channelName.includes('2x2x2')) {
+    // Проверяем в порядке от более специфичных к менее специфичным
+    if (channelName.includes('2x2x2')) {
       gameType = 'TWO_VS_TWO_VS_TWO';
+    } else if (channelName.includes('3x3')) {
+      gameType = channelName.includes('high-mmr') ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
     } else if (channelName.includes('2x2')) {
-      gameType = 'TWO_VS_TWO';
+      gameType = channelName.includes('high-mmr') ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
     } else {
       throw new TRPCError({
         code: 'BAD_REQUEST',

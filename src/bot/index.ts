@@ -97,14 +97,20 @@ client.once(Events.ClientReady, (c) => {
 
       if (oldQueues.length > 0) {
         for (const queue of oldQueues) {
+          // Определяем название канала на основе gameType
           const channelName =
             queue.gameType === 'THREE_VS_THREE'
-              ? 'сбор_на_игру_3x3'
-              : queue.gameType === 'TWO_VS_TWO_VS_TWO'
-                ? 'сбор_на_игру_2x2x2'
-                : 'сбор_на_игру_2x2';
+              ? 'сбор-на-игру-3x3'
+              : queue.gameType === 'THREE_VS_THREE_HIGH_MMR'
+                ? 'сбор-на-игру-3x3-high-mmr'
+                : queue.gameType === 'TWO_VS_TWO_VS_TWO'
+                  ? 'сбор-на-игру-2x2x2'
+                  : queue.gameType === 'TWO_VS_TWO_HIGH_MMR'
+                    ? 'сбор-на-игру-2x2-high-mmr'
+                    : 'сбор-на-игру-2x2';
 
           for (const guild of client.guilds.cache.values()) {
+            // Ищем канал по названию из очереди
             const channel = guild.channels.cache.find(
               (ch) => ch.name === channelName && ch.type === 0
             );

@@ -7,10 +7,12 @@ import { Shield } from 'lucide-react';
 import React from 'react';
 
 
-export const gameModeNames = {
+export const gameModeNames: Record<GameMode, string> = {
   TWO_VS_TWO: '2 на 2',
   THREE_VS_THREE: '3 на 3',
   TWO_VS_TWO_VS_TWO: '2 на 2 на 2',
+  TWO_VS_TWO_HIGH_MMR: '2 на 2 (High MMR)',
+  THREE_VS_THREE_HIGH_MMR: '3 на 3 (High MMR)',
 };
 
 interface MatchHeaderProps {

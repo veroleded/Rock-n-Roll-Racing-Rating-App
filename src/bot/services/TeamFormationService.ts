@@ -70,9 +70,11 @@ export class TeamFormationService {
     let condition: number;
     switch (gameType) {
       case 'TWO_VS_TWO':
+      case 'TWO_VS_TWO_HIGH_MMR':
         condition = 1;
         break;
       case 'THREE_VS_THREE':
+      case 'THREE_VS_THREE_HIGH_MMR':
         condition = 2;
         break;
       case 'TWO_VS_TWO_VS_TWO':
@@ -180,7 +182,11 @@ export class TeamFormationService {
     const ratingDifference = (maxRating - minRating).toFixed(2);
 
     const gameTypeText =
-      gameType === 'THREE_VS_THREE' ? '3x3' : gameType === 'TWO_VS_TWO' ? '2x2' : '2x2x2';
+      gameType === 'THREE_VS_THREE' || gameType === 'THREE_VS_THREE_HIGH_MMR'
+        ? '3x3'
+        : gameType === 'TWO_VS_TWO' || gameType === 'TWO_VS_TWO_HIGH_MMR'
+          ? '2x2'
+          : '2x2x2';
 
     embed.setTitle(
       `Команды сформированы (${gameTypeText}).\n${APP_URL}/matches\nРазница: ${ratingDifference}.`

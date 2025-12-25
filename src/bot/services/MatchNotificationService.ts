@@ -108,7 +108,7 @@ export class MatchNotificationService {
   private async sendMatchNotification(match: MatchWithPlayers): Promise<void> {
     for (const guild of this.discordClient.guilds.cache.values()) {
       const ratingChannel = guild.channels.cache.find(
-        (ch) => ch.name === 'рейтинг' && ch.type === 0
+        (ch) => ch.name === 'matchmaking' && ch.type === 0
       );
 
       if (ratingChannel) {
@@ -209,8 +209,10 @@ export class MatchNotificationService {
   private getGameModeEmoji(mode: string): string {
     switch (mode) {
       case 'TWO_VS_TWO':
+      case 'TWO_VS_TWO_HIGH_MMR':
         return '2️⃣';
       case 'THREE_VS_THREE':
+      case 'THREE_VS_THREE_HIGH_MMR':
         return '3️⃣';
       case 'TWO_VS_TWO_VS_TWO':
         return '6️⃣';
@@ -222,8 +224,10 @@ export class MatchNotificationService {
   private getGameModeName(mode: string): string {
     switch (mode) {
       case 'TWO_VS_TWO':
+      case 'TWO_VS_TWO_HIGH_MMR':
         return '2x2';
       case 'THREE_VS_THREE':
+      case 'THREE_VS_THREE_HIGH_MMR':
         return '3x3';
       case 'TWO_VS_TWO_VS_TWO':
         return '2x2x2';

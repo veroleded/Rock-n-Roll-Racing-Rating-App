@@ -104,9 +104,9 @@ export default function MatchesPage() {
                     <SelectItem value="all">Все режимы</SelectItem>
                     <SelectItem value="TWO_VS_TWO">2 vs 2</SelectItem>
                     <SelectItem value="THREE_VS_THREE">3 vs 3</SelectItem>
-                    <SelectItem value="TWO_VS_TWO_VS_TWO">
-                      2 vs 2 vs 2
-                    </SelectItem>
+                    <SelectItem value="TWO_VS_TWO_VS_TWO">2 vs 2 vs 2</SelectItem>
+                    <SelectItem value="TWO_VS_TWO_HIGH_MMR">2 vs 2 (High MMR)</SelectItem>
+                    <SelectItem value="THREE_VS_THREE_HIGH_MMR">3 vs 3 (High MMR)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
