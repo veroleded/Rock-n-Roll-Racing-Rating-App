@@ -9,6 +9,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { getVersion } from "@/lib/version";
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,7 +21,7 @@ interface MobileNavProps {
   userRole?: string | null;
 }
 
-const navItems = [
+const baseNavItems = [
   {
     title: "Главная",
     href: "/dashboard",
@@ -35,8 +36,19 @@ const navItems = [
   },
 ];
 
+const downloadsNavItem = {
+  title: "Загрузки",
+  href: "/downloads",
+};
+
 export function MobileNav({ userName, userRole }: MobileNavProps) {
   const pathname = usePathname();
+  const version = getVersion();
+  
+  // Показываем вкладку "Загрузки" только для версии bogdan
+  const navItems = version === 'bogdan' 
+    ? [...baseNavItems, downloadsNavItem]
+    : baseNavItems;
 
   return (
     <Sheet>

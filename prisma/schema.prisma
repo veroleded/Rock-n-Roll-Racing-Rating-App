@@ -144,6 +144,24 @@ model Queue {
   @@map("queues")
 }
 
+model DownloadFile {
+  id          String   @id @default(cuid())
+  type        FileType // Тип файла: GAME или EMULATOR
+  fileName     String   @map("file_name")
+  filePath     String   @map("file_path")
+  fileSize     Int      @map("file_size") // Размер файла в байтах
+  uploadedAt   DateTime @default(now()) @map("uploaded_at")
+  uploadedBy   String   @map("uploaded_by") // ID пользователя, который загрузил файл
+
+  @@unique([type])
+  @@map("download_files")
+}
+
+enum FileType {
+  GAME
+  EMULATOR
+}
+
 enum Role {
   ADMIN
   MODERATOR

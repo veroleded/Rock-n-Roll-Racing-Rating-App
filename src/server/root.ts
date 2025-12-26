@@ -1,4 +1,5 @@
 import { authRouter } from "./routers/auth";
+import { downloadsRouter } from "./routers/downloads";
 import { matchesRouter } from "./routers/matches";
 import { queuesRouter } from './routers/queues';
 import { statsRouter } from './routers/stats';
@@ -13,6 +14,7 @@ export const appRouter = router({
   matches: matchesRouter,
   stats: statsRouter,
   queues: queuesRouter,
+  downloads: downloadsRouter,
 });
 
 export type AppRouter = typeof appRouter;

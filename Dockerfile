@@ -13,7 +13,7 @@ RUN npm ci
 
 COPY . .
 
-RUN mkdir -p public
+RUN mkdir -p public uploads
 
 EXPOSE 3000
 

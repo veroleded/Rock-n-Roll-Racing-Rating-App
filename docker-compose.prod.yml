@@ -17,6 +17,7 @@ services:
     volumes:
       - ./prisma:/app/prisma
       - ./src:/app/src
+      - uploads_data:/app/uploads
     command: >
       sh -c "npx prisma migrate deploy &&
              npx prisma generate &&
@@ -74,3 +75,4 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  uploads_data:
