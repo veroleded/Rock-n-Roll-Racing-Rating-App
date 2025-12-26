@@ -1,4 +1,4 @@
-import { GameMode, Queue, Stats, User } from '@prisma/client';
+import { Queue, Stats, User } from '@prisma/client';
 import dotenv from 'dotenv';
 import Redis from 'ioredis';
 
@@ -30,7 +30,9 @@ let publisher: Redis | null = null;
 
 export function getRedisPublisher(): Redis {
   if (!publisher) {
-    publisher = new Redis(getRedisUrl(), {
+    const redisUrl = getRedisUrl();
+    console.log(`[Redis Publisher] Подключение к Redis: ${redisUrl}`);
+    publisher = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000);
@@ -54,7 +56,9 @@ let subscriber: Redis | null = null;
 
 export function getRedisSubscriber(): Redis {
   if (!subscriber) {
-    subscriber = new Redis(getRedisUrl(), {
+    const redisUrl = getRedisUrl();
+    console.log(`[Redis Subscriber] Подключение к Redis: ${redisUrl}`);
+    subscriber = new Redis(redisUrl, {
       maxRetriesPerRequest: null, // Для subscriber это должно быть null
       retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000);
@@ -80,12 +84,22 @@ export async function publishQueueEvent(
 ): Promise<void> {
   try {
     const pub = getRedisPublisher();
-    await pub.publish(eventType, JSON.stringify(queues));
-    console.log(`[Redis] Событие ${eventType} опубликовано для ${queues.length} очередей`);
+    const message = JSON.stringify(queues);
+    console.log(`[Redis Publisher] Публикуем событие ${eventType} для ${queues.length} очередей`);
+    console.log(`[Redis Publisher] Размер сообщения: ${message.length} байт`);
+    const subscribers = await pub.publish(eventType, message);
+    console.log(`[Redis Publisher] Событие ${eventType} опубликовано, подписчиков: ${subscribers}`);
   } catch (error) {
-    console.error(`[Redis] Ошибка при публикации события ${eventType}:`, error);
+    console.error(`[Redis Publisher] Ошибка при публикации события ${eventType}:`, error);
   }
 }
+
+// Хранилище для отслеживания подписок, чтобы избежать дублирования
+const subscriptions = new Map<
+  QueueEventType,
+  Set<(queues: QueueWithPlayers[]) => void | Promise<void>>
+>();
+const isSubscribed = new Set<QueueEventType>();
 
 // Функция для подписки на события
 export function subscribeToQueueEvents(
@@ -94,24 +108,49 @@ export function subscribeToQueueEvents(
 ): void {
   const sub = getRedisSubscriber();
 
-  sub.subscribe(eventType, (err) => {
-    if (err) {
-      console.error(`[Redis] Ошибка при подписке на ${eventType}:`, err);
-    } else {
-      console.log(`[Redis] Подписан на события ${eventType}`);
-    }
-  });
+  // Инициализируем Set для callbacks, если его еще нет
+  if (!subscriptions.has(eventType)) {
+    subscriptions.set(eventType, new Set());
+  }
 
-  sub.on('message', async (channel, message) => {
-    if (channel === eventType) {
-      try {
-        const queues = JSON.parse(message) as QueueWithPlayers[];
-        console.log(`[Redis] Получено событие ${eventType} для ${queues.length} очередей`);
-        await callback(queues);
-      } catch (error) {
-        console.error(`[Redis] Ошибка при обработке события ${eventType}:`, error);
+  // Добавляем callback в список подписчиков
+  const callbacks = subscriptions.get(eventType)!;
+  if (callbacks.has(callback)) {
+    console.log(`[Redis] Callback уже зарегистрирован для ${eventType}`);
+    return;
+  }
+  callbacks.add(callback);
+  console.log(`[Redis] Добавлен callback для ${eventType}`);
+
+  // Подписываемся на канал только один раз
+  if (!isSubscribed.has(eventType)) {
+    isSubscribed.add(eventType);
+
+    sub.subscribe(eventType, (err) => {
+      if (err) {
+        console.error(`[Redis] Ошибка при подписке на ${eventType}:`, err);
+        isSubscribed.delete(eventType);
+      } else {
+        console.log(`[Redis] Подписан на события ${eventType}`);
       }
-    }
-  });
-}
+    });
 
+    // Обработчик сообщений для этого типа события (создаем только один раз)
+    sub.on('message', async (channel, message) => {
+      if (channel === eventType) {
+        try {
+          const queues = JSON.parse(message) as QueueWithPlayers[];
+          console.log(`[Redis] Получено событие ${eventType} для ${queues.length} очередей`);
+
+          // Вызываем все зарегистрированные callbacks
+          const registeredCallbacks = subscriptions.get(eventType);
+          if (registeredCallbacks) {
+            await Promise.all(Array.from(registeredCallbacks).map((cb) => cb(queues)));
+          }
+        } catch (error) {
+          console.error(`[Redis] Ошибка при обработке события ${eventType}:`, error);
+        }
+      }
+    });
+  }
+}

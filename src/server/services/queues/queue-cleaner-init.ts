@@ -18,6 +18,9 @@ export function initializeQueueCleaner(): void {
 
 // Автоматически инициализируем при импорте модуля (только на сервере)
 if (typeof window === 'undefined') {
+  console.log('[QueueCleaner] Автоматическая инициализация при импорте модуля');
   initializeQueueCleaner();
+} else {
+  console.log('[QueueCleaner] Пропуск инициализации (клиентская сторона)');
 }
 

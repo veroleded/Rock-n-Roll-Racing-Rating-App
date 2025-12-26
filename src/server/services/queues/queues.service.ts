@@ -315,11 +315,46 @@ export class QueuesService {
 
   async cleanOldQueues() {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const now = new Date();
+
+    console.log(`[QueuesService] Проверка очередей старше ${oneHourAgo.toISOString()}`);
+    console.log(`[QueuesService] Текущее время: ${now.toISOString()}`);
+    console.log(`[QueuesService] Интервал для удаления: ${60 * 60 * 1000}ms (1 час)`);
+
+    // Сначала получаем все невыполненные очереди для логирования
+    const allQueues = await this.prisma.queue.findMany({
+      where: {
+        isCompleted: false,
+      },
+      select: {
+        id: true,
+        gameType: true,
+        lastAdded: true,
+        players: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    console.log(`[QueuesService] Всего невыполненных очередей: ${allQueues.length}`);
+    allQueues.forEach((q) => {
+      const age = now.getTime() - q.lastAdded.getTime();
+      const ageMinutes = Math.floor(age / 1000 / 60);
+      console.log(
+        `[QueuesService] Очередь ${q.id} (${q.gameType}): lastAdded=${q.lastAdded.toISOString()}, возраст=${ageMinutes} минут, игроков=${q.players.length}`
+      );
+    });
+
+    // Используем более точное сравнение: очереди должны быть старше 1 часа
+    // Добавляем небольшую задержку (1 секунда) для избежания проблем с точностью времени
+    const oneHourAgoWithMargin = new Date(oneHourAgo.getTime() - 1000);
 
     const oldQueues = await this.prisma.queue.findMany({
       where: {
         lastAdded: {
-          lt: oneHourAgo,
+          lt: oneHourAgoWithMargin,
         },
         isCompleted: false,
       },
@@ -332,7 +367,18 @@ export class QueuesService {
       },
     });
 
+    console.log(`[QueuesService] Найдено ${oldQueues.length} старых очередей для удаления`);
+
     if (oldQueues.length > 0) {
+      oldQueues.forEach((q) => {
+        const age = now.getTime() - q.lastAdded.getTime();
+        const ageMinutes = Math.floor(age / 1000 / 60);
+        const ageSeconds = Math.floor(age / 1000);
+        console.log(
+          `[QueuesService] УДАЛЯЕМ очередь ${q.id} (${q.gameType}): lastAdded=${q.lastAdded.toISOString()}, возраст=${ageSeconds} секунд (${ageMinutes} минут), игроков=${q.players.length}, oneHourAgo=${oneHourAgo.toISOString()}`
+        );
+      });
+      console.log(`[QueuesService] Удаление ${oldQueues.length} старых очередей`);
       await this.prisma.queue.deleteMany({
         where: {
           id: {
@@ -342,7 +388,11 @@ export class QueuesService {
       });
 
       // Публикуем событие о удаленных очередях
+      console.log(
+        `[QueuesService] Публикация события QUEUE_CLEANED для ${oldQueues.length} очередей`
+      );
       await publishQueueEvent(QueueEventType.QUEUE_CLEANED, oldQueues);
+      console.log(`[QueuesService] Событие опубликовано`);
     }
 
     return oldQueues;

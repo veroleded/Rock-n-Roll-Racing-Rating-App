@@ -48,7 +48,7 @@ export class GatheringCommandsHandler {
           break;
       }
 
-      await this.cleanOldQueues();
+      // Убрали вызов cleanOldQueues() - это теперь делает QueueCleanerService автоматически
     } catch (error) {
       console.error('Ошибка при обработке команды очереди:', error);
       await message.reply({
@@ -232,7 +232,5 @@ export class GatheringCommandsHandler {
     }
   }
 
-  private async cleanOldQueues() {
-    await this.queueService.cleanOldQueues();
-  }
+  // Метод cleanOldQueues() удален - очистка теперь выполняется автоматически через QueueCleanerService
 }
