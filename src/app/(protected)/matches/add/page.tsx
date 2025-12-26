@@ -13,13 +13,13 @@ import {
 export default function AddMatchPage() {
   return (
     <div className="py-6 space-y-6">
-      <div className="flex items-center justify-between border-b pb-4">
+      <div className="flex flex-col gap-4 border-b pb-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <BackButton />
-            <h1 className="text-3xl font-bold tracking-tight">Добавить матч</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Добавить матч</h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Заполните форму для добавления нового матча в систему
           </p>
         </div>

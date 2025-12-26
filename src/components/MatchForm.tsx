@@ -419,7 +419,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent className="w-[300px] p-0" align="start">
+              <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[300px] p-0" align="start">
                 <div className="flex flex-col">
                   <div className="flex items-center border-b p-2">
                     <input
@@ -687,7 +687,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" size="lg" disabled={isSubmitting}>
+          <Button type="submit" size="lg" disabled={isSubmitting} className="w-full sm:w-auto">
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

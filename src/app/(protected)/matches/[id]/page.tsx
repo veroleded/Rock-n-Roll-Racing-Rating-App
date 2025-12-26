@@ -83,7 +83,7 @@ export default function MatchPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
       <MatchHeader
         id={match.id}
         createdAt={match.createdAt}

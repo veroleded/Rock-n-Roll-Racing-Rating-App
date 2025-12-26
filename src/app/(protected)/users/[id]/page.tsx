@@ -46,17 +46,17 @@ export default function UserPage() {
   const canEdit = isAdmin;
 
   return (
-    <div className="container mx-auto h-[calc(100vh-4rem)] flex flex-col">
-      <div className="flex items-center justify-between border-b pb-4 pt-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-[calc(100vh-4rem)] flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4 pt-6">
         <div className="space-y-1">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <BackButton />
-            <h1 className="text-3xl font-bold tracking-tight">Профиль пользователя</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Профиль пользователя</h1>
           </div>
-          <p className="text-muted-foreground">Информация и статистика пользователя</p>
+          <p className="text-sm sm:text-base text-muted-foreground">Информация и статистика пользователя</p>
         </div>
         {canEdit && (
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <Link href={`/users/${user.id}/edit`}>
               <Edit className="h-4 w-4 mr-2" />
               Редактировать

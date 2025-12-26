@@ -144,7 +144,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <Table className="w-full">
+          <Table className="w-full min-w-[600px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[180px] sticky left-0 z-10 shadow-sm border-r bg-card">

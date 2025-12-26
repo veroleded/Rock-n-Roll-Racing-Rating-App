@@ -33,14 +33,14 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
   actionButtons,
 }) => {
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex-1">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <BackButton />
-          <h1 className="text-3xl font-bold">Матч #{id}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Матч #{id}</h1>
           {actionButtons}
         </div>
-        <div className="flex items-center gap-2 mt-2 text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 mt-2 text-sm sm:text-base text-muted-foreground">
           <span>
             {format(new Date(createdAt), 'd MMMM yyyy, HH:mm', {
               locale: ru,
@@ -51,7 +51,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
           {isRated && (
             <>
               <span>•</span>
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="text-xs">
                 <Shield className="w-3 h-3 mr-1" />
                 Рейтинговый
               </Badge>
@@ -59,7 +59,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
           )}
         </div>
       </div>
-      <div className="text-4xl font-bold">{totalScore}</div>
+      <div className="text-3xl sm:text-4xl font-bold text-center sm:text-right">{totalScore}</div>
     </div>
   );
 };

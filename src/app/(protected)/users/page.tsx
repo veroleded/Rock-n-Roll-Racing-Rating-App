@@ -34,15 +34,15 @@ export default function UsersPage() {
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
-      <div className="flex items-center justify-between border-b pb-4 pt-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4 pt-6">
         <div className="space-y-1">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <BackButton />
-            <h1 className="text-3xl font-bold tracking-tight">Таблица игроков</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Таблица игроков</h1>
           </div>
-          <p className="text-muted-foreground">Просмотр игроков и их статистики</p>
+          <p className="text-sm sm:text-base text-muted-foreground">Просмотр игроков и их статистики</p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/users/bots">Посмотреть ботов</Link>
         </Button>
       </div>
@@ -54,7 +54,7 @@ export default function UsersPage() {
           </CardHeader>
           <CardContent className="flex-1 min-h-0">
             <ScrollArea className="h-full rounded-md border">
-              <div className="p-4">
+              <div className="p-2 sm:p-4 overflow-x-auto">
                 <UsersTable
                   users={users}
                   currentUserRole={session?.user.role as Role | undefined}

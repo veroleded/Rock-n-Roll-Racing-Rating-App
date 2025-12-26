@@ -37,14 +37,14 @@ export default function DashboardPage() {
 
 
   return (
-    <div className="container mx-auto h-[calc(100vh-4rem)] flex flex-col">
-      <div className="flex items-center justify-between border-b pb-4 pt-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-[calc(100vh-4rem)] flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4 pt-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Мой профиль</h1>
-          <p className="text-muted-foreground">Ваша личная информация и статистика</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Мой профиль</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Ваша личная информация и статистика</p>
         </div>
         {isAdmin && (
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <Link href={`/users/${user.id}/edit`}>
               <Edit className="h-4 w-4 mr-2" />
               Редактировать профиль
@@ -78,7 +78,7 @@ export default function DashboardPage() {
                 </div>
 
                 {user.stats && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                     <div className="space-y-1 bg-primary/5 p-3 rounded-lg">
                       <p className="text-sm text-muted-foreground">Рейтинг</p>
                       <p className="text-2xl font-bold flex items-center gap-1">
@@ -135,23 +135,23 @@ export default function DashboardPage() {
                           </h3>
                         </div>
                         <div className="p-4">
-                          <div className="space-y-6">
-                            <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-4 sm:space-y-6">
+                            <div className="grid grid-cols-3 gap-2 sm:gap-4">
                               <div className="space-y-1 text-center">
-                                <p className="text-sm font-medium">Победы</p>
-                                <p className="text-xl font-bold text-green-500">
+                                <p className="text-xs sm:text-sm font-medium">Победы</p>
+                                <p className="text-lg sm:text-xl font-bold text-green-500">
                                   {user.stats.wins}
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-sm font-medium">Поражения</p>
-                                <p className="text-xl font-bold text-red-500">
+                                <p className="text-xs sm:text-sm font-medium">Поражения</p>
+                                <p className="text-lg sm:text-xl font-bold text-red-500">
                                   {user.stats.losses}
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-sm font-medium">Ничьи</p>
-                                <p className="text-xl font-bold text-yellow-500">
+                                <p className="text-xs sm:text-sm font-medium">Ничьи</p>
+                                <p className="text-lg sm:text-xl font-bold text-yellow-500">
                                   {user.stats.draws}
                                 </p>
                               </div>
@@ -243,20 +243,20 @@ export default function DashboardPage() {
                           </h3>
                         </div>
                         <div className="p-4">
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className="flex flex-col items-center justify-center p-3 bg-green-500/10 rounded-lg">
-                              <p className="text-sm text-muted-foreground">Максимальный</p>
-                              <p className="text-xl font-bold text-green-500">
+                          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                            <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-green-500/10 rounded-lg">
+                              <p className="text-xs sm:text-sm text-muted-foreground">Максимальный</p>
+                              <p className="text-lg sm:text-xl font-bold text-green-500">
                                 {user.stats.maxRating || user.stats.rating}
                               </p>
                             </div>
-                            <div className="flex flex-col items-center justify-center p-3 bg-primary/10 rounded-lg">
-                              <p className="text-sm text-muted-foreground">Текущий</p>
-                              <p className="text-xl font-bold text-primary">{user.stats.rating}</p>
+                            <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-primary/10 rounded-lg">
+                              <p className="text-xs sm:text-sm text-muted-foreground">Текущий</p>
+                              <p className="text-lg sm:text-xl font-bold text-primary">{user.stats.rating}</p>
                             </div>
-                            <div className="flex flex-col items-center justify-center p-3 bg-red-500/10 rounded-lg">
-                              <p className="text-sm text-muted-foreground">Минимальный</p>
-                              <p className="text-xl font-bold text-red-500">
+                            <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-red-500/10 rounded-lg">
+                              <p className="text-xs sm:text-sm text-muted-foreground">Минимальный</p>
+                              <p className="text-lg sm:text-xl font-bold text-red-500">
                                 {user.stats.minRating || 0}
                               </p>
                             </div>
@@ -286,23 +286,23 @@ export default function DashboardPage() {
                           </h3>
                         </div>
                         <div className="p-4">
-                          <div className="space-y-6">
-                            <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-4 sm:space-y-6">
+                            <div className="grid grid-cols-3 gap-2 sm:gap-4">
                               <div className="space-y-1 text-center">
-                                <p className="text-sm font-medium">Победы</p>
-                                <p className="text-xl font-bold text-green-500">
+                                <p className="text-xs sm:text-sm font-medium">Победы</p>
+                                <p className="text-lg sm:text-xl font-bold text-green-500">
                                   {user.stats.winsDivisions || 0}
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-sm font-medium">Поражения</p>
-                                <p className="text-xl font-bold text-red-500">
+                                <p className="text-xs sm:text-sm font-medium">Поражения</p>
+                                <p className="text-lg sm:text-xl font-bold text-red-500">
                                   {user.stats.lossesDivisions || 0}
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-sm font-medium">Ничьи</p>
-                                <p className="text-xl font-bold text-yellow-500">
+                                <p className="text-xs sm:text-sm font-medium">Ничьи</p>
+                                <p className="text-lg sm:text-xl font-bold text-yellow-500">
                                   {user.stats.drawsDivisions || 0}
                                 </p>
                               </div>

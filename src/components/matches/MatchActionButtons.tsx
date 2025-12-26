@@ -15,8 +15,8 @@ export const MatchActionButtons: React.FC<MatchActionButtonsProps> = ({
   onDelete,
 }) => {
   return (
-    <>
-      <Button size="sm">
+    <div className="flex flex-wrap gap-2">
+      <Button size="sm" className="text-xs sm:text-sm">
         <Link
           onClick={(e) => {
             e.stopPropagation();
@@ -26,10 +26,11 @@ export const MatchActionButtons: React.FC<MatchActionButtonsProps> = ({
           Изменить
         </Link>
       </Button>
-      <Button variant="destructive" size="sm" onClick={onDelete} disabled={isDeleting}>
+      <Button variant="destructive" size="sm" onClick={onDelete} disabled={isDeleting} className="text-xs sm:text-sm">
         {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-        <span className="ml-2">Удалить матч</span>
+        <span className="ml-1 sm:ml-2 hidden sm:inline">Удалить матч</span>
+        <span className="ml-1 sm:hidden">Удалить</span>
       </Button>
-    </>
+    </div>
   );
 };

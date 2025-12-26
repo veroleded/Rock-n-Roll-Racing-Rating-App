@@ -234,17 +234,17 @@ export function MatchesTable({
   return (
     <div className="flex flex-col h-full gap-4">
       <ScrollArea className="flex-1 rounded-md border">
-        <div className="p-4">
-          <Table>
+        <div className="p-2 sm:p-4 overflow-x-auto">
+          <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-32">Дата</TableHead>
                 <TableHead className="w-24">Режим</TableHead>
-                <TableHead className="w-24">Счет</TableHead>
-                <TableHead className="w-[200px]">Команда 1</TableHead>
-                <TableHead className="w-[200px]">Команда 2</TableHead>
-                <TableHead className="w-[200px]">Команда 3</TableHead>
-                <TableHead className="w-24 text-center">Рейтинг</TableHead>
+                <TableHead className="w-20 sm:w-24">Счет</TableHead>
+                <TableHead className="min-w-[150px] sm:w-[200px]">Команда 1</TableHead>
+                <TableHead className="min-w-[150px] sm:w-[200px]">Команда 2</TableHead>
+                <TableHead className="min-w-[150px] sm:w-[200px]">Команда 3</TableHead>
+                <TableHead className="w-20 sm:w-24 text-center">Рейтинг</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

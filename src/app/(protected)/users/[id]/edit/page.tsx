@@ -179,10 +179,10 @@ function EditUserContent({ userId }: { userId: string }) {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Редактирование пользователя</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Редактирование пользователя</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
             {userData.name} ({userData.role.toLowerCase()})
           </p>
         </div>
@@ -430,11 +430,11 @@ function EditUserContent({ userId }: { userId: string }) {
           </Card>
         )}
 
-        <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" onClick={() => router.push('/users')}>
+        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
+          <Button type="button" variant="outline" onClick={() => router.push('/users')} className="w-full sm:w-auto">
             Отмена
           </Button>
-          <Button type="submit" disabled={isUpdating}>
+          <Button type="submit" disabled={isUpdating} className="w-full sm:w-auto">
             {isUpdating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

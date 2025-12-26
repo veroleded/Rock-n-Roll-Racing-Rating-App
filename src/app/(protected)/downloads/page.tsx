@@ -29,15 +29,15 @@ export default function DownloadsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Загрузки</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold">Загрузки</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-2">
             Скачайте установочники игры и эмулятора
           </p>
         </div>
         {isAdmin && (
-          <Button onClick={() => router.push("/downloads/admin")}>
+          <Button onClick={() => router.push("/downloads/admin")} className="w-full sm:w-auto">
             Управление файлами
           </Button>
         )}
