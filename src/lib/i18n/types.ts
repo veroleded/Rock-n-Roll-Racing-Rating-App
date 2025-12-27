@@ -116,7 +116,6 @@ export interface Messages {
     normal: string;
     matchNotFound: string;
     matchNotFoundDescription: string;
-    edit: string;
     deleteMatch: string;
     damageMatrix: string;
     attacker: string;
@@ -157,12 +156,10 @@ export interface Messages {
     trainingGame: string;
     statsFile: string;
     fileUploadedSuccessfully: string;
-    team: string;
     atLeastOneRealPlayer: string;
     leftGame: string;
     saving: string;
     editMatch: string;
-    addMatch: string;
     win: string;
     loss: string;
     draw: string;
@@ -189,7 +186,6 @@ export interface Messages {
     moderatorRole: string;
     adminRole: string;
     totalScore: string;
-    gamesPlayed: string;
     winsDivisions: string;
     lossesDivisions: string;
     drawsDivisions: string;
@@ -199,14 +195,11 @@ export interface Messages {
     bots: string;
     botsManagement: string;
     botsList: string;
-    actions: string;
-    edit: string;
     loadingBotData: string;
     botNotFound: string;
     editBot: string;
     changeBotRating: string;
     changeRating: string;
-    currentRating: string;
     enterNewRating: string;
   };
 }
