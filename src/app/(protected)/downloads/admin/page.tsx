@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n/context";
 import { trpc } from "@/utils/trpc";
 import {
   Download,
@@ -23,26 +24,28 @@ import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { ru } from "date-fns/locale";
+import { ru, enUS } from "date-fns/locale";
 
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Б";
+function formatFileSize(bytes: number, locale: 'ru' | 'en'): string {
+  if (bytes === 0) return locale === 'ru' ? "0 Б" : "0 B";
   const k = 1024;
-  const sizes = ["Б", "КБ", "МБ", "ГБ"];
+  const sizes = locale === 'ru' ? ["Б", "КБ", "МБ", "ГБ"] : ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
 }
 
 export default function DownloadsAdminPage() {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const { toast } = useToast();
   const { data: session } = trpc.auth.getSession.useQuery();
   const { data: files, isLoading, refetch } = trpc.downloads.list.useQuery();
+  const dateLocale = locale === 'en' ? enUS : ru;
   const uploadMutation = trpc.downloads.upload.useMutation({
     onSuccess: () => {
       toast({
-        title: "Успешно",
-        description: "Файл успешно загружен",
+        title: t('common.success'),
+        description: t('common.fileUploaded'),
       });
       refetch();
       setSelectedGameFile(null);
@@ -52,8 +55,8 @@ export default function DownloadsAdminPage() {
     },
     onError: (error) => {
       toast({
-        title: "Ошибка",
-        description: error.message || "Не удалось загрузить файл",
+        title: t('common.error'),
+        description: error.message || t('common.uploadFailed'),
         variant: "destructive",
       });
     },
@@ -91,8 +94,8 @@ export default function DownloadsAdminPage() {
     const file = type === "GAME" ? selectedGameFile : selectedEmulatorFile;
     if (!file) {
       toast({
-        title: "Ошибка",
-        description: "Выберите файл для загрузки",
+        title: t('common.error'),
+        description: t('common.selectFileToUpload'),
         variant: "destructive",
       });
       return;
@@ -119,13 +122,13 @@ export default function DownloadsAdminPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Управление загрузками</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{t('common.downloadsManagement')}</h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-2">
-            Загрузите установочники игры и эмулятора
+            {t('common.downloadsManagementDesc')}
           </p>
         </div>
         <Button variant="outline" onClick={() => router.push("/downloads")} className="w-full sm:w-auto">
-          Вернуться к загрузкам
+          {t('common.backToDownloads')}
         </Button>
       </div>
 
@@ -140,31 +143,31 @@ export default function DownloadsAdminPage() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Gamepad2 className="h-5 w-5" />
-                <CardTitle>Установочник игры</CardTitle>
+                <CardTitle>{t('common.gameInstaller')}</CardTitle>
               </div>
               <CardDescription>
-                Загрузите новую версию установочника игры
+                {t('common.gameInstallerDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {gameFile && (
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm font-medium">Текущий файл:</p>
+                  <p className="text-sm font-medium">{t('common.currentFile')}:</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {gameFile.fileName} ({formatFileSize(gameFile.fileSize)})
+                    {gameFile.fileName} ({formatFileSize(gameFile.fileSize, locale)})
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Загружено:{" "}
+                    {t('common.uploaded')}:{" "}
                     {formatDistanceToNow(new Date(gameFile.uploadedAt), {
                       addSuffix: true,
-                      locale: ru,
+                      locale: dateLocale,
                     })}
                   </p>
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="game-file">Выберите файл</Label>
+                <Label htmlFor="game-file">{t('common.selectFile')}</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     id="game-file"
@@ -192,8 +195,8 @@ export default function DownloadsAdminPage() {
                 </div>
                 {selectedGameFile && (
                   <p className="text-xs text-muted-foreground">
-                    Выбран: {selectedGameFile.name} (
-                    {formatFileSize(selectedGameFile.size)})
+                    {t('common.selected')}: {selectedGameFile.name} (
+                    {formatFileSize(selectedGameFile.size, locale)})
                   </p>
                 )}
               </div>
@@ -206,12 +209,12 @@ export default function DownloadsAdminPage() {
                 {uploadMutation.isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Загрузка...
+                    {t('common.uploading')}
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Загрузить
+                    {t('common.upload')}
                   </>
                 )}
               </Button>
@@ -223,32 +226,32 @@ export default function DownloadsAdminPage() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <HardDrive className="h-5 w-5" />
-                <CardTitle>Установочник эмулятора</CardTitle>
+                <CardTitle>{t('common.emulatorInstaller')}</CardTitle>
               </div>
               <CardDescription>
-                Загрузите новую версию установочника эмулятора
+                {t('common.emulatorInstallerDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {emulatorFile && (
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm font-medium">Текущий файл:</p>
+                  <p className="text-sm font-medium">{t('common.currentFile')}:</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {emulatorFile.fileName} (
-                    {formatFileSize(emulatorFile.fileSize)})
+                    {formatFileSize(emulatorFile.fileSize, locale)})
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Загружено:{" "}
+                    {t('common.uploaded')}:{" "}
                     {formatDistanceToNow(new Date(emulatorFile.uploadedAt), {
                       addSuffix: true,
-                      locale: ru,
+                      locale: dateLocale,
                     })}
                   </p>
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="emulator-file">Выберите файл</Label>
+                <Label htmlFor="emulator-file">{t('common.selectFile')}</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     id="emulator-file"
@@ -276,8 +279,8 @@ export default function DownloadsAdminPage() {
                 </div>
                 {selectedEmulatorFile && (
                   <p className="text-xs text-muted-foreground">
-                    Выбран: {selectedEmulatorFile.name} (
-                    {formatFileSize(selectedEmulatorFile.size)})
+                    {t('common.selected')}: {selectedEmulatorFile.name} (
+                    {formatFileSize(selectedEmulatorFile.size, locale)})
                   </p>
                 )}
               </div>
@@ -290,12 +293,12 @@ export default function DownloadsAdminPage() {
                 {uploadMutation.isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Загрузка...
+                    {t('common.uploading')}
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Загрузить
+                    {t('common.upload')}
                   </>
                 )}
               </Button>

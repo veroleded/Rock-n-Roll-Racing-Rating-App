@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n/context";
 import { trpc } from "@/utils/trpc";
 import { DiscordLogoIcon } from "@radix-ui/react-icons";
 import { Loader2 } from "lucide-react";
@@ -9,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function LoginPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,12 +32,12 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError(`Ошибка входа: ${result.error}`);
+        setError(`${t('common.loginError')}: ${result.error}`);
       } else if (result?.url) {
         window.location.href = result.url;
       }
     } catch (error) {
-      setError("Произошла ошибка при попытке входа");
+      setError(t('common.loginErrorOccurred'));
       console.error("Ошибка входа:", error);
     } finally {
       setIsLoading(false);
@@ -47,10 +49,10 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8 p-8 bg-gray-800 rounded-lg shadow-lg">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-bold text-white">
-            {"Rock'n'Roll Racing"}
+            {t('common.loginTitle')}
           </h2>
           <p className="mt-2 text-sm text-gray-400">
-            Войдите через Discord для доступа к игровой статистике
+            {t('common.loginDescription')}
           </p>
         </div>
         {error && (
@@ -71,14 +73,14 @@ export default function LoginPage() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Вход...
+                {t('common.signingIn')}
               </>
             ) : (
               <>
                 <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                   <DiscordLogoIcon className="h-5 w-5" />
                 </span>
-                Войти через Discord
+                {t('common.signInWithDiscord')}
               </>
             )}
           </Button>

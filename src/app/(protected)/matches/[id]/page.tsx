@@ -18,6 +18,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 export default function MatchPage() {
+  const { t } = useI18n();
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -37,14 +38,14 @@ export default function MatchPage() {
   const { mutate: deleteMatch, isLoading: isDeleting } = trpc.matches.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Матч удален',
-        description: 'Матч и вся связанная статистика были успешно удалены',
+        title: t('common.success'),
+        description: t('common.viewPlayers'),
       });
       router.push('/matches');
     },
     onError: (error) => {
       toast({
-        title: 'Ошибка при удалении',
+        title: t('common.error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -103,8 +104,6 @@ export default function MatchPage() {
                 onOpenChange={setIsDeleteDialogOpen}
                 onConfirm={handleDelete}
                 isLoading={isDeleting}
-                title="Удалить матч?"
-                description="Вы уверены, что хотите удалить этот матч? Это действие нельзя отменить."
               />
             </>
           )

@@ -7,6 +7,11 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "Rock'n'Roll Racing Stats",
   description: "Статистика игроков Rock'n'Roll Racing",
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({

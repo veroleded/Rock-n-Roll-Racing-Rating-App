@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useI18n } from '@/lib/i18n/context';
 import { trpc } from '@/utils/trpc';
 import { Role } from '@prisma/client';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function EditBotPage() {
+  const { t } = useI18n();
   const params = useParams();
   const router = useRouter();
   const { data: session } = trpc.auth.getSession.useQuery();
@@ -28,7 +30,7 @@ export default function EditBotPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-muted-foreground">Загрузка данных бота...</div>
+        <div className="text-muted-foreground">{t('common.loadingBotData')}</div>
       </div>
     );
   }
@@ -36,7 +38,7 @@ export default function EditBotPage() {
   if (!bot) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-destructive">Бот не найден</div>
+        <div className="text-destructive">{t('common.botNotFound')}</div>
       </div>
     );
   }
@@ -67,31 +69,31 @@ export default function EditBotPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-4">
             <BackButton />
-            <h1 className="text-3xl font-bold tracking-tight">Редактирование бота</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('common.editBot')}</h1>
           </div>
-          <p className="text-muted-foreground">Изменение рейтинга бота {bot.name}</p>
+          <p className="text-muted-foreground">{t('common.changeBotRating')} {bot.name}</p>
         </div>
       </div>
 
       <div className="flex-1 min-h-0 py-6">
         <Card className="border-border/40 shadow-sm max-w-md mx-auto">
           <CardHeader>
-            <CardTitle>Изменить рейтинг</CardTitle>
+            <CardTitle>{t('common.changeRating')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="rating">Текущий рейтинг: {bot.stats?.rating}</Label>
+                <Label htmlFor="rating">{t('common.currentRating')}: {bot.stats?.rating}</Label>
                 <Input
                   id="rating"
                   type="number"
-                  placeholder="Введите новый рейтинг"
+                  placeholder={t('common.enterNewRating')}
                   value={rating}
                   onChange={(e) => setRating(e.target.value)}
                 />
               </div>
               <Button type="submit" disabled={!rating || updateBot.isLoading} className="w-full">
-                {updateBot.isLoading ? 'Сохранение...' : 'Сохранить'}
+                {updateBot.isLoading ? t('common.saving') : t('common.save')}
               </Button>
             </form>
           </CardContent>

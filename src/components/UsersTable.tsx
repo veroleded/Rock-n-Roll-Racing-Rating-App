@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/context";
 import { Role, User } from "@prisma/client";
 import { ArrowDown, ArrowUp, ArrowUpDown, Pencil } from "lucide-react";
 import Image from "next/image";
@@ -121,6 +122,7 @@ export function UsersTable({
   currentUserRole,
   currentUserId,
 }: UsersTableProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const [sortConfig, setSortConfig] = useState<{
     key: string;
@@ -131,14 +133,14 @@ export function UsersTable({
   });
 
   const columns: Column[] = [
-    { key: "position", label: "Место", sortable: false },
-    { key: "name", label: "Имя", sortable: true },
-    { key: "stats.rating", label: "Рейтинг", sortable: true },
-    { key: "stats.gamesPlayed", label: "Игр", sortable: true },
-    { key: "stats.wins", label: "Победы", sortable: true },
-    { key: "stats.losses", label: "Поражения", sortable: true },
-    { key: "stats.draws", label: "Ничьи", sortable: true },
-    { key: "winRate", label: "Винрейт", sortable: true },
+    { key: "position", label: t('common.position'), sortable: false },
+    { key: "name", label: t('common.name'), sortable: true },
+    { key: "stats.rating", label: t('common.rating'), sortable: true },
+    { key: "stats.gamesPlayed", label: t('common.gamesPlayed'), sortable: true },
+    { key: "stats.wins", label: t('common.wins'), sortable: true },
+    { key: "stats.losses", label: t('common.losses'), sortable: true },
+    { key: "stats.draws", label: t('common.draws'), sortable: true },
+    { key: "winRate", label: t('common.winRate'), sortable: true },
   ];
 
   const handleSort = (key: string) => {
@@ -235,7 +237,7 @@ export function UsersTable({
                 </div>
               </TableHead>
             ))}
-            {canEditUser && <TableHead>Действия</TableHead>}
+            {canEditUser && <TableHead>{t('common.actions')}</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -245,7 +247,7 @@ export function UsersTable({
               className="group cursor-pointer hover:bg-muted/50"
               role="button"
               tabIndex={0}
-              aria-label={`Перейти к профилю ${user.name}`}
+              aria-label={`${t('common.goToProfile')} ${user.name}`}
               onClick={(e) => {
                 // Предотвращаем переход если клик был по кнопке редактирования
                 if ((e.target as HTMLElement).closest('a[href*="/edit"]')) {

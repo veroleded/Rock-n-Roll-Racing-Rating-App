@@ -9,28 +9,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function AddMatchPage() {
+  const { t } = useI18n();
+  
   return (
     <div className="py-6 space-y-6">
       <div className="flex flex-col gap-4 border-b pb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2 sm:gap-4">
             <BackButton />
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Добавить матч</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('common.addMatch')}</h1>
           </div>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Заполните форму для добавления нового матча в систему
+            {t('common.viewPlayers')}
           </p>
         </div>
       </div>
 
       <Card className="border-border/40 shadow-sm">
         <CardHeader>
-          <CardTitle>Информация о матче</CardTitle>
+          <CardTitle>{t('common.basicInfo')}</CardTitle>
           <CardDescription>
-            Выберите режим игры, загрузите файл матча и укажите участников
-            каждой команды
+            {t('common.viewPlayers')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -39,11 +41,9 @@ export default function AddMatchPage() {
       </Card>
 
       <div className="rounded-lg border border-border/40 bg-card p-4 shadow-sm">
-        <h2 className="font-medium mb-2">Примечание</h2>
+        <h2 className="font-medium mb-2">{t('common.viewPlayers')}</h2>
         <p className="text-sm text-muted-foreground">
-          После добавления матча, статистика игроков будет автоматически
-          обновлена. Убедитесь, что все данные введены корректно перед отправкой
-          формы.
+          {t('common.viewPlayers')}
         </p>
       </div>
     </div>

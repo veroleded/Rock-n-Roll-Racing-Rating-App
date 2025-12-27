@@ -16,10 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useI18n } from "@/lib/i18n/context";
 import { trpc } from "@/utils/trpc";
 import { GameMode, Match, MatchPlayer, User } from "@prisma/client";
 import { format } from "date-fns";
-import { ru } from "date-fns/locale";
+import { ru, enUS } from "date-fns/locale";
 import { Shield, ShieldOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -45,8 +46,10 @@ export function MatchesTable({
   onlyRated,
   gameMode,
 }: MatchesTableProps) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [page, setPage] = React.useState(1);
+  const dateLocale = locale === 'en' ? enUS : ru;
 
   const { data: matchesData, isLoading } = trpc.matches.list.useQuery(
     {
@@ -218,7 +221,7 @@ export function MatchesTable({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-sm text-muted-foreground">Загрузка...</div>
+        <div className="text-sm text-muted-foreground">{t('common.loading')}</div>
       </div>
     );
   }
@@ -226,7 +229,7 @@ export function MatchesTable({
   if (!matchesData?.matches || matchesData.matches.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-sm text-muted-foreground">История матчей пуста</div>
+        <div className="text-sm text-muted-foreground">{t('common.emptyMatches')}</div>
       </div>
     );
   }
@@ -238,13 +241,13 @@ export function MatchesTable({
           <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-32">Дата</TableHead>
-                <TableHead className="w-24">Режим</TableHead>
-                <TableHead className="w-20 sm:w-24">Счет</TableHead>
-                <TableHead className="min-w-[150px] sm:w-[200px]">Команда 1</TableHead>
-                <TableHead className="min-w-[150px] sm:w-[200px]">Команда 2</TableHead>
-                <TableHead className="min-w-[150px] sm:w-[200px]">Команда 3</TableHead>
-                <TableHead className="w-20 sm:w-24 text-center">Рейтинг</TableHead>
+                <TableHead className="w-32">{t('common.date')}</TableHead>
+                <TableHead className="w-24">{t('common.mode')}</TableHead>
+                <TableHead className="w-20 sm:w-24">{t('common.score')}</TableHead>
+                <TableHead className="min-w-[150px] sm:w-[200px]">{t('common.team1')}</TableHead>
+                <TableHead className="min-w-[150px] sm:w-[200px]">{t('common.team2')}</TableHead>
+                <TableHead className="min-w-[150px] sm:w-[200px]">{t('common.team3')}</TableHead>
+                <TableHead className="w-20 sm:w-24 text-center">{t('common.rating')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -256,7 +259,7 @@ export function MatchesTable({
                     className="cursor-pointer hover:bg-muted/50"
                     role="button"
                     tabIndex={0}
-                    aria-label={`Открыть матч от ${format(new Date(match.createdAt), "dd.MM.yyyy HH:mm", { locale: ru })}`}
+                    aria-label={`${t('common.goToProfile')} ${format(new Date(match.createdAt), "dd.MM.yyyy HH:mm", { locale: dateLocale })}`}
                     onClick={() => router.push(`/matches/${match.id}`)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -267,7 +270,7 @@ export function MatchesTable({
                   >
                     <TableCell className="py-2">
                       {format(new Date(match.createdAt), "dd.MM.yyyy HH:mm", {
-                        locale: ru,
+                        locale: dateLocale,
                       })}
                     </TableCell>
                     <TableCell className="py-2">
@@ -299,7 +302,7 @@ export function MatchesTable({
 
       <div className="flex items-center justify-between px-2">
         <div className="text-sm text-muted-foreground">
-          Всего {matchesData.total} матчей
+          {t('common.totalMatches').replace('{count}', matchesData.total.toString())}
         </div>
         <Pagination>
           <PaginationContent>

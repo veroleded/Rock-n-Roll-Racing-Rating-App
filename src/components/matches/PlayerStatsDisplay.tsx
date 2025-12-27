@@ -1,6 +1,9 @@
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { useI18n } from '@/lib/i18n/context';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, Bot, Coins, ShieldHalf, Target, Trophy, User } from 'lucide-react';
 import React, { useMemo } from 'react';
@@ -12,6 +15,7 @@ interface PlayerStatsDisplayProps {
 }
 
 export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({ players, sessionUserId }) => {
+  const { t } = useI18n();
   const teams = useMemo(
     () =>
       players.reduce(
@@ -53,7 +57,7 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({ players,
           return (
             <div key={teamId} className="space-y-2">
               <TeamScoreHeader
-                teamName={`Команда ${parseInt(teamId)}`}
+                teamName={t('common.team').replace('{number}', parseInt(teamId).toString())}
                 totalScore={teamTotalScore}
                 hasWin={hasWin}
               />
@@ -103,10 +107,11 @@ const PlayerStatsCard: React.FC<{
   isTopWipeouts?: boolean;
   isTopScore?: boolean;
 }> = ({ player, allPlayers, isCurrentUser, isTopWipeouts = false, isTopScore = false }) => {
+  const { t } = useI18n();
   const resultNames = {
-    WIN: 'Победа',
-    LOSS: 'Поражение',
-    DRAW: 'Ничья',
+    WIN: t('common.win'),
+    LOSS: t('common.loss'),
+    DRAW: t('common.draw'),
   };
 
   const totalAllyDamage = Object.values(player.damageDealt)
@@ -167,7 +172,7 @@ const PlayerStatsCard: React.FC<{
                 : player.user?.name}
               {isCurrentUser && (
                 <Badge variant="secondary" className="ml-1 text-[9px] py-0 h-4">
-                  Вы
+                  {t('common.you')}
                 </Badge>
               )}
             </h3>
@@ -191,7 +196,7 @@ const PlayerStatsCard: React.FC<{
         <div className="grid md:grid-cols-2 gap-1.5 h-full">
           <div className="flex flex-col space-y-1.5">
             <div className="bg-muted/80 rounded-lg p-1">
-              <div className="text-[10px] font-semibold">Нанесенный урон</div>
+              <div className="text-[10px] font-semibold">{t('common.damageDealt')}</div>
               <div className="flex items-center gap-1 text-base font-bold">
                 <Target className="h-3 w-3 text-red-400" />
                 {player.totalDamageDealt}
@@ -199,7 +204,7 @@ const PlayerStatsCard: React.FC<{
               {hasAllyDamage && (
                 <div className="text-[10px] text-red-400 flex items-center font-medium">
                   <AlertTriangle className="h-2 w-2 mr-0.5" />
-                  Урон по союзникам: {totalAllyDamage} (
+                  {t('common.damageToAllies')}: {totalAllyDamage} (
                   {((totalAllyDamage / player.totalDamageDealt) * 100).toFixed(1)}%)
                 </div>
               )}
@@ -207,7 +212,7 @@ const PlayerStatsCard: React.FC<{
 
             <div className="flex-1">
               <PlayerDamageSection
-                title="Урон по игрокам:"
+                title={t('common.damageToPlayers')}
                 damageDealt={player.damageDealt}
                 allPlayers={allPlayers}
               />
@@ -216,7 +221,7 @@ const PlayerStatsCard: React.FC<{
 
           <div className="grid grid-cols-2 grid-rows-3 gap-1 h-full">
             <StatCard
-              label="Очки"
+              label={t('common.points')}
               value={player.score}
               valueClassName={
                 player.ratingChange > 0
@@ -228,7 +233,7 @@ const PlayerStatsCard: React.FC<{
             />
 
             <StatCard
-              label="Рейтинг"
+              label={t('common.rating')}
               value={player.ratingChange}
               showSign={true}
               valueClassName={
@@ -241,7 +246,7 @@ const PlayerStatsCard: React.FC<{
             />
 
             <StatCard
-              label="Деньги"
+              label={t('common.money')}
               value={player.moneyTaken}
               icon={<Coins className="h-2.5 w-2.5 text-yellow-500" />}
               valueClassName="text-green-500"
@@ -249,19 +254,19 @@ const PlayerStatsCard: React.FC<{
             />
 
             <StatCard
-              label="Аптечки"
+              label={t('common.armor')}
               value={player.armorTaken}
               icon={<ShieldHalf className="h-2.5 w-2.5 text-blue-500" />}
             />
 
             <StatCard
-              label="Вайпауты"
+              label={t('common.wipeouts')}
               value={player.wipeouts}
               icon={<AlertTriangle className="h-2.5 w-2.5 text-orange-500" />}
             />
 
             <StatCard
-              label="Получено урона"
+              label={t('common.damageReceived')}
               value={player.totalDamageReceived}
               icon={<Target className="h-2.5 w-2.5 text-orange-500" />}
             />
@@ -277,6 +282,7 @@ const PlayerDamageSection: React.FC<{
   damageDealt: DamageDealt;
   allPlayers: MatchPlayer[];
 }> = ({ title, damageDealt, allPlayers }) => {
+  const { t } = useI18n();
   const allyDamage = useMemo(
     () =>
       Object.entries(damageDealt)
@@ -309,7 +315,7 @@ const PlayerDamageSection: React.FC<{
           )}
           {enemyDamage.length === 0 && (
             <div className="text-[10px] text-center text-muted-foreground py-0.5 font-medium">
-              Нет урона
+              {t('common.noDamage')}
             </div>
           )}
         </div>
@@ -320,14 +326,14 @@ const PlayerDamageSection: React.FC<{
           )}
           {allyDamage.length === 0 && (
             <div className="text-[10px] text-center text-muted-foreground py-0.5 font-medium">
-              Нет урона
+              {t('common.noDamage')}
             </div>
           )}
         </div>
 
         {totalPlayers > displayedPlayers && (
           <div className="text-[10px] text-muted-foreground text-center col-span-2 font-medium">
-            + ещё {totalPlayers - displayedPlayers} игроков
+            + {t('common.morePlayers').replace('{count}', (totalPlayers - displayedPlayers).toString())}
           </div>
         )}
       </div>

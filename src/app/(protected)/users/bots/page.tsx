@@ -12,11 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useI18n } from '@/lib/i18n/context';
 import { trpc } from '@/utils/trpc';
 import { Role } from '@prisma/client';
 import Link from 'next/link';
 
 export default function BotsPage() {
+  const { t } = useI18n();
   const { data: session } = trpc.auth.getSession.useQuery();
   const { data: bots, isLoading } = trpc.users.botListForEdit.useQuery();
 
@@ -25,7 +27,7 @@ export default function BotsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-muted-foreground">Загрузка списка ботов...</div>
+        <div className="text-muted-foreground">{t('common.loadingBots')}</div>
       </div>
     );
   }
@@ -33,7 +35,7 @@ export default function BotsPage() {
   if (!bots) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-destructive">Ошибка загрузки ботов</div>
+        <div className="text-destructive">{t('common.errorLoadingBots')}</div>
       </div>
     );
   }
@@ -41,7 +43,7 @@ export default function BotsPage() {
   if (!canManageBots) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-destructive">У вас нет доступа к этой странице</div>
+        <div className="text-destructive">{t('common.noAccessToPage')}</div>
       </div>
     );
   }
@@ -52,16 +54,16 @@ export default function BotsPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-4">
             <BackButton />
-            <h1 className="text-3xl font-bold tracking-tight">Боты</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('common.bots')}</h1>
           </div>
-          <p className="text-muted-foreground">Управление ботами и их рейтингом</p>
+          <p className="text-muted-foreground">{t('common.botsManagement')}</p>
         </div>
       </div>
 
       <div className="flex-1 min-h-0 py-6">
         <Card className="border-border/40 shadow-sm h-full flex flex-col">
           <CardHeader>
-            <CardTitle>Список ботов</CardTitle>
+            <CardTitle>{t('common.botsList')}</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 min-h-0">
             <ScrollArea className="h-full rounded-md border">
@@ -69,12 +71,12 @@ export default function BotsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Имя</TableHead>
-                      <TableHead>Рейтинг</TableHead>
-                      <TableHead>Победы</TableHead>
-                      <TableHead>Поражения</TableHead>
-                      <TableHead>Ничьи</TableHead>
-                      <TableHead className="text-right">Действия</TableHead>
+                      <TableHead>{t('common.name')}</TableHead>
+                      <TableHead>{t('common.rating')}</TableHead>
+                      <TableHead>{t('common.wins')}</TableHead>
+                      <TableHead>{t('common.losses')}</TableHead>
+                      <TableHead>{t('common.draws')}</TableHead>
+                      <TableHead className="text-right">{t('common.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -88,7 +90,7 @@ export default function BotsPage() {
                         <TableCell className="text-right">
                           {canManageBots && (
                             <Button asChild variant="outline" size="sm">
-                              <Link href={`/users/bots/${bot.id}`}>Редактировать</Link>
+                              <Link href={`/users/bots/${bot.id}`}>{t('common.edit')}</Link>
                             </Button>
                           )}
                         </TableCell>

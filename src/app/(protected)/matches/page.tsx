@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useI18n } from "@/lib/i18n/context";
 import { trpc } from "@/utils/trpc";
 import { GameMode } from "@prisma/client";
 import { Plus } from "lucide-react";
@@ -26,6 +27,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function MatchesPage() {
+  const { t } = useI18n();
   const { data: session } = trpc.auth.getSession.useQuery();
   const canAddMatch =
     session?.user?.role === "ADMIN" || session?.user?.role === "MODERATOR";
@@ -43,18 +45,18 @@ export default function MatchesPage() {
           <div className="flex items-center gap-2 sm:gap-4">
             <BackButton />
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              История матчей
+              {t('common.matches')}
             </h1>
           </div>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Просмотр и управление историей всех матчей
+            {t('common.viewPlayers')}
           </p>
         </div>
         {canAddMatch && (
           <Button asChild className="w-full sm:w-auto">
             <Link href="/matches/add" className="flex items-center justify-center gap-2">
               <Plus className="h-4 w-4" />
-              Добавить матч
+              {t('common.addMatch')}
             </Link>
           </Button>
         )}
@@ -63,8 +65,8 @@ export default function MatchesPage() {
       <div className="flex-1 min-h-0 py-6">
         <Card className="h-full border-border/40 shadow-sm flex flex-col">
           <CardHeader>
-            <CardTitle>История матчей</CardTitle>
-            <CardDescription>Фильтры для просмотра матчей</CardDescription>
+            <CardTitle>{t('common.matches')}</CardTitle>
+            <CardDescription>{t('common.viewPlayers')}</CardDescription>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 lg:gap-8 pt-4">
               <div className="flex items-center gap-2">
                 <Switch
@@ -77,7 +79,7 @@ export default function MatchesPage() {
                     }))
                   }
                 />
-                <Label htmlFor="my-matches" className="text-sm">Только мои матчи</Label>
+                <Label htmlFor="my-matches" className="text-sm">{t('common.onlyMyMatches')}</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
@@ -87,10 +89,10 @@ export default function MatchesPage() {
                     setFilters((prev) => ({ ...prev, onlyRated: checked }))
                   }
                 />
-                <Label htmlFor="rated-matches" className="text-sm">Только рейтинговые</Label>
+                <Label htmlFor="rated-matches" className="text-sm">{t('common.onlyRated')}</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">Режим игры</Label>
+                <Label className="text-sm whitespace-nowrap">{t('common.gameMode')}</Label>
                 <Select
                   value={filters.gameMode}
                   onValueChange={(value: "all" | GameMode) =>
@@ -101,7 +103,7 @@ export default function MatchesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Все режимы</SelectItem>
+                    <SelectItem value="all">{t('common.allModes')}</SelectItem>
                     <SelectItem value="TWO_VS_TWO">2 vs 2</SelectItem>
                     <SelectItem value="THREE_VS_THREE">3 vs 3</SelectItem>
                     <SelectItem value="TWO_VS_TWO_VS_TWO">2 vs 2 vs 2</SelectItem>

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/context";
 import { LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -10,6 +11,8 @@ interface SignOutButtonProps {
 }
 
 export function SignOutButton({ className }: SignOutButtonProps) {
+  const { t } = useI18n();
+  
   return (
     <Button
       variant="destructive"
@@ -18,7 +21,7 @@ export function SignOutButton({ className }: SignOutButtonProps) {
       className={cn(className)}
     >
       <LogOut className="h-4 w-4 mr-2" />
-      Выйти
+      {t('common.signOut')}
     </Button>
   );
 }

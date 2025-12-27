@@ -1,4 +1,7 @@
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useI18n } from '@/lib/i18n/context';
 import { useTheme } from 'next-themes';
 import React, { useMemo } from 'react';
 import {
@@ -79,6 +82,7 @@ type TooltipProps = {
 };
 
 export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
+  const { t } = useI18n();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const theme = isDark ? 'dark' : 'light';
@@ -100,63 +104,63 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
   const damageData = useMemo(
     () =>
       sortedPlayers.map((player) => ({
-        name: player.user.name || 'Игрок',
+        name: player.user.name || t('common.player'),
         damage: player.totalDamageDealt,
         team: player.team,
       })),
-    [sortedPlayers]
+    [sortedPlayers, t]
   );
 
   const damageTakenData = useMemo(
     () =>
       sortedPlayers.map((player) => ({
-        name: player.user.name || 'Игрок',
+        name: player.user.name || t('common.player'),
         damage: player.totalDamageReceived,
         team: player.team,
       })),
-    [sortedPlayers]
+    [sortedPlayers, t]
   );
 
   const moneyData = useMemo(
     () =>
       sortedPlayers.map((player) => ({
-        name: player.user.name || 'Игрок',
+        name: player.user.name || t('common.player'),
         money: player.moneyTaken,
         team: player.team,
       })),
-    [sortedPlayers]
+    [sortedPlayers, t]
   );
 
   const armorData = useMemo(
     () =>
       sortedPlayers.map((player) => ({
-        name: player.user.name || 'Игрок',
+        name: player.user.name || t('common.player'),
         armor: player.armorTaken,
         team: player.team,
       })),
-    [sortedPlayers]
+    [sortedPlayers, t]
   );
 
   const wipeoutsData = useMemo(
     () =>
       sortedPlayers.map((player) => ({
-        name: player.user.name || 'Игрок',
+        name: player.user.name || t('common.player'),
         wipeouts: player.wipeouts,
         team: player.team,
       })),
-    [sortedPlayers]
+    [sortedPlayers, t]
   );
 
   const minesDamageData = useMemo(
     () =>
       sortedPlayers
         .map((player) => ({
-          name: player.user.name || 'Игрок',
+          name: player.user.name || t('common.player'),
           value: player.minesDamage,
           team: player.team,
         }))
         .filter((item) => item.value > 0),
-    [sortedPlayers]
+    [sortedPlayers, t]
   );
 
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {

@@ -6,6 +6,7 @@ import { httpBatchLink } from "@trpc/client";
 import { SessionProvider } from "next-auth/react";
 import { useState } from "react";
 import superjson from "superjson";
+import { I18nProvider } from "@/lib/i18n/context";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -21,10 +22,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        <SessionProvider>{children}</SessionProvider>
-      </QueryClientProvider>
-    </trpc.Provider>
+    <I18nProvider>
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <SessionProvider>{children}</SessionProvider>
+        </QueryClientProvider>
+      </trpc.Provider>
+    </I18nProvider>
   );
 }

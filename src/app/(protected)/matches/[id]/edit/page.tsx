@@ -9,9 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n/context";
 import { useParams } from "next/navigation";
 
 export default function EditMatchPage() {
+  const { t } = useI18n();
   const params = useParams();
 
   return (
@@ -21,18 +23,18 @@ export default function EditMatchPage() {
           <div className="flex items-center gap-2 sm:gap-4">
             <BackButton />
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Изменить матч <span className="text-xs sm:text-sm"># {params?.id}</span>
+              {t('common.editMatch')} <span className="text-xs sm:text-sm"># {params?.id}</span>
             </h1>
           </div>
-          <p className="text-sm sm:text-base text-muted-foreground">Заполните форму для изменения матча</p>
+          <p className="text-sm sm:text-base text-muted-foreground">{t('common.viewPlayers')}</p>
         </div>
       </div>
 
       <Card className="border-border/40 shadow-sm">
         <CardHeader>
-          <CardTitle>Информация о матче</CardTitle>
+          <CardTitle>{t('common.basicInfo')}</CardTitle>
           <CardDescription>
-            Выберите режим игры, загрузите файл матча и укажите участников каждой команды
+            {t('common.viewPlayers')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -41,10 +43,9 @@ export default function EditMatchPage() {
       </Card>
 
       <div className="rounded-lg border border-border/40 bg-card p-4 shadow-sm">
-        <h2 className="font-medium mb-2">Примечание</h2>
+        <h2 className="font-medium mb-2">{t('common.viewPlayers')}</h2>
         <p className="text-sm text-muted-foreground">
-          После изменения матча, статистика игроков будет автоматически обновлена. Убедитесь, что
-          все данные введены корректно перед отправкой формы.
+          {t('common.viewPlayers')}
         </p>
       </div>
     </div>

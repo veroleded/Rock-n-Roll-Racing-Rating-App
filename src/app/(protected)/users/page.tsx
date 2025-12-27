@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { UsersTable } from '@/components/UsersTable';
+import { useI18n } from '@/lib/i18n/context';
 import { trpc } from '@/utils/trpc';
 import { Role } from '@prisma/client';
 import Link from 'next/link';
 
 export default function UsersPage() {
+  const { t } = useI18n();
   const { data: session } = trpc.auth.getSession.useQuery();
   const { data: users, isLoading } = trpc.users.list.useQuery(undefined, {
     staleTime: 2 * 60 * 1000, // 2 минуты - список пользователей обновляется не часто
@@ -19,7 +21,7 @@ export default function UsersPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-muted-foreground">Загрузка списка игроков...</div>
+        <div className="text-muted-foreground">{t('common.loadingUsers')}</div>
       </div>
     );
   }
@@ -27,7 +29,7 @@ export default function UsersPage() {
   if (!users) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-destructive">Ошибка загрузки игроков</div>
+        <div className="text-destructive">{t('common.errorLoadingUsers')}</div>
       </div>
     );
   }
@@ -38,19 +40,19 @@ export default function UsersPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-2 sm:gap-4">
             <BackButton />
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Таблица игроков</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('common.users')}</h1>
           </div>
-          <p className="text-sm sm:text-base text-muted-foreground">Просмотр игроков и их статистики</p>
+          <p className="text-sm sm:text-base text-muted-foreground">{t('common.viewPlayers')}</p>
         </div>
         <Button asChild className="w-full sm:w-auto">
-          <Link href="/users/bots">Посмотреть ботов</Link>
+          <Link href="/users/bots">{t('common.viewBots')}</Link>
         </Button>
       </div>
 
       <div className="flex-1 min-h-0 py-6">
         <Card className="border-border/40 shadow-sm h-full flex flex-col">
           <CardHeader>
-            <CardTitle>Список игроков</CardTitle>
+            <CardTitle>{t('common.usersList')}</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 min-h-0">
             <ScrollArea className="h-full rounded-md border">

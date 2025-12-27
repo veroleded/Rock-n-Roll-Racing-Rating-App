@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useI18n } from '@/lib/i18n/context';
 import { useTheme } from 'next-themes';
 import React, { useCallback, useMemo } from 'react';
 import { MatchPlayer } from './types';
@@ -27,6 +28,7 @@ interface MatrixRow {
 }
 
 export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
+  const { t } = useI18n();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
@@ -48,7 +50,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
 
     return {
       attackerId: attacker.userId,
-      attackerName: attacker.user.name || 'Игрок',
+      attackerName: attacker.user.name || t('common.player'),
       team: attacker.team,
       damages,
     };
@@ -140,7 +142,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
   return (
     <Card className="shadow-sm border rounded-lg overflow-hidden">
       <CardHeader className="bg-card py-3 px-4 border-b">
-        <CardTitle className="text-xl">Матрица урона между игроками</CardTitle>
+        <CardTitle className="text-xl">{t('common.damageMatrix')}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -148,7 +150,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[180px] sticky left-0 z-10 shadow-sm border-r bg-card">
-                  Атакующий \ Получатель
+                  {t('common.attackerRecipient')}
                 </TableHead>
 
                 {Object.entries(teamGroups).map(([team, teamPlayers]) => (
@@ -158,7 +160,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
                         key={player.userId}
                         className={`${colors.team[player.team as 1 | 2 | 3].text} text-center font-semibold`}
                       >
-                        {player.user.name || 'Игрок'}
+                        {player.user.name || t('common.player')}
                       </TableHead>
                     ))}
                   </React.Fragment>
@@ -167,7 +169,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
                 <TableHead
                   className={`${colors.total.bg} font-bold text-center sticky right-0 z-10 shadow-sm`}
                 >
-                  Всего
+                  {t('common.total')}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -229,7 +231,7 @@ export const DamageMatrix: React.FC<DamageMatrixProps> = ({ players }) => {
                               <span className={colors.total.text}>{totalDamage}</span>
                               {teamDamage > 0 && (
                                 <span className={`text-xs ${colors.damage.friendly.text}`}>
-                                  По союзникам: {teamDamage}
+                                  {t('common.damageToAllies')}: {teamDamage}
                                 </span>
                               )}
                             </div>

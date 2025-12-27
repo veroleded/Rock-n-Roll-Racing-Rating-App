@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useI18n } from '@/lib/i18n/context';
 import { cn } from "@/lib/utils";
 import { createStatsDataSchema, type CreateStatsData } from '@/server/services/match/schemas';
 import { trpc } from '@/utils/trpc';
@@ -60,53 +61,56 @@ function getTeamCount(mode: GameMode) {
   }
 }
 
-const playerSchema = z.object({
-  id: z.string().min(1, 'Выберите игрока или бота'),
-  isBot: z.boolean().default(false),
-  hasLeft: z.boolean().default(false),
-});
-
-const teamSchema = z.object({
-  players: z.array(playerSchema).refine(
-    (players) => {
-      return players.some((player) => !player.isBot);
-    },
-    {
-      message: 'В команде должен быть хотя бы один реальный игрок',
-    }
-  ),
-});
-
-const formSchema = z.object({
-  mode: z.enum(
-    [
-      'TWO_VS_TWO',
-      'THREE_VS_THREE',
-      'TWO_VS_TWO_VS_TWO',
-      // High MMR варианты скрыты от пользователя, но остаются в enum для совместимости с базой
-      'TWO_VS_TWO_HIGH_MMR',
-      'THREE_VS_THREE_HIGH_MMR',
-    ],
-    {
-      required_error: 'Выберите режим игры',
-    }
-  ),
-  statsData: createStatsDataSchema.optional(),
-  teams: z.array(teamSchema).min(2, 'Добавьте как минимум две команды'),
-  penaltyFactor: z.number().default(30),
-  isTraining: z.boolean().default(false),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+// Схемы валидации создаются внутри компонента для использования переводов
 
 type MatchFormProps = {
   editMatchId?: string;
 };
 
 export function MatchForm({ editMatchId }: MatchFormProps) {
+  const { t } = useI18n();
   const router = useRouter();
   const { data: session } = trpc.auth.getSession.useQuery();
   const isAdmin = session?.user?.role === 'ADMIN';
+
+  // Создаем схемы валидации с переводами
+  const playerSchema = z.object({
+    id: z.string().min(1, t('common.selectPlayerOrBot')),
+    isBot: z.boolean().default(false),
+    hasLeft: z.boolean().default(false),
+  });
+
+  const teamSchema = z.object({
+    players: z.array(playerSchema).refine(
+      (players) => {
+        return players.some((player) => !player.isBot);
+      },
+      {
+        message: t('common.teamMustHaveRealPlayer'),
+      }
+    ),
+  });
+
+  const formSchema = z.object({
+    mode: z.enum(
+      [
+        'TWO_VS_TWO',
+        'THREE_VS_THREE',
+        'TWO_VS_TWO_VS_TWO',
+        'TWO_VS_TWO_HIGH_MMR',
+        'THREE_VS_THREE_HIGH_MMR',
+      ],
+      {
+        required_error: t('common.selectGameMode'),
+      }
+    ),
+    statsData: createStatsDataSchema.optional(),
+    teams: z.array(teamSchema).min(2, t('common.addAtLeastTwoTeams')),
+    penaltyFactor: z.number().default(30),
+    isTraining: z.boolean().default(false),
+  });
+
+  type FormValues = z.infer<typeof formSchema>;
 
   const {
     data: users = [],
@@ -252,7 +256,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
           const details = firstIssue
             ? ` (${firstIssue.path.join('.') || 'root'}: ${firstIssue.message})`
             : '';
-          setStatsError(`Неверная структура файла статистики. Проверьте формат JSON${details}`);
+          setStatsError(`${t('common.invalidStatsFile')}${details}`);
           setStatsData(null);
           form.setValue('statsData', undefined);
           return;
@@ -263,7 +267,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
         form.setValue('statsData', parsed.data);
       } catch (error) {
         console.error('Ошибка при чтении файла:', error);
-        setStatsError('Ошибка при чтении файла. Убедитесь, что это валидный JSON файл.');
+        setStatsError(t('common.errorReadingFile'));
         setStatsData(null);
         form.setValue('statsData', undefined);
       }
@@ -284,7 +288,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
       const hasInvalidTeams = data.teams.some((team) => team.players.length !== teamSize);
 
       if (hasInvalidTeams) {
-        setSubmitError(`Каждая команда должна иметь ${teamSize} игрока(ов)`);
+        setSubmitError(t('common.eachTeamMustHavePlayers').replace('{count}', teamSize.toString()));
         return;
       }
 
@@ -293,7 +297,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
       const uniquePlayerIds = new Set(playerIds);
 
       if (playerIds.length !== uniquePlayerIds.size) {
-        setSubmitError('Один игрок не может быть в нескольких командах');
+        setSubmitError(t('common.playerCannotBeInMultipleTeams'));
         return;
       }
 
@@ -307,16 +311,16 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
 
       if (teamsWithoutRealPlayers.length > 0) {
         setSubmitError(
-          `В ${teamsWithoutRealPlayers
-            .map((team) => `команде ${team.index}`)
-            .join(', ')} должен быть хотя бы один реальный игрок`
+          teamsWithoutRealPlayers
+            .map((team) => t('common.teamMustHaveRealPlayerError').replace('{team}', team.index.toString()))
+            .join(', ')
         );
         return;
       }
 
       // Проверяем наличие файла статистики
       if (!statsData) {
-        setSubmitError('Загрузите файл статистики матча');
+        setSubmitError(t('common.uploadStatsFile'));
         return;
       }
 
@@ -352,7 +356,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
     } catch (error) {
       console.error('Ошибка при отправке формы:', error);
       setSubmitError(
-        error instanceof Error ? error.message : 'Произошла ошибка при сохранении матча'
+        error instanceof Error ? error.message : t('common.errorSavingMatch')
       );
     } finally {
       setIsSubmitting(false);
@@ -370,7 +374,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
         name={`teams.${teamIndex}.players.${playerIndex}.id`}
         render={({ field }) => (
           <FormItem className="flex-1">
-            <FormLabel className="text-base">Игрок {playerIndex + 1}</FormLabel>
+            <FormLabel className="text-base">{t('common.playerNumber').replace('{number}', (playerIndex + 1).toString())}</FormLabel>
             <Popover
               open={openPopover === popoverId}
               onOpenChange={(open) => {
@@ -403,17 +407,17 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                         <span>
                           {field.value.startsWith('bot_') ? (
                             <span>
-                              <span className="text-muted-foreground">[БОТ]</span>{' '}
+                              <span className="text-muted-foreground">[BOT]</span>{' '}
                               {bots.find((bot) => bot.id === field.value)?.name ||
                                 field.value.replace('bot_', '')}
                             </span>
                           ) : (
-                            users.find((user) => user.id === field.value)?.name || 'Выберите игрока'
+                            users.find((user) => user.id === field.value)?.name || t('common.selectPlayer')
                           )}
                         </span>
                       </div>
                     ) : (
-                      'Выберите игрока'
+                      t('common.selectPlayer')
                     )}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -424,7 +428,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                   <div className="flex items-center border-b p-2">
                     <input
                       className="flex h-9 w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="Поиск игрока..."
+                      placeholder={t('common.searchPlayer')}
                       value={searchTerm}
                       onChange={(e) =>
                         setSearchTerms((prev) => ({ ...prev, [popoverId]: e.target.value }))
@@ -479,7 +483,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                               <span>
                                 {player.id.startsWith('bot_') ? (
                                   <span>
-                                    <span className="text-muted-foreground">[БОТ]</span>{' '}
+                                    <span className="text-muted-foreground">[BOT]</span>{' '}
                                     {player.name}
                                   </span>
                                 ) : (
@@ -494,8 +498,8 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                     {!isLoadingUsers && options.length === 0 && (
                       <div className="p-4 text-sm text-muted-foreground">
                         {searchTerm
-                          ? 'Нет игроков, соответствующих поиску'
-                          : 'Нет доступных игроков'}
+                          ? t('common.noPlayersFound')
+                          : t('common.noAvailablePlayers')}
                       </div>
                     )}
                   </div>
@@ -520,7 +524,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
   if (usersError || !users || botsError || !bots) {
     return (
       <div className="flex items-center justify-center h-48 text-destructive">
-        Ошибка загрузки списка игроков
+        {t('common.errorLoadingPlayers')}
       </div>
     );
   }
@@ -541,7 +545,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-destructive">Ошибка при сохранении</h3>
+                <h3 className="text-sm font-medium text-destructive">{t('common.errorSaving')}</h3>
                 <div className="mt-2 text-sm text-destructive">{submitError}</div>
               </div>
             </div>
@@ -554,17 +558,17 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
             name="mode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base">Режим игры</FormLabel>
+                <FormLabel className="text-base">{t('common.gameModeLabel')}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Выберите режим игры" />
+                      <SelectValue placeholder={t('common.selectGameModePlaceholder')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="TWO_VS_TWO">2 на 2</SelectItem>
-                    <SelectItem value="THREE_VS_THREE">3 на 3</SelectItem>
-                    <SelectItem value="TWO_VS_TWO_VS_TWO">2 на 2 на 2</SelectItem>
+                    <SelectItem value="TWO_VS_TWO">{t('common.gameMode2v2')}</SelectItem>
+                    <SelectItem value="THREE_VS_THREE">{t('common.gameMode3v3')}</SelectItem>
+                    <SelectItem value="TWO_VS_TWO_VS_TWO">{t('common.gameMode2v2v2')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -578,7 +582,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
               name="penaltyFactor"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Штрафной коэффициент</FormLabel>
+                  <FormLabel className="text-base">{t('common.penaltyFactor')}</FormLabel>
                   <FormControl>
                     <input
                       type="number"
@@ -602,7 +606,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                   <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <FormLabel className="text-base font-normal cursor-pointer">
-                  Тренировочная игра
+                  {t('common.trainingGame')}
                 </FormLabel>
               </FormItem>
             )}
@@ -611,7 +615,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
           {mode && (
             <>
               <FormItem>
-                <FormLabel className="text-base">Файл статистики</FormLabel>
+                <FormLabel className="text-base">{t('common.statsFile')}</FormLabel>
                 <div className="flex flex-col gap-2">
                   <input
                     type="file"
@@ -622,7 +626,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                   />
                   {statsError && <div className="text-sm text-destructive">{statsError}</div>}
                   {statsData && !statsError && (
-                    <div className="text-sm text-muted-foreground">Файл успешно загружен</div>
+                    <div className="text-sm text-muted-foreground">{t('common.fileUploadedSuccessfully')}</div>
                   )}
                 </div>
               </FormItem>
@@ -644,10 +648,10 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                       )}
                     >
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold">Команда {teamIndex + 1}</h3>
+                        <h3 className="text-lg font-semibold">{t('common.team').replace('{number}', (teamIndex + 1).toString())}</h3>
                         {!hasRealPlayer && team.players.some((p) => p.id) && (
                           <div className="text-sm text-destructive">
-                            Необходим хотя бы один реальный игрок
+                            {t('common.atLeastOneRealPlayer')}
                           </div>
                         )}
                       </div>
@@ -670,7 +674,7 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                                     />
                                   </FormControl>
                                   <FormLabel className="text-sm font-normal cursor-pointer">
-                                    Покинул игру
+                                    {t('common.leftGame')}
                                   </FormLabel>
                                 </FormItem>
                               )}
@@ -691,12 +695,12 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Сохранение...
+                {t('common.saving')}
               </>
             ) : editMatchId ? (
-              'Изименить матч'
+              t('common.editMatch')
             ) : (
-              'Добавить матч'
+              t('common.addMatch')
             )}
           </Button>
         </div>

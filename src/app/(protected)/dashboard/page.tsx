@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getRoleText, getWinRate } from '@/lib/userUtils';
+import { useI18n } from '@/lib/i18n/context';
 import { trpc } from '@/utils/trpc';
 import { format } from "date-fns";
-import { ru } from "date-fns/locale";
+import { ru, enUS } from "date-fns/locale";
 import { ChartPie, Edit, Loader2, Trophy, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -17,7 +18,9 @@ import Link from "next/link";
 export default function DashboardPage() {
   const { data: user, isLoading } = trpc.users.me.useQuery();
   const { data: session } = useSession();
+  const { t, locale } = useI18n();
   const isAdmin = session?.user.role === "ADMIN";
+  const dateLocale = locale === 'en' ? enUS : ru;
 
   if (isLoading) {
     return (
@@ -30,7 +33,7 @@ export default function DashboardPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="text-destructive">Не удалось загрузить данные пользователя</div>
+        <div className="text-destructive">{t('common.failedToLoadUser')}</div>
       </div>
     );
   }
@@ -40,14 +43,14 @@ export default function DashboardPage() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b pb-4 pt-6">
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Мой профиль</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Ваша личная информация и статистика</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('common.myProfile')}</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">{t('common.personalInfo')}</p>
         </div>
         {isAdmin && (
           <Button asChild className="w-full sm:w-auto">
             <Link href={`/users/${user.id}/edit`}>
               <Edit className="h-4 w-4 mr-2" />
-              Редактировать профиль
+              {t('common.editProfile')}
             </Link>
           </Button>
         )}
@@ -56,7 +59,7 @@ export default function DashboardPage() {
       <div className="flex-1 min-h-0 py-6 space-y-6">
         <Card className="border-border/40 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle>Основная информация</CardTitle>
+            <CardTitle>{t('common.basicInfo')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-6">
@@ -80,30 +83,30 @@ export default function DashboardPage() {
                 {user.stats && (
                   <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                     <div className="space-y-1 bg-primary/5 p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Рейтинг</p>
+                      <p className="text-sm text-muted-foreground">{t('common.rating')}</p>
                       <p className="text-2xl font-bold flex items-center gap-1">
                         <Trophy className="h-5 w-5 text-yellow-500" />
                         {user.stats.rating}
                       </p>
                     </div>
                     <div className="space-y-1 bg-primary/5 p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Сыграно игр</p>
+                      <p className="text-sm text-muted-foreground">{t('common.gamesPlayed')}</p>
                       <p className="text-2xl font-bold">{user.stats.gamesPlayed}</p>
                     </div>
                     <div className="space-y-1 bg-primary/5 p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Винрейт</p>
+                      <p className="text-sm text-muted-foreground">{t('common.winRate')}</p>
                       <p className="text-2xl font-bold">
                         {getWinRate(user.stats?.wins || 0, user.stats?.gamesPlayed || 0)}
                       </p>
                     </div>
                     <div className="space-y-1 bg-primary/5 p-3 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Присоединился</p>
+                      <p className="text-sm text-muted-foreground">{t('common.joined')}</p>
                       <p className="text-base">
                         {user.stats.createdAt
                           ? format(new Date(user.stats.createdAt), 'd MMMM yyyy', {
-                              locale: ru,
+                              locale: dateLocale,
                             })
-                          : 'Неизвестно'}
+                          : t('common.unknown')}
                       </p>
                     </div>
                   </div>
@@ -116,13 +119,13 @@ export default function DashboardPage() {
         {user.stats && (
           <Tabs defaultValue="stats" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="stats">Статистика</TabsTrigger>
-              <TabsTrigger value="matches">История матчей</TabsTrigger>
+              <TabsTrigger value="stats">{t('common.stats')}</TabsTrigger>
+              <TabsTrigger value="matches">{t('common.matchHistory')}</TabsTrigger>
             </TabsList>
             <TabsContent value="stats" className="mt-6">
               <Card className="border-border/40 shadow-sm">
                 <CardHeader>
-                  <CardTitle>Детальная статистика</CardTitle>
+                  <CardTitle>{t('common.detailedStats')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -131,26 +134,26 @@ export default function DashboardPage() {
                         <div className="bg-primary/5 px-4 py-3 border-b border-border/40">
                           <h3 className="text-lg font-semibold flex items-center gap-2">
                             <ChartPie className="h-5 w-5 text-primary" />
-                            Общая статистика
+                            {t('common.generalStats')}
                           </h3>
                         </div>
                         <div className="p-4">
                           <div className="space-y-4 sm:space-y-6">
                             <div className="grid grid-cols-3 gap-2 sm:gap-4">
                               <div className="space-y-1 text-center">
-                                <p className="text-xs sm:text-sm font-medium">Победы</p>
+                                <p className="text-xs sm:text-sm font-medium">{t('common.wins')}</p>
                                 <p className="text-lg sm:text-xl font-bold text-green-500">
                                   {user.stats.wins}
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-xs sm:text-sm font-medium">Поражения</p>
+                                <p className="text-xs sm:text-sm font-medium">{t('common.losses')}</p>
                                 <p className="text-lg sm:text-xl font-bold text-red-500">
                                   {user.stats.losses}
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-xs sm:text-sm font-medium">Ничьи</p>
+                                <p className="text-xs sm:text-sm font-medium">{t('common.draws')}</p>
                                 <p className="text-lg sm:text-xl font-bold text-yellow-500">
                                   {user.stats.draws}
                                 </p>
@@ -160,17 +163,17 @@ export default function DashboardPage() {
                             <div className="space-y-2">
                               <div className="flex justify-between items-center">
                                 <p className="text-sm font-medium">
-                                  Всего игр: {user.stats.gamesPlayed}
+                                  {t('common.totalGames')}: {user.stats.gamesPlayed}
                                 </p>
                                 <div className="flex items-center gap-2 text-xs">
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-green-500 rounded-sm"></div> Победы
+                                    <div className="w-3 h-3 bg-green-500 rounded-sm"></div> {t('common.wins')}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-red-500 rounded-sm"></div> Поражения
+                                    <div className="w-3 h-3 bg-red-500 rounded-sm"></div> {t('common.losses')}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div> Ничьи
+                                    <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div> {t('common.draws')}
                                   </span>
                                 </div>
                               </div>
@@ -200,14 +203,14 @@ export default function DashboardPage() {
                               </div>
                               <div className="flex justify-between text-xs text-muted-foreground">
                                 <span>
-                                  Побед:{' '}
+                                  {t('common.winsPercent')}:{' '}
                                   {user.stats.gamesPlayed
                                     ? ((user.stats.wins / user.stats.gamesPlayed) * 100).toFixed(1)
                                     : 0}
                                   %
                                 </span>
                                 <span>
-                                  Поражений:{' '}
+                                  {t('common.lossesPercent')}:{' '}
                                   {user.stats.gamesPlayed
                                     ? ((user.stats.losses / user.stats.gamesPlayed) * 100).toFixed(
                                         1
@@ -216,7 +219,7 @@ export default function DashboardPage() {
                                   %
                                 </span>
                                 <span>
-                                  Ничьих:{' '}
+                                  {t('common.drawsPercent')}:{' '}
                                   {user.stats.gamesPlayed
                                     ? ((user.stats.draws / user.stats.gamesPlayed) * 100).toFixed(1)
                                     : 0}
@@ -227,7 +230,7 @@ export default function DashboardPage() {
 
                             <div className="space-y-2">
                               <div className="flex justify-between items-center">
-                                <p className="text-sm font-medium">Всего очков</p>
+                                <p className="text-sm font-medium">{t('common.totalPoints')}</p>
                                 <p className="text-xl font-bold">{user.stats.totalScore || 0}</p>
                               </div>
                             </div>
@@ -239,23 +242,23 @@ export default function DashboardPage() {
                         <div className="bg-primary/5 px-4 py-3 border-b border-border/40">
                           <h3 className="text-lg font-semibold flex items-center gap-2">
                             <Trophy className="h-5 w-5 text-blue-500" />
-                            Рейтинг
+                            {t('common.rating')}
                           </h3>
                         </div>
                         <div className="p-4">
                           <div className="grid grid-cols-3 gap-2 sm:gap-4">
                             <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-green-500/10 rounded-lg">
-                              <p className="text-xs sm:text-sm text-muted-foreground">Максимальный</p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">{t('common.maxRating')}</p>
                               <p className="text-lg sm:text-xl font-bold text-green-500">
                                 {user.stats.maxRating || user.stats.rating}
                               </p>
                             </div>
                             <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-primary/10 rounded-lg">
-                              <p className="text-xs sm:text-sm text-muted-foreground">Текущий</p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">{t('common.currentRating')}</p>
                               <p className="text-lg sm:text-xl font-bold text-primary">{user.stats.rating}</p>
                             </div>
                             <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-red-500/10 rounded-lg">
-                              <p className="text-xs sm:text-sm text-muted-foreground">Минимальный</p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">{t('common.minRating')}</p>
                               <p className="text-lg sm:text-xl font-bold text-red-500">
                                 {user.stats.minRating || 0}
                               </p>
@@ -282,26 +285,26 @@ export default function DashboardPage() {
                               <rect width="18" height="18" x="3" y="3" rx="2" />
                               <path d="M3 9h18M9 21V9" />
                             </svg>
-                            Статистика по дивизионам
+                            {t('common.divisionStats')}
                           </h3>
                         </div>
                         <div className="p-4">
                           <div className="space-y-4 sm:space-y-6">
                             <div className="grid grid-cols-3 gap-2 sm:gap-4">
                               <div className="space-y-1 text-center">
-                                <p className="text-xs sm:text-sm font-medium">Победы</p>
+                                <p className="text-xs sm:text-sm font-medium">{t('common.wins')}</p>
                                 <p className="text-lg sm:text-xl font-bold text-green-500">
                                   {user.stats.winsDivisions || 0}
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-xs sm:text-sm font-medium">Поражения</p>
+                                <p className="text-xs sm:text-sm font-medium">{t('common.losses')}</p>
                                 <p className="text-lg sm:text-xl font-bold text-red-500">
                                   {user.stats.lossesDivisions || 0}
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-xs sm:text-sm font-medium">Ничьи</p>
+                                <p className="text-xs sm:text-sm font-medium">{t('common.draws')}</p>
                                 <p className="text-lg sm:text-xl font-bold text-yellow-500">
                                   {user.stats.drawsDivisions || 0}
                                 </p>
@@ -311,17 +314,17 @@ export default function DashboardPage() {
                             <div className="space-y-2">
                               <div className="flex justify-between items-center">
                                 <p className="text-sm font-medium">
-                                  Всего дивизионов: {user.stats.totalDivisions || 0}
+                                  {t('common.totalDivisions')}: {user.stats.totalDivisions || 0}
                                 </p>
                                 <div className="flex items-center gap-2 text-xs">
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-green-500 rounded-sm"></div> Победы
+                                    <div className="w-3 h-3 bg-green-500 rounded-sm"></div> {t('common.wins')}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-red-500 rounded-sm"></div> Поражения
+                                    <div className="w-3 h-3 bg-red-500 rounded-sm"></div> {t('common.losses')}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div> Ничьи
+                                    <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div> {t('common.draws')}
                                   </span>
                                 </div>
                               </div>
@@ -351,7 +354,7 @@ export default function DashboardPage() {
                               </div>
                               <div className="flex justify-between text-xs text-muted-foreground">
                                 <span>
-                                  Побед:{' '}
+                                  {t('common.winsPercent')}:{' '}
                                   {user.stats.totalDivisions
                                     ? (
                                         (user.stats.winsDivisions / user.stats.totalDivisions) *
@@ -361,7 +364,7 @@ export default function DashboardPage() {
                                   %
                                 </span>
                                 <span>
-                                  Поражений:{' '}
+                                  {t('common.lossesPercent')}:{' '}
                                   {user.stats.totalDivisions
                                     ? (
                                         (user.stats.lossesDivisions / user.stats.totalDivisions) *
@@ -371,7 +374,7 @@ export default function DashboardPage() {
                                   %
                                 </span>
                                 <span>
-                                  Ничьих:{' '}
+                                  {t('common.drawsPercent')}:{' '}
                                   {user.stats.totalDivisions
                                     ? (
                                         (user.stats.drawsDivisions / user.stats.totalDivisions) *
@@ -393,7 +396,7 @@ export default function DashboardPage() {
             <TabsContent value="matches" className="mt-6">
               <Card className="border-border/40 shadow-sm">
                 <CardHeader>
-                  <CardTitle>История матчей</CardTitle>
+                  <CardTitle>{t('common.matchHistory')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[500px]">

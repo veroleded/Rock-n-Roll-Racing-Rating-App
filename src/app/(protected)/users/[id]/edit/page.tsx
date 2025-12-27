@@ -19,11 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { trpc } from "@/utils/trpc";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Role } from "@prisma/client";
-import { Loader2, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useI18n } from '@/lib/i18n/context';
+import { trpc } from '@/utils/trpc';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Role } from '@prisma/client';
+import { Loader2, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Suspense, use, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -52,6 +53,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function EditUserContent({ userId }: { userId: string }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userRole, setUserRole] = useState<Role | undefined>(undefined);
@@ -106,7 +108,7 @@ function EditUserContent({ userId }: { userId: string }) {
   if (!session?.user || session.user.role !== 'ADMIN') {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-destructive">У вас нет прав для редактирования пользователей</div>
+        <div className="text-destructive">{t('common.noPermissionToEditUsers')}</div>
       </div>
     );
   }
@@ -122,7 +124,7 @@ function EditUserContent({ userId }: { userId: string }) {
   if (!userData) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-destructive">Пользователь не найден</div>
+        <div className="text-destructive">{t('common.userNotFound')}</div>
       </div>
     );
   }
@@ -132,7 +134,7 @@ function EditUserContent({ userId }: { userId: string }) {
     if (userData.role === 'ADMIN' && data.role !== 'ADMIN') {
       form.setError('role', {
         type: 'manual',
-        message: 'Нельзя изменить роль администратора',
+        message: t('common.cannotChangeAdminRole'),
       });
       return;
     }
@@ -148,7 +150,7 @@ function EditUserContent({ userId }: { userId: string }) {
     if (userData.role === 'ADMIN' && userData.id !== session?.user.id) {
       form.setError('root', {
         type: 'manual',
-        message: 'Нельзя удалить другого администратора',
+        message: t('common.cannotDeleteOtherAdmin'),
       });
       return;
     }
@@ -170,7 +172,7 @@ function EditUserContent({ userId }: { userId: string }) {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-destructive">Ошибка</h3>
+              <h3 className="text-sm font-medium text-destructive">{t('common.error')}</h3>
               <div className="mt-2 text-sm text-destructive">
                 {form.formState.errors.root.message}
               </div>
@@ -181,7 +183,7 @@ function EditUserContent({ userId }: { userId: string }) {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Редактирование пользователя</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">{t('common.editUser')}</h2>
           <p className="text-sm sm:text-base text-muted-foreground">
             {userData.name} ({userData.role.toLowerCase()})
           </p>
@@ -193,29 +195,26 @@ function EditUserContent({ userId }: { userId: string }) {
               disabled={userData.role === 'ADMIN' && userData.id !== session?.user.id}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Удалить
+              {t('common.delete')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Удалить пользователя?</DialogTitle>
-              <DialogDescription>
-                Это действие нельзя отменить. Пользователь будет удален из системы вместе со всей
-                статистикой.
-              </DialogDescription>
+              <DialogTitle>{t('common.deleteUser')}</DialogTitle>
+              <DialogDescription>{t('common.deleteUserDescription')}</DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)}>
-                Отмена
+                {t('common.cancel')}
               </Button>
               <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
                 {isDeleting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Удаление...
+                    {t('common.deleting')}
                   </>
                 ) : (
-                  'Удалить'
+                  t('common.delete')
                 )}
               </Button>
             </DialogFooter>
@@ -226,21 +225,23 @@ function EditUserContent({ userId }: { userId: string }) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <Card>
           <CardHeader>
-            <CardTitle>Основная информация</CardTitle>
-            <CardDescription>Управление основными данными пользователя</CardDescription>
+            <CardTitle>{t('common.basicInfo')}</CardTitle>
+            <CardDescription>{t('common.basicInfo')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-4">
               <div className="grid gap-2">
                 <label className="text-sm font-medium" htmlFor="name">
-                  Имя
+                  {t('common.name')}
                 </label>
                 <Input id="name" value={userData.name || ''} disabled className="w-full bg-muted" />
-                <p className="text-sm text-muted-foreground">Имя пользователя нельзя изменить</p>
+                <p className="text-sm text-muted-foreground">
+                  {t('common.userNameCannotBeChanged')}
+                </p>
               </div>
 
               <div className="grid gap-2">
-                <label className="text-sm font-medium">Роль</label>
+                <label className="text-sm font-medium">{t('common.role')}</label>
                 {userData && userRole && (
                   <Select
                     value={userRole}
@@ -254,9 +255,9 @@ function EditUserContent({ userId }: { userId: string }) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="PLAYER">Игрок</SelectItem>
-                      <SelectItem value="MODERATOR">Модератор</SelectItem>
-                      <SelectItem value="ADMIN">Администратор</SelectItem>
+                      <SelectItem value="PLAYER">{t('common.playerRole')}</SelectItem>
+                      <SelectItem value="MODERATOR">{t('common.moderatorRole')}</SelectItem>
+                      <SelectItem value="ADMIN">{t('common.adminRole')}</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -271,14 +272,14 @@ function EditUserContent({ userId }: { userId: string }) {
         {userData.stats && (
           <Card>
             <CardHeader>
-              <CardTitle>Статистика</CardTitle>
-              <CardDescription>Управление игровой статистикой пользователя</CardDescription>
+              <CardTitle>{t('common.stats')}</CardTitle>
+              <CardDescription>{t('common.stats')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <label className="text-sm font-medium" htmlFor="rating">
-                    Рейтинг
+                    {t('common.rating')}
                   </label>
                   <Input
                     id="rating"
@@ -295,7 +296,7 @@ function EditUserContent({ userId }: { userId: string }) {
 
                 <div className="grid gap-2">
                   <label className="text-sm font-medium" htmlFor="maxRating">
-                    Максимальный рейтинг
+                    {t('common.maxRating')}
                   </label>
                   <Input
                     id="maxRating"
@@ -307,7 +308,7 @@ function EditUserContent({ userId }: { userId: string }) {
 
                 <div className="grid gap-2">
                   <label className="text-sm font-medium" htmlFor="minRating">
-                    Минимальный рейтинг
+                    {t('common.minRating')}
                   </label>
                   <Input
                     id="minRating"
@@ -319,7 +320,7 @@ function EditUserContent({ userId }: { userId: string }) {
 
                 <div className="grid gap-2">
                   <label className="text-sm font-medium" htmlFor="totalScore">
-                    Общий счет
+                    {t('common.totalScore')}
                   </label>
                   <Input
                     id="totalScore"
@@ -330,7 +331,7 @@ function EditUserContent({ userId }: { userId: string }) {
 
                 <div className="grid gap-2">
                   <label className="text-sm font-medium" htmlFor="gamesPlayed">
-                    Сыграно игр
+                    {t('common.gamesPlayed')}
                   </label>
                   <Input
                     id="gamesPlayed"
@@ -376,7 +377,7 @@ function EditUserContent({ userId }: { userId: string }) {
 
                 <div className="grid gap-2">
                   <label className="text-sm font-medium" htmlFor="totalDivisions">
-                    Всего дивизионов
+                    {t('common.totalDivisions')}
                   </label>
                   <Input
                     id="totalDivisions"
@@ -389,7 +390,7 @@ function EditUserContent({ userId }: { userId: string }) {
 
                 <div className="grid gap-2">
                   <label className="text-sm font-medium" htmlFor="winsDivisions">
-                    Победы в дивизионах
+                    {t('common.winsDivisions')}
                   </label>
                   <Input
                     id="winsDivisions"
@@ -402,7 +403,7 @@ function EditUserContent({ userId }: { userId: string }) {
 
                 <div className="grid gap-2">
                   <label className="text-sm font-medium" htmlFor="lossesDivisions">
-                    Поражения в дивизионах
+                    {t('common.lossesDivisions')}
                   </label>
                   <Input
                     id="lossesDivisions"
@@ -415,7 +416,7 @@ function EditUserContent({ userId }: { userId: string }) {
 
                 <div className="grid gap-2">
                   <label className="text-sm font-medium" htmlFor="drawsDivisions">
-                    Ничьи в дивизионах
+                    {t('common.drawsDivisions')}
                   </label>
                   <Input
                     id="drawsDivisions"
@@ -431,17 +432,22 @@ function EditUserContent({ userId }: { userId: string }) {
         )}
 
         <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
-          <Button type="button" variant="outline" onClick={() => router.push('/users')} className="w-full sm:w-auto">
-            Отмена
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/users')}
+            className="w-full sm:w-auto"
+          >
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={isUpdating} className="w-full sm:w-auto">
             {isUpdating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Сохранение...
+                {t('common.saving')}
               </>
             ) : (
-              'Сохранить'
+              t('common.save')
             )}
           </Button>
         </div>

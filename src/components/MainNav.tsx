@@ -9,32 +9,34 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { getVersion } from "@/lib/version";
+import { useI18n } from "@/lib/i18n/context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const baseNavItems = [
-  {
-    title: "Главная",
-    href: "/dashboard",
-  },
-  {
-    title: "Таблица игроков",
-    href: "/users",
-  },
-  {
-    title: "История матчей",
-    href: "/matches",
-  },
-];
-
-const downloadsNavItem = {
-  title: "Загрузки",
-  href: "/downloads",
-};
-
 export function MainNav() {
+  const { t } = useI18n();
   const pathname = usePathname();
   const version = getVersion();
+
+  const baseNavItems = [
+    {
+      title: t('common.home'),
+      href: "/dashboard",
+    },
+    {
+      title: t('common.users'),
+      href: "/users",
+    },
+    {
+      title: t('common.matches'),
+      href: "/matches",
+    },
+  ];
+
+  const downloadsNavItem = {
+    title: t('common.downloads'),
+    href: "/downloads",
+  };
   
   // Показываем вкладку "Загрузки" только для версии bogdan
   const navItems = version === 'bogdan' 

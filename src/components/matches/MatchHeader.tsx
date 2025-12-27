@@ -1,19 +1,13 @@
+'use client';
+
 import { BackButton } from '@/components/BackButton';
 import { Badge } from '@/components/ui/badge';
+import { useI18n } from '@/lib/i18n/context';
 import { GameMode } from '@prisma/client';
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { enUS, ru } from 'date-fns/locale';
 import { Shield } from 'lucide-react';
 import React from 'react';
-
-
-export const gameModeNames: Record<GameMode, string> = {
-  TWO_VS_TWO: '2 на 2',
-  THREE_VS_THREE: '3 на 3',
-  TWO_VS_TWO_VS_TWO: '2 на 2 на 2',
-  TWO_VS_TWO_HIGH_MMR: '2 на 2', // High MMR отображается так же, как обычный вариант
-  THREE_VS_THREE_HIGH_MMR: '3 на 3', // High MMR отображается так же, как обычный вариант
-};
 
 interface MatchHeaderProps {
   id: string;
@@ -32,28 +26,48 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
   totalScore,
   actionButtons,
 }) => {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'en' ? enUS : ru;
+
+  const getGameModeName = (mode: GameMode): string => {
+    switch (mode) {
+      case 'TWO_VS_TWO':
+      case 'TWO_VS_TWO_HIGH_MMR':
+        return t('common.gameMode2v2');
+      case 'THREE_VS_THREE':
+      case 'THREE_VS_THREE_HIGH_MMR':
+        return t('common.gameMode3v3');
+      case 'TWO_VS_TWO_VS_TWO':
+        return t('common.gameMode2v2v2');
+      default:
+        return mode;
+    }
+  };
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div className="flex-1">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <BackButton />
-          <h1 className="text-2xl sm:text-3xl font-bold">Матч #{id}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            {t('common.match')} #{id}
+          </h1>
           {actionButtons}
         </div>
         <div className="flex flex-wrap items-center gap-2 mt-2 text-sm sm:text-base text-muted-foreground">
           <span>
             {format(new Date(createdAt), 'd MMMM yyyy, HH:mm', {
-              locale: ru,
+              locale: dateLocale,
             })}
           </span>
           <span>•</span>
-          <span>{gameModeNames[mode]}</span>
+          <span>{getGameModeName(mode)}</span>
           {isRated && (
             <>
               <span>•</span>
               <Badge variant="secondary" className="text-xs">
                 <Shield className="w-3 h-3 mr-1" />
-                Рейтинговый
+                {t('common.rated')}
               </Badge>
             </>
           )}

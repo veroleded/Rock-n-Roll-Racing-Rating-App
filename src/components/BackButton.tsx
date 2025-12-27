@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n/context";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -9,6 +10,7 @@ interface BackButtonProps {
 }
 
 export function BackButton({ className }: BackButtonProps) {
+  const { t } = useI18n();
   const router = useRouter();
 
   return (
@@ -19,7 +21,7 @@ export function BackButton({ className }: BackButtonProps) {
       onClick={() => router.back()}
     >
       <ArrowLeft className="h-4 w-4 mr-2" />
-      Назад
+      {t('common.back')}
     </Button>
   );
 }
