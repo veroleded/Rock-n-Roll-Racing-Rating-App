@@ -7,7 +7,7 @@
 # ============================================
 # НАСТРОЙКИ - ИЗМЕНИТЕ НА ВАШИ ЗНАЧЕНИЯ
 # ============================================
-PROJECT_DIR="/home/ваш_пользователь/projects/discord-bot-new"
+PROJECT_DIR="/root/Rock-n-Roll-Racing-Rating-App"
 COMPOSE_FILE="docker-compose.prod.bogdan.yml"
 
 # ============================================
