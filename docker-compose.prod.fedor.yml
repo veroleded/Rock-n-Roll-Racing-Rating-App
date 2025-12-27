@@ -68,7 +68,7 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     restart: always
     volumes:
-      - postgres_data_fedor:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
     command: postgres -c shared_buffers=64MB -c work_mem=4MB
@@ -95,7 +95,7 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data_fedor:
+  postgres_data:
   redis_data_fedor:
   uploads_data_fedor:
 
