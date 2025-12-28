@@ -12,9 +12,13 @@ import { CommandHandler } from './services/CommandHandler';
 import { GatheringCommandsHandler } from './services/GatheringCommandsHandler';
 import { MatchNotificationService } from './services/MatchNotificationService';
 import { QueueNotificationService } from './services/QueueNotificationService';
+import { ensureSingleInstance } from './singleton';
 import { createEmbed } from './utils/embeds';
 
 dotenv.config();
+
+// Защита от множественного запуска
+ensureSingleInstance();
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
@@ -74,8 +78,23 @@ client.on(Events.MessageCreate, async (message: Message) => {
   await commandHandler.handleMessage(message);
 });
 
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+
 client.on(Events.Error, (error) => {
-  console.error('Discord client error:', error);
+  console.error('[Discord Client] Ошибка:', error);
+  reconnectAttempts++;
+
+  if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
+    console.error(
+      `[Discord Client] Превышено максимальное количество попыток переподключения (${MAX_RECONNECT_ATTEMPTS}). Останавливаю бота для предотвращения утечки ресурсов.`
+    );
+    process.exit(1);
+  } else {
+    console.log(
+      `[Discord Client] Попытка переподключения ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`
+    );
+  }
 });
 
 client.once(Events.ClientReady, (c) => {

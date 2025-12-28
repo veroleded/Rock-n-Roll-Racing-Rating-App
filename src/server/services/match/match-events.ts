@@ -89,6 +89,13 @@ export async function publishMatchEvent(
   }
 }
 
+// Хранилище для отслеживания подписок, чтобы избежать дублирования
+const matchSubscriptions = new Map<
+  MatchEventType,
+  Set<(match: MatchWithPlayers) => void | Promise<void>>
+>();
+const isMatchSubscribed = new Set<MatchEventType>();
+
 // Функция для подписки на события
 export function subscribeToMatchEvents(
   eventType: MatchEventType,
@@ -96,23 +103,49 @@ export function subscribeToMatchEvents(
 ): void {
   const sub = getRedisSubscriber();
 
-  sub.subscribe(eventType, (err) => {
-    if (err) {
-      console.error(`[Redis] Ошибка при подписке на ${eventType}:`, err);
-    } else {
-      console.log(`[Redis] Подписан на события ${eventType}`);
-    }
-  });
+  // Инициализируем Set для callbacks, если его еще нет
+  if (!matchSubscriptions.has(eventType)) {
+    matchSubscriptions.set(eventType, new Set());
+  }
 
-  sub.on('message', async (channel, message) => {
-    if (channel === eventType) {
-      try {
-        const match = JSON.parse(message) as MatchWithPlayers;
-        console.log(`[Redis] Получено событие ${eventType} для матча ${match.id}`);
-        await callback(match);
-      } catch (error) {
-        console.error(`[Redis] Ошибка при обработке события ${eventType}:`, error);
+  // Добавляем callback в список подписчиков
+  const callbacks = matchSubscriptions.get(eventType)!;
+  if (callbacks.has(callback)) {
+    console.log(`[Redis Match] Callback уже зарегистрирован для ${eventType}`);
+    return;
+  }
+  callbacks.add(callback);
+  console.log(`[Redis Match] Добавлен callback для ${eventType}`);
+
+  // Подписываемся на канал только один раз
+  if (!isMatchSubscribed.has(eventType)) {
+    isMatchSubscribed.add(eventType);
+
+    sub.subscribe(eventType, (err) => {
+      if (err) {
+        console.error(`[Redis Match] Ошибка при подписке на ${eventType}:`, err);
+        isMatchSubscribed.delete(eventType);
+      } else {
+        console.log(`[Redis Match] Подписан на события ${eventType}`);
       }
-    }
-  });
+    });
+
+    // Обработчик сообщений для этого типа события (создаем только один раз)
+    sub.on('message', async (channel, message) => {
+      if (channel === eventType) {
+        try {
+          const match = JSON.parse(message) as MatchWithPlayers;
+          console.log(`[Redis Match] Получено событие ${eventType} для матча ${match.id}`);
+
+          // Вызываем все зарегистрированные callbacks
+          const registeredCallbacks = matchSubscriptions.get(eventType);
+          if (registeredCallbacks) {
+            await Promise.all(Array.from(registeredCallbacks).map((cb) => cb(match)));
+          }
+        } catch (error) {
+          console.error(`[Redis Match] Ошибка при обработке события ${eventType}:`, error);
+        }
+      }
+    });
+  }
 }
