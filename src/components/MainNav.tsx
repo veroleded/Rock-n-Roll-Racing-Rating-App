@@ -48,8 +48,9 @@ export function MainNav() {
       <NavigationMenuList>
         {navItems.map((item) => (
           <NavigationMenuItem key={item.href}>
-            <Link href={item.href} legacyBehavior passHref>
-              <NavigationMenuLink
+            <NavigationMenuLink asChild>
+              <Link
+                href={item.href}
                 className={cn(
                   navigationMenuTriggerStyle(),
                   "bg-transparent",
@@ -59,8 +60,8 @@ export function MainNav() {
                 )}
               >
                 {item.title}
-              </NavigationMenuLink>
-            </Link>
+              </Link>
+            </NavigationMenuLink>
           </NavigationMenuItem>
         ))}
       </NavigationMenuList>

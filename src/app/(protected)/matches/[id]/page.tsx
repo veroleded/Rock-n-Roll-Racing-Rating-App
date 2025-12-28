@@ -11,6 +11,7 @@ import { MatchStats } from '@/components/matches/MatchStats';
 import { PlayerStatsDisplay } from '@/components/matches/PlayerStatsDisplay';
 import { DamageDealt, DamageReceived, Divisions } from '@/components/matches/types';
 import { useToast } from '@/components/ui/use-toast';
+import { useI18n } from '@/lib/i18n/context';
 import { trpc } from '@/utils/trpc';
 import { Role } from '@prisma/client';
 import { useSession } from 'next-auth/react';
