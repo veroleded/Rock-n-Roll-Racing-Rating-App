@@ -6,9 +6,12 @@
 
 ### Где сохраняются
 
-- **Путь:** `logs/metrics/metrics.jsonl`
+- **Путь в контейнере:** `/app/logs/metrics/metrics.jsonl`
+- **Путь на хосте:** `./logs/metrics/metrics.jsonl` (вне контейнера)
 - **Формат:** JSON Lines (каждая строка - отдельный JSON объект)
 - **Интервал:** Автоматически каждые 5 минут
+
+**Важно:** В `docker-compose.prod.bogdan.yml` и `docker-compose.prod.fedor.yml` директория `logs` монтируется как volume (`./logs:/app/logs`), поэтому файлы метрик доступны на хосте и сохраняются при перезапуске контейнера.
 
 ### Что сохраняется
 
@@ -31,7 +34,12 @@
 ### 1. Через скрипт (рекомендуется)
 
 ```bash
-./view-metrics-history.sh
+# На хосте (вне контейнера)
+./scripts/monitoring/view-metrics-history.sh
+
+# Или из корня проекта
+cd /root/Rock-n-Roll-Racing-Rating-App
+bash scripts/monitoring/view-metrics-history.sh
 ```
 
 Показывает:
@@ -53,7 +61,9 @@ curl http://localhost:3000/api/metrics/history?stats=true
 curl "http://localhost:3000/api/metrics/history?startDate=2025-12-28T00:00:00Z&endDate=2025-12-28T23:59:59Z"
 ```
 
-### 3. Прямой просмотр файла
+### 3. Прямой просмотр файла (на хосте)
+
+Файлы доступны на хосте благодаря монтированию volume:
 
 ```bash
 # Последние записи
@@ -64,6 +74,9 @@ cat logs/metrics/metrics.jsonl | jq 'select(.networkBytesOut > 1073741824)'
 
 # Подсчет общего трафика
 cat logs/metrics/metrics.jsonl | jq -s 'map(.networkBytesOut) | add'
+
+# Или из контейнера (если нужно)
+docker exec rnr_racing_app_bogdan tail -n 20 /app/logs/metrics/metrics.jsonl | jq '.'
 ```
 
 ## Важные моменты
@@ -86,17 +99,18 @@ sudo ./scripts/setup-log-cleanup-cron.sh
 # Или вручную через crontab
 crontab -e
 # Добавить:
-0 2 * * * cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup-metrics-logs.sh 30 >> logs/cleanup.log 2>&1
+0 2 * * * cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup/cleanup-metrics-logs.sh 30 >> logs/cleanup.log 2>&1
 ```
 
 **Ручная очистка:**
 
 ```bash
-# Очистить, оставив последние 30 дней
-./scripts/cleanup-metrics-logs.sh 30
+# Очистить, оставив последние 30 дней (на хосте)
+cd /root/Rock-n-Roll-Racing-Rating-App
+bash scripts/cleanup/cleanup-metrics-logs.sh 30
 
 # Очистить, оставив последние 7 дней
-./scripts/cleanup-metrics-logs.sh 7
+bash scripts/cleanup/cleanup-metrics-logs.sh 7
 ```
 
 Подробнее: [LOG_CLEANUP.md](./LOG_CLEANUP.md)
@@ -113,16 +127,36 @@ find logs/metrics -name "metrics.jsonl.gz" -mtime +90 -delete
 
 ## Использование в Docker
 
-В Docker контейнере файлы сохраняются внутри контейнера. Для постоянного хранения:
+### ✅ Монтирование volume (настроено)
 
-1. **Монтировать volume:**
+В `docker-compose.prod.bogdan.yml` директория `logs` монтируется как volume:
 
 ```yaml
 volumes:
   - ./logs:/app/logs
 ```
 
-2. **Или копировать при необходимости:**
+**Это означает:**
+- ✅ Файлы метрик доступны вне контейнера по пути `./logs/metrics/metrics.jsonl`
+- ✅ Данные сохраняются при перезапуске контейнера
+- ✅ Можно просматривать логи без входа в контейнер
+
+### Просмотр метрик на хосте
+
+```bash
+# Последние записи
+tail -n 20 logs/metrics/metrics.jsonl | jq '.'
+
+# Статистика
+cat logs/metrics/metrics.jsonl | jq -s 'map(.networkBytesOut) | add'
+
+# Использовать скрипт (из корня проекта)
+./scripts/monitoring/view-metrics-history.sh
+```
+
+### Если volume не настроен
+
+Если нужно скопировать метрики из контейнера:
 
 ```bash
 docker cp <container_id>:/app/logs/metrics ./logs/

@@ -37,6 +37,8 @@ services:
       - ./prisma:/app/prisma
       - ./src:/app/src
       - uploads_data_fedor:/app/uploads
+      # Монтируем директорию для логов и метрик
+      - ./logs:/app/logs
     command: >
       sh -c "npx prisma migrate deploy &&
              npx prisma generate &&

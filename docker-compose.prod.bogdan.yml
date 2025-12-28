@@ -46,6 +46,8 @@ services:
       - ./src:/app/src
       # Монтируем директорию для загрузок
       - uploads_data:/app/uploads
+      # Монтируем директорию для логов и метрик
+      - ./logs:/app/logs
     command: >
       sh -c "npx prisma migrate deploy &&
              npx prisma generate &&
