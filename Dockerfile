@@ -9,11 +9,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm install -g tsx
 
 COPY package*.json ./
-RUN npm ci 
+RUN npm ci --legacy-peer-deps
 
 COPY . .
 
-RUN mkdir -p public uploads
+RUN mkdir -p public uploads logs/metrics
 
 EXPOSE 3000
 

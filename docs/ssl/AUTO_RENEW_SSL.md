@@ -5,35 +5,35 @@
 ### Шаг 1: Обновить скрипт обновления
 
 ```bash
-cd ~/projects/discord-bot-new
+cd /root/Rock-n-Roll-Racing-Rating-App
 
 # Открыть скрипт для редактирования
-nano renew-ssl.sh
+nano scripts/ssl/renew-ssl.sh
 ```
 
 Измените строку с `PROJECT_DIR` на ваш реальный путь:
 
 ```bash
-PROJECT_DIR="/home/ваш_пользователь/projects/discord-bot-new"
+PROJECT_DIR="/root/Rock-n-Roll-Racing-Rating-App"
 ```
 
 Например, если ваш пользователь `ubuntu`:
 
 ```bash
-PROJECT_DIR="/home/ubuntu/projects/discord-bot-new"
+PROJECT_DIR="/root/Rock-n-Roll-Racing-Rating-App"
 ```
 
 **Как узнать путь?**
 
 ```bash
 pwd
-# Выведет текущий путь, например: /home/ubuntu/projects/discord-bot-new
+# Выведет текущий путь, например: /root/Rock-n-Roll-Racing-Rating-App
 ```
 
 ### Шаг 2: Сделать скрипт исполняемым
 
 ```bash
-chmod +x renew-ssl.sh
+chmod +x scripts/ssl/renew-ssl.sh
 ```
 
 ### Шаг 3: Протестировать скрипт вручную
@@ -43,7 +43,7 @@ chmod +x renew-ssl.sh
 sudo certbot renew --dry-run
 
 # Если тест прошел успешно, можно запустить скрипт вручную
-sudo ./renew-ssl.sh
+sudo ./scripts/ssl/renew-ssl.sh
 ```
 
 ### Шаг 4: Настроить автоматический запуск
@@ -70,11 +70,11 @@ Requires=docker.service
 
 [Service]
 Type=oneshot
-# Замените /home/ваш_пользователь на ваш реальный путь
-ExecStart=/home/ваш_пользователь/projects/discord-bot-new/renew-ssl.sh
-# Замените ваш_пользователь на ваше имя пользователя (например, ubuntu)
-User=ваш_пользователь
-Group=ваш_пользователь
+# Путь к проекту: /root/Rock-n-Roll-Racing-Rating-App
+ExecStart=/root/Rock-n-Roll-Racing-Rating-App/scripts/ssl/renew-ssl.sh
+# Пользователь root
+User=root
+Group=root
 
 # Логирование
 StandardOutput=journal
@@ -158,13 +158,13 @@ crontab -e
 
 # Добавить следующую строку (проверка каждый день в 3:00 утра)
 # Замените путь на ваш реальный путь к проекту
-0 3 * * * /home/ваш_пользователь/projects/discord-bot-new/renew-ssl.sh >> /var/log/certbot-renew.log 2>&1
+0 3 * * * /root/Rock-n-Roll-Racing-Rating-App/scripts/ssl/renew-ssl.sh >> /var/log/certbot-renew.log 2>&1
 ```
 
 Или с более подробным логированием:
 
 ```bash
-0 3 * * * /home/ваш_пользователь/projects/discord-bot-new/renew-ssl.sh >> /home/ваш_пользователь/certbot-renew.log 2>&1
+0 3 * * * /root/Rock-n-Roll-Racing-Rating-App/scripts/ssl/renew-ssl.sh >> /var/log/certbot-renew.log 2>&1
 ```
 
 **Проверка cron:**
@@ -188,7 +188,7 @@ sudo tail -f /var/log/syslog | grep CRON
 sudo certbot certificates
 
 # Использовать готовый скрипт проверки
-./check-ssl.sh
+./scripts/ssl/check-ssl.sh
 ```
 
 ### Тест обновления (dry-run)
@@ -207,7 +207,7 @@ sudo certbot renew --dry-run
 sudo certbot renew --force-renewal
 
 # Перезапустить nginx
-cd ~/projects/discord-bot-new
+cd /root/Rock-n-Roll-Racing-Rating-App
 docker compose -f docker-compose.prod.bogdan.yml restart nginx
 ```
 
@@ -275,15 +275,15 @@ sudo systemctl restart certbot-renew.timer
 
 ```bash
 # Проверить права на выполнение
-ls -l renew-ssl.sh
+ls -l scripts/ssl/renew-ssl.sh
 
 # Должно быть: -rwxr-xr-x (x означает исполняемый)
 
 # Если нет прав, добавить:
-chmod +x renew-ssl.sh
+chmod +x scripts/ssl/renew-ssl.sh
 
 # Проверить, что путь правильный
-cat renew-ssl.sh | grep PROJECT_DIR
+cat scripts/ssl/renew-ssl.sh | grep PROJECT_DIR
 ```
 
 ### Ошибка "docker compose: command not found"
@@ -292,7 +292,7 @@ cat renew-ssl.sh | grep PROJECT_DIR
 
 ```bash
 # Открыть скрипт
-nano renew-ssl.sh
+nano scripts/ssl/renew-ssl.sh
 
 # Заменить
 docker compose -f "$COMPOSE_FILE" restart nginx
@@ -344,8 +344,8 @@ docker ps
 Да, в любой момент:
 
 ```bash
-cd ~/projects/discord-bot-new
-sudo ./renew-ssl.sh
+cd /root/Rock-n-Roll-Racing-Rating-App
+sudo ./scripts/ssl/renew-ssl.sh
 ```
 
 Или напрямую через certbot:
@@ -361,10 +361,10 @@ docker compose -f docker-compose.prod.bogdan.yml restart nginx
 
 ```bash
 # 1. Обновить путь в скрипте
-nano renew-ssl.sh  # Изменить PROJECT_DIR
+nano scripts/ssl/renew-ssl.sh  # Изменить PROJECT_DIR
 
 # 2. Сделать исполняемым
-chmod +x renew-ssl.sh
+chmod +x scripts/ssl/renew-ssl.sh
 
 # 3. Тест
 sudo certbot renew --dry-run

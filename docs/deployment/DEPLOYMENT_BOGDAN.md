@@ -220,7 +220,7 @@ nginx:
 
 ```bash
 # Перейти в директорию проекта
-cd ~/projects/discord-bot-new
+cd /root/Rock-n-Roll-Racing-Rating-App
 
 # Запустить в фоновом режиме
 docker compose -f docker-compose.prod.bogdan.yml up -d --build
@@ -267,10 +267,10 @@ After=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=/home/ваш_пользователь/projects/discord-bot-new
+WorkingDirectory=/root/Rock-n-Roll-Racing-Rating-App
 ExecStart=/usr/bin/docker compose -f docker-compose.prod.bogdan.yml up -d
 ExecStop=/usr/bin/docker compose -f docker-compose.prod.bogdan.yml down
-User=ваш_пользователь
+User=root
 
 [Install]
 WantedBy=multi-user.target

@@ -1,3 +1,4 @@
+import { discordEvents, discordReconnects } from '@/lib/metrics';
 import { Client, Events, GatewayIntentBits, Message, TextChannel } from 'discord.js';
 import * as dotenv from 'dotenv';
 import { bottomCommand } from './commands/bottom';
@@ -46,6 +47,7 @@ function isGatheringCommand(
 }
 
 client.on(Events.MessageCreate, async (message: Message) => {
+  discordEvents.inc({ event_type: 'messageCreate' });
   if (message.author.bot) return;
 
   if (!message.guild || !(message.channel instanceof TextChannel)) return;
@@ -84,6 +86,7 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 client.on(Events.Error, (error) => {
   console.error('[Discord Client] Ошибка:', error);
   reconnectAttempts++;
+  discordReconnects.inc();
 
   if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
     console.error(
@@ -99,6 +102,7 @@ client.on(Events.Error, (error) => {
 
 client.once(Events.ClientReady, (c) => {
   console.log(`Бот готов! Вошел как ${c.user.tag}`);
+  discordEvents.inc({ event_type: 'ready' });
 
   const matchNotificationService = new MatchNotificationService(client);
   matchNotificationService.initialize();

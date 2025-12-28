@@ -1,6 +1,7 @@
 import { Queue, Stats, User } from '@prisma/client';
 import dotenv from 'dotenv';
 import Redis from 'ioredis';
+import { redisOperations, redisSubscriptions } from '@/lib/metrics';
 
 dotenv.config();
 
@@ -89,8 +90,10 @@ export async function publishQueueEvent(
     console.log(`[Redis Publisher] Размер сообщения: ${message.length} байт`);
     const subscribers = await pub.publish(eventType, message);
     console.log(`[Redis Publisher] Событие ${eventType} опубликовано, подписчиков: ${subscribers}`);
+    redisOperations.inc({ operation: 'publish', status: 'success' });
   } catch (error) {
     console.error(`[Redis Publisher] Ошибка при публикации события ${eventType}:`, error);
+    redisOperations.inc({ operation: 'publish', status: 'error' });
   }
 }
 
@@ -130,8 +133,12 @@ export function subscribeToQueueEvents(
       if (err) {
         console.error(`[Redis] Ошибка при подписке на ${eventType}:`, err);
         isSubscribed.delete(eventType);
+        redisOperations.inc({ operation: 'subscribe', status: 'error' });
+        redisSubscriptions.dec();
       } else {
         console.log(`[Redis] Подписан на события ${eventType}`);
+        redisOperations.inc({ operation: 'subscribe', status: 'success' });
+        redisSubscriptions.inc();
       }
     });
 

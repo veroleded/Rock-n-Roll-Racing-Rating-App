@@ -20,7 +20,7 @@ sudo apt install -y certbot python3-certbot-nginx
 
 ### 3. Получение сертификата
 ```bash
-cd ~/projects/discord-bot-new
+cd /root/Rock-n-Roll-Racing-Rating-App
 
 # Остановить nginx
 docker compose -f docker-compose.prod.bogdan.yml stop nginx
@@ -53,7 +53,7 @@ curl -I https://rocknrollracing.online
 ### Быстрая проверка
 ```bash
 # Использовать готовый скрипт
-./check-ssl.sh
+./scripts/ssl/check-ssl.sh
 
 # Или вручную
 sudo certbot certificates
@@ -80,9 +80,9 @@ curl -I http://rocknrollracing.online
 
 **Вариант 1: Systemd Timer (рекомендуется)**
 
-1. Обновить путь в `renew-ssl.sh`:
+1. Обновить путь в `scripts/ssl/renew-ssl.sh`:
 ```bash
-nano renew-ssl.sh
+nano scripts/ssl/renew-ssl.sh
 # Изменить PROJECT_DIR на ваш путь
 ```
 
@@ -97,8 +97,8 @@ After=network.target docker.service
 
 [Service]
 Type=oneshot
-ExecStart=/home/ваш_пользователь/projects/discord-bot-new/renew-ssl.sh
-User=ваш_пользователь
+ExecStart=/root/Rock-n-Roll-Racing-Rating-App/scripts/ssl/renew-ssl.sh
+User=root
 ```
 
 3. Создать timer:
@@ -127,10 +127,10 @@ sudo systemctl start certbot-renew.timer
 
 **Вариант 2: Cron**
 ```bash
-chmod +x renew-ssl.sh
+chmod +x scripts/ssl/renew-ssl.sh
 crontab -e
 # Добавить:
-0 3 * * * /home/ваш_пользователь/projects/discord-bot-new/renew-ssl.sh
+0 3 * * * /root/Rock-n-Roll-Racing-Rating-App/scripts/ssl/renew-ssl.sh
 ```
 
 ### Проверка автоматического обновления

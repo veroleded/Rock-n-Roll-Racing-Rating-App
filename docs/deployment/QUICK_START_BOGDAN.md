@@ -12,9 +12,9 @@ sudo usermod -aG docker $USER
 
 ### 2. Клонирование проекта
 ```bash
-cd ~
-git clone <ваш_repo_url> discord-bot-new
-cd discord-bot-new
+cd /root
+git clone <ваш_repo_url> Rock-n-Roll-Racing-Rating-App
+cd Rock-n-Roll-Racing-Rating-App
 ```
 
 ### 3. Создание .env.prod

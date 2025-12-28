@@ -89,7 +89,7 @@ sudo ss -tulpn | grep :80
 
 ```bash
 # Перейти в директорию проекта (если проект уже склонирован)
-cd ~/projects/discord-bot-new
+cd /root/Rock-n-Roll-Racing-Rating-App
 
 # Остановить nginx контейнер
 docker compose -f docker-compose.prod.bogdan.yml stop nginx
@@ -132,7 +132,7 @@ sudo systemctl stop apache2
 
 ```bash
 # Перейти в директорию проекта (если проект уже склонирован)
-cd ~/projects/discord-bot-new
+cd /root/Rock-n-Roll-Racing-Rating-App
 
 # Получить сертификат
 sudo certbot certonly --standalone \
@@ -337,19 +337,19 @@ Let's Encrypt сертификаты действительны **90 дней**.
 
 #### Вариант A: Systemd Timer (рекомендуется)
 
-**Шаг 1:** Обновите путь в скрипте `renew-ssl.sh`:
+**Шаг 1:** Обновите путь в скрипте `scripts/ssl/renew-ssl.sh`:
 
 ```bash
-cd ~/projects/discord-bot-new
-nano renew-ssl.sh
+cd /root/Rock-n-Roll-Racing-Rating-App
+nano scripts/ssl/renew-ssl.sh
 # Измените PROJECT_DIR на ваш реальный путь, например:
-# PROJECT_DIR="/home/ubuntu/projects/discord-bot-new"
+# PROJECT_DIR="/root/Rock-n-Roll-Racing-Rating-App"
 ```
 
 **Шаг 2:** Сделайте скрипт исполняемым:
 
 ```bash
-chmod +x renew-ssl.sh
+chmod +x scripts/ssl/renew-ssl.sh
 ```
 
 **Шаг 3:** Создайте systemd service файл:
@@ -367,8 +367,8 @@ After=network.target docker.service
 
 [Service]
 Type=oneshot
-ExecStart=/home/ваш_пользователь/projects/discord-bot-new/renew-ssl.sh
-User=ваш_пользователь
+ExecStart=/root/Rock-n-Roll-Racing-Rating-App/scripts/ssl/renew-ssl.sh
+User=root
 StandardOutput=journal
 StandardError=journal
 ```
@@ -430,19 +430,19 @@ crontab -e
 
 # Добавить строку (проверка каждый день в 3:00 утра)
 # Замените путь на ваш реальный путь к проекту
-0 3 * * * /home/ваш_пользователь/projects/discord-bot-new/renew-ssl.sh >> /var/log/certbot-renew.log 2>&1
+0 3 * * * /root/Rock-n-Roll-Racing-Rating-App/scripts/ssl/renew-ssl.sh >> /var/log/certbot-renew.log 2>&1
 ```
 
 **Или используйте готовый скрипт:**
 
 ```bash
 # Сделать скрипт исполняемым
-chmod +x renew-ssl.sh
+chmod +x scripts/ssl/renew-ssl.sh
 
 # Добавить в crontab
 crontab -e
 # Добавить:
-0 3 * * * /home/ваш_пользователь/projects/discord-bot-new/renew-ssl.sh
+0 3 * * * /root/Rock-n-Roll-Racing-Rating-App/scripts/ssl/renew-ssl.sh
 ```
 
 ### 5.2 Тестирование обновления
@@ -455,7 +455,7 @@ sudo certbot renew --dry-run
 sudo certbot renew --force-renewal
 
 # Перезапустить nginx после обновления
-cd ~/projects/discord-bot-new
+cd /root/Rock-n-Roll-Racing-Rating-App
 docker compose -f docker-compose.prod.bogdan.yml restart nginx
 ```
 
@@ -597,8 +597,8 @@ fi
 Сделать исполняемым:
 
 ```bash
-chmod +x check-ssl.sh
-./check-ssl.sh
+chmod +x scripts/ssl/check-ssl.sh
+./scripts/ssl/check-ssl.sh
 ```
 
 ---
@@ -633,7 +633,7 @@ openssl s_client -connect rocknrollracing.online:443 -servername rocknrollracing
 echo | openssl s_client -servername rocknrollracing.online -connect rocknrollracing.online:443 2>/dev/null | openssl x509 -noout -dates
 
 # Использование готового скрипта проверки
-./check-ssl.sh
+./scripts/ssl/check-ssl.sh
 ```
 
 ### Проверка работы

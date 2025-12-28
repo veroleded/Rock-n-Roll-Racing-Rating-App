@@ -43,3 +43,8 @@ next-env.d.ts
 ./node_modules
 
 .vscodeuploads/
+
+# logs
+/logs/
+*.log
+!logs/.gitkeep
