@@ -78,8 +78,11 @@ services:
       # Монтирование SSL сертификатов Let's Encrypt (read-only)
       # Сертификаты должны быть получены ДО запуска контейнера
       - /etc/letsencrypt:/etc/letsencrypt:ro
-      # Логи Nginx (опционально, для отладки)
-      - nginx_logs:/var/log/nginx  # Закомментировано для экономии места
+      # Логи Nginx (рекомендуется для fail2ban)
+      # Вариант 1: Монтирование на хост (для fail2ban)
+      - ./logs/nginx:/var/log/nginx
+      # Вариант 2: Named volume (альтернатива)
+      # - nginx_logs:/var/log/nginx
     depends_on:
       - app
     networks:

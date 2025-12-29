@@ -1,0 +1,61 @@
+[DEFAULT]
+# Время бана в секундах (1 час)
+bantime = 3600
+
+# Время окна для подсчета попыток (10 минут)
+findtime = 600
+
+# Количество попыток до бана
+maxretry = 10
+
+# Email для уведомлений (раскомментируйте и укажите свой email)
+# destemail = your-email@example.com
+# sendername = Fail2Ban
+# action = %(action_mwl)s
+
+# Backend для работы с логами
+backend = auto
+
+# Игнорируем локальные IP
+ignoreip = 127.0.0.1/8 ::1 172.17.0.0/16 172.18.0.0/16
+
+[sshd]
+enabled = true
+port = ssh
+logpath = %(sshd_log)s
+maxretry = 5
+bantime = 3600
+
+# Nginx rate limiting
+[nginx-limit-req]
+enabled = true
+port = http,https
+filter = nginx-limit-req
+logpath = /var/log/nginx/error.log
+maxretry = 5
+findtime = 300
+bantime = 1800
+action = iptables-multiport[name=nginx-limit-req, port="http,https", protocol=tcp]
+
+# Nginx подозрительные 404 (WordPress, PHP сканеры)
+[nginx-404]
+enabled = true
+port = http,https
+filter = nginx-404
+logpath = /var/log/nginx/access.log
+maxretry = 5
+findtime = 600
+bantime = 3600
+action = iptables-multiport[name=nginx-404, port="http,https", protocol=tcp]
+
+# Nginx боты (множественные 404/403)
+[nginx-bot]
+enabled = true
+port = http,https
+filter = nginx-bot
+logpath = /var/log/nginx/access.log
+maxretry = 10
+findtime = 300
+bantime = 7200
+action = iptables-multiport[name=nginx-bot, port="http,https", protocol=tcp]
+
