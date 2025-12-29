@@ -113,7 +113,7 @@ bash scripts/cleanup/cleanup-metrics-logs.sh 30
 bash scripts/cleanup/cleanup-metrics-logs.sh 7
 ```
 
-Подробнее: [LOG_CLEANUP.md](./LOG_CLEANUP.md)
+Подробнее: [LOG_CLEANUP.md](../cleanup/LOG_CLEANUP.md)
 
 ### Пример ротации логов
 

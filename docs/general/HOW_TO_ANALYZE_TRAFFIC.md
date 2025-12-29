@@ -5,8 +5,8 @@
 ### 1. Запустите основной скрипт анализа
 
 ```bash
-chmod +x analyze-traffic.sh
-./analyze-traffic.sh
+chmod +x scripts/analysis/analyze-traffic.sh
+./scripts/analysis/analyze-traffic.sh
 ```
 
 Этот скрипт покажет:
@@ -19,8 +19,8 @@ chmod +x analyze-traffic.sh
 ### 2. Проверьте подозрительную активность
 
 ```bash
-chmod +x check-suspicious-activity.sh
-./check-suspicious-activity.sh
+chmod +x scripts/analysis/check-suspicious-activity.sh
+./scripts/analysis/check-suspicious-activity.sh
 ```
 
 Этот скрипт найдет:
@@ -33,8 +33,8 @@ chmod +x check-suspicious-activity.sh
 ### 3. Анализ логов Nginx
 
 ```bash
-chmod +x analyze-nginx-logs.sh
-./analyze-nginx-logs.sh
+chmod +x scripts/analysis/analyze-nginx-logs.sh
+./scripts/analysis/analyze-nginx-logs.sh
 ```
 
 Покажет:
@@ -55,9 +55,8 @@ sudo apt update && sudo apt install -y iftop
 sudo iftop -i eth0
 
 # Или через скрипт
-chmod +x monitor-traffic-realtime.sh
-./monitor-traffic-realtime.sh eth0
-# Выберите опцию 1
+chmod +x scripts/monitoring/monitor-traffic-continuous.sh
+./scripts/monitoring/monitor-traffic-continuous.sh
 ```
 
 **Что смотреть:**
@@ -75,8 +74,7 @@ sudo apt update && sudo apt install -y nethogs
 sudo nethogs eth0
 
 # Или через скрипт
-./monitor-traffic-realtime.sh eth0
-# Выберите опцию 2
+./scripts/monitoring/monitor-traffic-continuous.sh
 ```
 
 **Что смотреть:**
@@ -90,8 +88,7 @@ sudo nethogs eth0
 docker stats rnr_racing_app_bogdan rnr_racing_nginx_bogdan
 
 # Или через скрипт
-./monitor-traffic-realtime.sh eth0
-# Выберите опцию 4
+docker stats rnr_racing_app_bogdan rnr_racing_nginx_bogdan
 ```
 
 **Что смотреть:**

@@ -83,6 +83,7 @@ discord-bot-new/
 - `monitor-traffic.sh` - Разовый просмотр трафика
 - `monitor-traffic-continuous.sh` - Непрерывный мониторинг
 - `view-metrics-history.sh` - История метрик
+- `analyze-metrics-file.sh` - Анализ файла метрик
 - `check-vps-traffic.sh` - Проверка трафика VPS
 - `install-vps-traffic-tools.sh` - Установка утилит
 

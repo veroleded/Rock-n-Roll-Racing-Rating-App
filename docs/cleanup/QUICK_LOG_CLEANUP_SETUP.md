@@ -26,10 +26,10 @@ sudo ./scripts/setup-log-cleanup-cron.sh
 
 ```bash
 # Очистить только логи метрик (оставить 30 дней)
-./scripts/cleanup-metrics-logs.sh 30
+./scripts/cleanup/cleanup-metrics-logs.sh 30
 
 # Очистить все логи
-./scripts/cleanup-all-logs.sh
+./scripts/cleanup/cleanup-all-logs.sh
 ```
 
 ## Проверка работы
@@ -54,6 +54,7 @@ crontab -e
 # Измените число дней в команде:
 # Было: cleanup-metrics-logs.sh 30
 # Стало: cleanup-metrics-logs.sh 60
+# Путь: scripts/cleanup/cleanup-metrics-logs.sh
 ```
 
 ### Изменить расписание

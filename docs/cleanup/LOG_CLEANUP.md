@@ -41,10 +41,10 @@ crontab -e
 
 # Добавить строки:
 # Очистка логов метрик (каждый день в 2:00)
-0 2 * * * cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup-metrics-logs.sh 30 >> logs/cleanup.log 2>&1
+0 2 * * * cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup/cleanup-metrics-logs.sh 30 >> logs/cleanup.log 2>&1
 
 # Очистка всех логов (каждую неделю в воскресенье в 3:00)
-0 3 * * 0 cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup-all-logs.sh >> logs/cleanup.log 2>&1
+0 3 * * 0 cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup/cleanup-all-logs.sh >> logs/cleanup.log 2>&1
 ```
 
 ## Ручной запуск
@@ -53,19 +53,19 @@ crontab -e
 
 ```bash
 # Очистить, оставив последние 30 дней
-./scripts/cleanup-metrics-logs.sh 30
+./scripts/cleanup/cleanup-metrics-logs.sh 30
 
 # Очистить, оставив последние 7 дней
-./scripts/cleanup-metrics-logs.sh 7
+./scripts/cleanup/cleanup-metrics-logs.sh 7
 
 # Очистить, оставив последние 90 дней
-./scripts/cleanup-metrics-logs.sh 90
+./scripts/cleanup/cleanup-metrics-logs.sh 90
 ```
 
 ### Очистка всех логов
 
 ```bash
-./scripts/cleanup-all-logs.sh
+./scripts/cleanup/cleanup-all-logs.sh
 ```
 
 ## Настройка параметров
@@ -80,10 +80,10 @@ crontab -e
 Измените число дней в команде:
 ```bash
 # Было: 30 дней
-0 2 * * * cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup-metrics-logs.sh 30
+0 2 * * * cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup/cleanup-metrics-logs.sh 30
 
 # Стало: 60 дней
-0 2 * * * cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup-metrics-logs.sh 60
+0 2 * * * cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup/cleanup-metrics-logs.sh 60
 ```
 
 ### Изменить расписание
@@ -134,7 +134,7 @@ grep "Очистка завершена" logs/cleanup.log | wc -l
 
 ```bash
 # Запустить очистку вручную для проверки
-./scripts/cleanup-metrics-logs.sh 30
+./scripts/cleanup/cleanup-metrics-logs.sh 30
 
 # Проверить результат
 ls -lh logs/metrics/
@@ -211,7 +211,7 @@ chmod +x scripts/cleanup-*.sh
 2. Проверьте путь в cron:
 ```bash
 # Используйте абсолютные пути
-/root/Rock-n-Roll-Racing-Rating-App/scripts/cleanup-metrics-logs.sh
+/root/Rock-n-Roll-Racing-Rating-App/scripts/cleanup/cleanup-metrics-logs.sh
 ```
 
 3. Проверьте логи cron:
@@ -228,7 +228,7 @@ sudo journalctl -u cron -f
 Убедитесь, что скрипты запускаются из корня проекта:
 ```bash
 # В cron задаче используйте cd
-cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup-metrics-logs.sh
+cd /root/Rock-n-Roll-Racing-Rating-App && bash scripts/cleanup/cleanup-metrics-logs.sh
 ```
 
 ### Недостаточно прав

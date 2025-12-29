@@ -127,7 +127,7 @@ sudo systemctl list-timers | grep certbot
 sudo /root/Rock-n-Roll-Racing-Rating-App/scripts/deployment/update-systemd-timers.sh
 ```
 
-**Подробная инструкция:** [UPDATE_SYSTEMD_TIMERS.md](../UPDATE_SYSTEMD_TIMERS.md)
+**Подробная инструкция:** [UPDATE_SYSTEMD_TIMERS.md](../../UPDATE_SYSTEMD_TIMERS.md)
 
 ## 🔧 Быстрое обновление
 

@@ -88,15 +88,14 @@ watch -n 5 'docker exec rnr_racing_app_bogdan netstat -i 2>/dev/null || echo "К
 
 ### Добавить мониторинг трафика
 
-Создайте скрипт `monitor-traffic.sh`:
+Используйте готовый скрипт:
 
 ```bash
-#!/bin/bash
-while true; do
-    echo "=== $(date) ==="
-    docker stats --no-stream rnr_racing_app_bogdan | tail -n 1
-    sleep 60
-done
+# Непрерывный мониторинг
+./scripts/monitoring/monitor-traffic-continuous.sh
+
+# Или разовый просмотр
+./scripts/monitoring/monitor-traffic.sh
 ```
 
 ### Настроить лимиты в Docker Compose

@@ -7,7 +7,7 @@
 ### 1. Разовый просмотр (рекомендуется для проверки)
 
 ```bash
-./monitor-traffic.sh
+./scripts/monitoring/monitor-traffic.sh
 ```
 
 Покажет:
@@ -21,7 +21,7 @@
 ### 2. Непрерывный мониторинг (для наблюдения в реальном времени)
 
 ```bash
-./monitor-traffic-continuous.sh
+./scripts/monitoring/monitor-traffic-continuous.sh
 ```
 
 Будет обновлять информацию каждые 30 секунд и показывать:
@@ -61,7 +61,7 @@ network_bytes_out_total 4611686018427387904
 1. **Проверьте подписки Redis:**
 
    ```bash
-   ./monitor-traffic.sh | grep "Redis"
+   ./scripts/monitoring/monitor-traffic.sh | grep "Redis"
    ```
 
    - Если подписок больше 5 → возможна утечка подписок
@@ -70,7 +70,7 @@ network_bytes_out_total 4611686018427387904
 2. **Проверьте переподключения Discord:**
 
    ```bash
-   ./monitor-traffic.sh | grep "Discord"
+   ./scripts/monitoring/monitor-traffic.sh | grep "Discord"
    ```
 
    - Если переподключений больше 10 → возможны проблемы с соединением
@@ -92,19 +92,19 @@ network_bytes_out_total 4611686018427387904
 ### Проверка трафика каждые 5 минут
 
 ```bash
-watch -n 300 ./monitor-traffic.sh
+watch -n 300 ./scripts/monitoring/monitor-traffic.sh
 ```
 
 ### Мониторинг с записью в файл
 
 ```bash
-./monitor-traffic-continuous.sh > traffic.log 2>&1
+./scripts/monitoring/monitor-traffic-continuous.sh > traffic.log 2>&1
 ```
 
 ### Проверка удаленного сервера
 
 ```bash
-./monitor-traffic.sh http://your-server:3000/api/metrics
+./scripts/monitoring/monitor-traffic.sh http://your-server:3000/api/metrics
 ```
 
 ## Интерпретация результатов
@@ -135,7 +135,7 @@ watch -n 300 ./monitor-traffic.sh
 
 ```bash
 # Просмотр последних записей
-./view-metrics-history.sh
+./scripts/monitoring/view-metrics-history.sh
 
 # Просмотр через API
 curl http://localhost:3000/api/metrics/history?limit=20

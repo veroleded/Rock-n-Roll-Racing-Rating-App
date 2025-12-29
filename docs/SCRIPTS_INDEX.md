@@ -25,7 +25,8 @@
 | -------------------------------------------------- | ----------------------------------------- | -------------------------- |
 | `scripts/monitoring/monitor-traffic.sh`            | Разовый просмотр текущего трафика         | Быстрая проверка состояния |
 | `scripts/monitoring/monitor-traffic-continuous.sh` | Непрерывный мониторинг в реальном времени | Наблюдение за трафиком     |
-| `scripts/monitoring/view-metrics-history.sh`       | Просмотр истории сохраненных метрик       | Анализ прошлого трафика    |
+| `scripts/monitoring/view-metrics-history.sh`       | Просмотр истории через API                | Анализ через веб-интерфейс |
+| `scripts/monitoring/analyze-metrics-file.sh`       | Анализ файла метрик напрямую              | Детальный анализ файла     |
 
 ### Скрипты для VPS сервера
 
@@ -38,6 +39,7 @@
 
 - **[METRICS_USAGE.md](./monitoring/METRICS_USAGE.md)** - Полное руководство по метрикам
 - **[METRICS_STORAGE.md](./monitoring/METRICS_STORAGE.md)** - Как сохраняются метрики
+- **[HOW_TO_ANALYZE_METRICS_FILE.md](./monitoring/HOW_TO_ANALYZE_METRICS_FILE.md)** - Анализ файла метрик
 - **[VPS_TRAFFIC_MONITORING.md](./monitoring/VPS_TRAFFIC_MONITORING.md)** - Мониторинг на уровне VPS
 
 ---
@@ -192,9 +194,9 @@ discord-bot-new/
 
 ### "Хочу проверить трафик"
 
-1. Для приложения: `./monitor-traffic.sh`
-2. Для VPS: `./check-vps-traffic.sh`
-3. История: `./view-metrics-history.sh`
+1. Для приложения: `./scripts/monitoring/monitor-traffic.sh`
+2. Для VPS: `./scripts/monitoring/check-vps-traffic.sh`
+3. История: `./scripts/monitoring/view-metrics-history.sh`
 
 ### "Хочу настроить очистку логов"
 
@@ -204,11 +206,11 @@ discord-bot-new/
 ### "Хочу установить утилиты мониторинга на VPS"
 
 1. Прочитайте: [QUICK_VPS_TRAFFIC_SETUP.md](./QUICK_VPS_TRAFFIC_SETUP.md)
-2. Запустите: `sudo ./install-vps-traffic-tools.sh`
+2. Запустите: `sudo ./scripts/monitoring/install-vps-traffic-tools.sh`
 
 ### "У меня проблема с трафиком"
 
-1. Проверьте: `./monitor-traffic.sh`
+1. Проверьте: `./scripts/monitoring/monitor-traffic.sh`
 2. Прочитайте: [DIAGNOSE_TRAFFIC_ISSUE.md](./DIAGNOSE_TRAFFIC_ISSUE.md)
 3. Исправьте: [FIX_TRAFFIC_ISSUE.md](./FIX_TRAFFIC_ISSUE.md)
 

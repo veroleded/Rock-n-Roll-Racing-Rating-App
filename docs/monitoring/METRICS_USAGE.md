@@ -156,10 +156,10 @@ docker-compose -f docker-compose.local.yml up
 
 ```bash
 # Показать текущее состояние трафика
-./monitor-traffic.sh
+./scripts/monitoring/monitor-traffic.sh
 
 # Для удаленного сервера
-./monitor-traffic.sh http://your-server:3000/api/metrics
+./scripts/monitoring/monitor-traffic.sh http://your-server:3000/api/metrics
 ```
 
 Скрипт покажет:
@@ -174,13 +174,13 @@ docker-compose -f docker-compose.local.yml up
 
 ```bash
 # Мониторинг с обновлением каждые 30 секунд
-./monitor-traffic-continuous.sh
+./scripts/monitoring/monitor-traffic-continuous.sh
 
 # С кастомным интервалом (например, каждые 10 секунд)
-./monitor-traffic-continuous.sh http://localhost:3000/api/metrics 10
+./scripts/monitoring/monitor-traffic-continuous.sh http://localhost:3000/api/metrics 10
 
 # Для удаленного сервера
-./monitor-traffic-continuous.sh http://your-server:3000/api/metrics 30
+./scripts/monitoring/monitor-traffic-continuous.sh http://your-server:3000/api/metrics 30
 ```
 
 Скрипт покажет в реальном времени:
@@ -198,7 +198,7 @@ docker-compose -f docker-compose.local.yml up
 1. **Проверьте количество подписок Redis:**
 
    ```bash
-   ./monitor-traffic.sh | grep "Redis"
+   ./scripts/monitoring/monitor-traffic.sh | grep "Redis"
    ```
 
    Если подписок больше 5, возможна утечка подписок.
@@ -206,7 +206,7 @@ docker-compose -f docker-compose.local.yml up
 2. **Проверьте переподключения Discord:**
 
    ```bash
-   ./monitor-traffic.sh | grep "Discord"
+   ./scripts/monitoring/monitor-traffic.sh | grep "Discord"
    ```
 
    Если переподключений много, возможны проблемы с соединением.
@@ -251,7 +251,7 @@ docker-compose -f docker-compose.local.yml up
 #### Через скрипт:
 
 ```bash
-./view-metrics-history.sh
+./scripts/monitoring/view-metrics-history.sh
 ```
 
 #### Через API:

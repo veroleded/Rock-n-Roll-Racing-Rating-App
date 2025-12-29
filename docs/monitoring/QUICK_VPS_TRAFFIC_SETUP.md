@@ -6,7 +6,7 @@
 
 ```bash
 # Скопируйте скрипт на сервер и запустите
-sudo ./install-vps-traffic-tools.sh
+sudo ./scripts/monitoring/install-vps-traffic-tools.sh
 ```
 
 Или вручную:
@@ -38,7 +38,7 @@ sudo systemctl start vnstat
 
 ```bash
 # Быстрая проверка (используйте скрипт)
-./check-vps-traffic.sh
+./scripts/monitoring/check-vps-traffic.sh
 
 # Или вручную:
 vnstat                    # Текущая статистика
@@ -133,7 +133,7 @@ sudo crontab -e
 - **Постоянный мониторинг:** `vnstat` - сохраняет историю, не требует постоянного запуска
 - **Поиск проблемы:** `nethogs` - показывает какой процесс использует трафик
 - **Реальное время:** `iftop` или `nload` - визуальный мониторинг
-- **Быстрая проверка:** `./check-vps-traffic.sh` - все в одном
+- **Быстрая проверка:** `./scripts/monitoring/check-vps-traffic.sh` - все в одном
 
 ## Дополнительная информация
 
