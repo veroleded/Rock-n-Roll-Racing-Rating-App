@@ -14,15 +14,17 @@
 - **API запросы**: 10 запросов/сек с burst до 20
 - **Соединения**: максимум 20 соединений с одного IP
 
-### 2. Улучшение логирования Discord бота ✅
+### 3. Улучшение логирования Discord бота ✅
 
 - Добавлен cooldown между переподключениями (1 минута)
 - Улучшено логирование с временными метками
 - Сброс счетчика переподключений при успешном подключении
 
-### 3. Скрипт анализа ночного трафика ✅
+### 4. Скрипты анализа ✅
 
-Создан `scripts/analysis/analyze-night-traffic.sh` для анализа проблемных периодов.
+Созданы скрипты для анализа:
+- `scripts/analysis/analyze-night-traffic.sh` - анализ ночного трафика
+- `scripts/analysis/analyze-nginx-attacks.sh` - анализ атак и ботов в логах Nginx
 
 ## Что нужно сделать на сервере СЕЙЧАС
 
@@ -57,13 +59,16 @@ docker logs --tail 100 rnr_racing_app_bogdan | grep -i "reconnect\|error"
 docker logs --tail 100 rnr_racing_nginx_bogdan | grep -c "GET\|POST"
 ```
 
-### 3. Запустить анализ ночного трафика
+### 3. Запустить анализ
 
 ```bash
 # Анализ вчерашней ночи
 ./scripts/analysis/analyze-night-traffic.sh
 
-# Если нужно проанализировать конкретную дату
+# Анализ атак в логах Nginx
+./scripts/analysis/analyze-nginx-attacks.sh
+
+# Анализ конкретной даты
 ./scripts/analysis/analyze-night-traffic.sh 2025-12-29
 ```
 
