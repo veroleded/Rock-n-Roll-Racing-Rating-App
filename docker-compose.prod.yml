@@ -27,7 +27,6 @@ services:
     command: >
       sh -c "npx prisma generate &&
              npm run build &&
-             npm run init-bots &&
              (npm run start & tsx src/bot/index.ts)"
 
   nginx:
