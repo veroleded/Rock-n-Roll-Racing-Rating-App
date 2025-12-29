@@ -89,8 +89,8 @@ client.once(Events.ClientReady, (c) => {
     matchNotificationService.startChecker(10000);
   })();
 
+  // Увеличиваем интервал проверки очередей до 30 секунд для снижения нагрузки
   setInterval(async () => {
-    console.log('Проверка старых очередей');
     try {
       const queuesService = new QueuesService(prisma);
       const oldQueues = await queuesService.cleanOldQueues();
@@ -125,8 +125,9 @@ client.once(Events.ClientReady, (c) => {
       }
     } catch (error) {
       console.error('Ошибка при проверке старых очередей:', error);
+      // Не прерываем выполнение при ошибке, чтобы бот продолжал работать
     }
-  }, 10000);
+  }, 30000); // Увеличено с 10 до 30 секунд для снижения нагрузки на БД
 });
 
 client.login(DISCORD_BOT_TOKEN);

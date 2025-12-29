@@ -14,6 +14,16 @@ services:
     volumes:
       - ./prisma:/app/prisma
       - ./src:/app/src
+    # Ограничения ресурсов для предотвращения утечек памяти
+    mem_limit: 1g
+    mem_reservation: 512m
+    # Health check для автоматического перезапуска при зависании
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     command: >
       sh -c "npx prisma generate &&
              npm run build &&
@@ -45,7 +55,18 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
-    command: postgres -c shared_buffers=64MB -c work_mem=4MB
+    # Ограничения ресурсов для базы данных
+    mem_limit: 512m
+    mem_reservation: 256m
+    # Настройки PostgreSQL для предотвращения исчерпания соединений
+    command: >
+      postgres
+      -c shared_buffers=128MB
+      -c work_mem=4MB
+      -c max_connections=50
+      -c connection_timeout=10
+      -c idle_in_transaction_session_timeout=30000
+      -c statement_timeout=30000
 
 networks:
   app_network:
