@@ -82,27 +82,46 @@ client.on(Events.MessageCreate, async (message: Message) => {
 
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
+let lastReconnectTime = 0;
+const RECONNECT_COOLDOWN = 60000; // 1 минута между переподключениями
 
 client.on(Events.Error, (error) => {
   console.error('[Discord Client] Ошибка:', error);
+
+  const now = Date.now();
+  // Если прошло меньше минуты с последнего переподключения, не считаем это новым переподключением
+  if (now - lastReconnectTime < RECONNECT_COOLDOWN) {
+    console.warn(
+      `[Discord Client] Слишком частые ошибки. Игнорирую ошибку (прошло ${Math.round((now - lastReconnectTime) / 1000)} сек с последнего переподключения)`
+    );
+    return;
+  }
+
   reconnectAttempts++;
+  lastReconnectTime = now;
   discordReconnects.inc();
+
+  console.log(
+    `[Discord Client] Попытка переподключения ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} (время: ${new Date().toISOString()})`
+  );
 
   if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
     console.error(
       `[Discord Client] Превышено максимальное количество попыток переподключения (${MAX_RECONNECT_ATTEMPTS}). Останавливаю бота для предотвращения утечки ресурсов.`
     );
     process.exit(1);
-  } else {
-    console.log(
-      `[Discord Client] Попытка переподключения ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`
-    );
   }
 });
 
 client.once(Events.ClientReady, (c) => {
-  console.log(`Бот готов! Вошел как ${c.user.tag}`);
+  console.log(
+    `[Discord Client] Бот готов! Вошел как ${c.user.tag} (время: ${new Date().toISOString()})`
+  );
   discordEvents.inc({ event_type: 'ready' });
+
+  // Сбрасываем счетчик переподключений при успешном подключении
+  reconnectAttempts = 0;
+  lastReconnectTime = 0;
 
   const matchNotificationService = new MatchNotificationService(client);
   matchNotificationService.initialize();
