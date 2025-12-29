@@ -275,7 +275,7 @@ export default function UserPage() {
                             </div>
                             <div className="flex flex-col items-center justify-center p-3 bg-primary/10 rounded-lg">
                               <p className="text-sm text-muted-foreground">
-                                {t('common.currentRating')}
+                                {t('common.currentRatingFull')}
                               </p>
                               <p className="text-xl font-bold text-primary">{user.stats.rating}</p>
                             </div>

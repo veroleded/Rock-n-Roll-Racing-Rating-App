@@ -71,7 +71,9 @@ export default function EditBotPage() {
             <BackButton />
             <h1 className="text-3xl font-bold tracking-tight">{t('common.editBot')}</h1>
           </div>
-          <p className="text-muted-foreground">{t('common.changeBotRating')} {bot.name}</p>
+          <p className="text-muted-foreground">
+            {t('common.changeBotRating')} {bot.name}
+          </p>
         </div>
       </div>
 
@@ -83,7 +85,9 @@ export default function EditBotPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="rating">{t('common.currentRating')}: {bot.stats?.rating}</Label>
+                <Label htmlFor="rating">
+                  {t('common.currentRatingFull')}: {bot.stats?.rating}
+                </Label>
                 <Input
                   id="rating"
                   type="number"

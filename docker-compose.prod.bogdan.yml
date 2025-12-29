@@ -79,7 +79,7 @@ services:
       # Сертификаты должны быть получены ДО запуска контейнера
       - /etc/letsencrypt:/etc/letsencrypt:ro
       # Логи Nginx (опционально, для отладки)
-      # - nginx_logs:/var/log/nginx  # Закомментировано для экономии места
+      - nginx_logs:/var/log/nginx  # Закомментировано для экономии места
     depends_on:
       - app
     networks:

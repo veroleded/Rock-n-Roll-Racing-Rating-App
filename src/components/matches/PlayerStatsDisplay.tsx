@@ -57,7 +57,10 @@ export const PlayerStatsDisplay: React.FC<PlayerStatsDisplayProps> = ({ players,
           return (
             <div key={teamId} className="space-y-2">
               <TeamScoreHeader
-                teamName={t('common.team').replace('{number}', parseInt(teamId).toString())}
+                teamName={t('common.teamWithNumber').replace(
+                  '{number}',
+                  parseInt(teamId).toString()
+                )}
                 totalScore={teamTotalScore}
                 hasWin={hasWin}
               />

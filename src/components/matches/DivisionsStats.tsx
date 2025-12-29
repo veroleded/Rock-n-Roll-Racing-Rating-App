@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useI18n } from '@/lib/i18n/context';
 import { useTheme } from 'next-themes';
 import React from 'react';
 import { MatchPlayer } from './types';
@@ -16,9 +17,9 @@ interface DivisionsStatsProps {
 }
 
 export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
+  const { t } = useI18n();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
-
 
   const sortedPlayers = [...players].sort((a, b) => a.team - b.team);
 
@@ -138,7 +139,7 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
   return (
     <Card className="shadow-sm border rounded-lg overflow-hidden">
       <CardHeader className="bg-card py-3 px-4 border-b">
-        <CardTitle className="text-xl">Статистика по дивизионам</CardTitle>
+        <CardTitle className="text-xl">{t('common.divisionsStats')}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -146,10 +147,10 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[180px] sticky left-0 z-10 shadow-sm border-r bg-card">
-                  Игрок
+                  {t('common.player')}
                 </TableHead>
                 <TableHead className={`${colors.total.bg} font-medium text-center border-r`}>
-                  Всего очков
+                  {t('common.totalPoints')}
                 </TableHead>
                 {sortedDivisions.map((division) => (
                   <TableHead key={division} className="font-medium text-center">
@@ -176,7 +177,7 @@ export const DivisionsStats: React.FC<DivisionsStatsProps> = ({ players }) => {
                             colors.team[player.team as 1 | 2 | 3].text
                           }`}
                         >
-                          {player.user.name || 'Игрок'}
+                          {player.user.name || t('common.player')}
                         </TableCell>
 
                         <TableCell className={`${colors.total.bg} font-bold text-center border-r`}>

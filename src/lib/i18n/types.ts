@@ -201,5 +201,17 @@ export interface Messages {
     changeBotRating: string;
     changeRating: string;
     enterNewRating: string;
+    statisticsCharts: string;
+    damageDealtChart: string;
+    damageReceivedChart: string;
+    moneyCollectedChart: string;
+    armorCollectedChart: string;
+    wipeoutsChart: string;
+    minesDamageChart: string;
+    damage: string;
+    money: string;
+    armor: string;
+    noData: string;
+    divisionsStats: string;
   };
 }

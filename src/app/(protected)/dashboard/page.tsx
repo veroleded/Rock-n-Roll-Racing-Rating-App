@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getRoleText, getWinRate } from '@/lib/userUtils';
 import { useI18n } from '@/lib/i18n/context';
+import { getRoleText, getWinRate } from '@/lib/userUtils';
 import { trpc } from '@/utils/trpc';
 import { format } from "date-fns";
-import { ru, enUS } from "date-fns/locale";
+import { enUS, ru } from 'date-fns/locale';
 import { ChartPie, Edit, Loader2, Trophy, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -147,13 +147,17 @@ export default function DashboardPage() {
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-xs sm:text-sm font-medium">{t('common.losses')}</p>
+                                <p className="text-xs sm:text-sm font-medium">
+                                  {t('common.losses')}
+                                </p>
                                 <p className="text-lg sm:text-xl font-bold text-red-500">
                                   {user.stats.losses}
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-xs sm:text-sm font-medium">{t('common.draws')}</p>
+                                <p className="text-xs sm:text-sm font-medium">
+                                  {t('common.draws')}
+                                </p>
                                 <p className="text-lg sm:text-xl font-bold text-yellow-500">
                                   {user.stats.draws}
                                 </p>
@@ -167,13 +171,16 @@ export default function DashboardPage() {
                                 </p>
                                 <div className="flex items-center gap-2 text-xs">
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-green-500 rounded-sm"></div> {t('common.wins')}
+                                    <div className="w-3 h-3 bg-green-500 rounded-sm"></div>{' '}
+                                    {t('common.wins')}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-red-500 rounded-sm"></div> {t('common.losses')}
+                                    <div className="w-3 h-3 bg-red-500 rounded-sm"></div>{' '}
+                                    {t('common.losses')}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div> {t('common.draws')}
+                                    <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div>{' '}
+                                    {t('common.draws')}
                                   </span>
                                 </div>
                               </div>
@@ -248,17 +255,25 @@ export default function DashboardPage() {
                         <div className="p-4">
                           <div className="grid grid-cols-3 gap-2 sm:gap-4">
                             <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-green-500/10 rounded-lg">
-                              <p className="text-xs sm:text-sm text-muted-foreground">{t('common.maxRating')}</p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">
+                                {t('common.maxRating')}
+                              </p>
                               <p className="text-lg sm:text-xl font-bold text-green-500">
                                 {user.stats.maxRating || user.stats.rating}
                               </p>
                             </div>
                             <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-primary/10 rounded-lg">
-                              <p className="text-xs sm:text-sm text-muted-foreground">{t('common.currentRating')}</p>
-                              <p className="text-lg sm:text-xl font-bold text-primary">{user.stats.rating}</p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">
+                                {t('common.currentRatingFull')}
+                              </p>
+                              <p className="text-lg sm:text-xl font-bold text-primary">
+                                {user.stats.rating}
+                              </p>
                             </div>
                             <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-red-500/10 rounded-lg">
-                              <p className="text-xs sm:text-sm text-muted-foreground">{t('common.minRating')}</p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">
+                                {t('common.minRating')}
+                              </p>
                               <p className="text-lg sm:text-xl font-bold text-red-500">
                                 {user.stats.minRating || 0}
                               </p>
@@ -298,13 +313,17 @@ export default function DashboardPage() {
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-xs sm:text-sm font-medium">{t('common.losses')}</p>
+                                <p className="text-xs sm:text-sm font-medium">
+                                  {t('common.losses')}
+                                </p>
                                 <p className="text-lg sm:text-xl font-bold text-red-500">
                                   {user.stats.lossesDivisions || 0}
                                 </p>
                               </div>
                               <div className="space-y-1 text-center">
-                                <p className="text-xs sm:text-sm font-medium">{t('common.draws')}</p>
+                                <p className="text-xs sm:text-sm font-medium">
+                                  {t('common.draws')}
+                                </p>
                                 <p className="text-lg sm:text-xl font-bold text-yellow-500">
                                   {user.stats.drawsDivisions || 0}
                                 </p>
@@ -318,13 +337,16 @@ export default function DashboardPage() {
                                 </p>
                                 <div className="flex items-center gap-2 text-xs">
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-green-500 rounded-sm"></div> {t('common.wins')}
+                                    <div className="w-3 h-3 bg-green-500 rounded-sm"></div>{' '}
+                                    {t('common.wins')}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-red-500 rounded-sm"></div> {t('common.losses')}
+                                    <div className="w-3 h-3 bg-red-500 rounded-sm"></div>{' '}
+                                    {t('common.losses')}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div> {t('common.draws')}
+                                    <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div>{' '}
+                                    {t('common.draws')}
                                   </span>
                                 </div>
                               </div>

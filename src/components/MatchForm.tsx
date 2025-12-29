@@ -648,7 +648,12 @@ export function MatchForm({ editMatchId }: MatchFormProps) {
                       )}
                     >
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold">{t('common.team').replace('{number}', (teamIndex + 1).toString())}</h3>
+                        <h3 className="text-lg font-semibold">
+                          {t('common.teamWithNumber').replace(
+                            '{number}',
+                            (teamIndex + 1).toString()
+                          )}
+                        </h3>
                         {!hasRealPlayer && team.players.some((p) => p.id) && (
                           <div className="text-sm text-destructive">
                             {t('common.atLeastOneRealPlayer')}

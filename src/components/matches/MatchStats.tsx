@@ -209,7 +209,7 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
   return (
     <Card className={`border ${cardStyles.border} ${cardStyles.shadow} rounded-lg overflow-hidden`}>
       <CardHeader className={`${cardStyles.headerBg} py-3 px-4`}>
-        <CardTitle className="text-xl">Графики статистики</CardTitle>
+        <CardTitle className="text-xl">{t('common.statisticsCharts')}</CardTitle>
       </CardHeader>
       <CardContent className="pt-4 pb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -217,7 +217,9 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
           >
-            <h3 className="text-lg font-medium mb-3 text-primary">Нанесенный урон</h3>
+            <h3 className="text-lg font-medium mb-3 text-primary">
+              {t('common.damageDealtChart')}
+            </h3>
             <ResponsiveContainer width="100%" height="91%">
               <BarChart data={damageData} barGap={8} margin={{ top: 20 }}>
                 <defs>
@@ -252,7 +254,12 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                   tickLine={{ stroke: colors.grid }}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ opacity: 0.15 }} />
-                <Bar dataKey="damage" name="Урон" radius={[5, 5, 0, 0]} maxBarSize={60}>
+                <Bar
+                  dataKey="damage"
+                  name={t('common.damage')}
+                  radius={[5, 5, 0, 0]}
+                  maxBarSize={60}
+                >
                   <LabelList dataKey="damage" {...labelListProps} />
                   {damageData.map((entry, index) => {
                     let fillGradient;
@@ -287,7 +294,9 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
           >
-            <h3 className="text-lg font-medium mb-3 text-primary">Полученный урон</h3>
+            <h3 className="text-lg font-medium mb-3 text-primary">
+              {t('common.damageReceivedChart')}
+            </h3>
             <ResponsiveContainer width="100%" height="91%">
               <BarChart data={damageTakenData} barGap={8} margin={{ top: 20 }}>
                 <defs>
@@ -322,7 +331,12 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                   tickLine={{ stroke: colors.grid }}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ opacity: 0.15 }} />
-                <Bar dataKey="damage" name="Урон" radius={[5, 5, 0, 0]} maxBarSize={60}>
+                <Bar
+                  dataKey="damage"
+                  name={t('common.damage')}
+                  radius={[5, 5, 0, 0]}
+                  maxBarSize={60}
+                >
                   <LabelList dataKey="damage" {...labelListProps} />
                   {damageTakenData.map((entry, index) => {
                     let fillGradient;
@@ -357,7 +371,9 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
           >
-            <h3 className="text-lg font-medium mb-3 text-primary">Собранные деньги</h3>
+            <h3 className="text-lg font-medium mb-3 text-primary">
+              {t('common.moneyCollectedChart')}
+            </h3>
             <ResponsiveContainer width="100%" height="91%">
               <BarChart data={moneyData} barGap={8} margin={{ top: 20 }}>
                 <defs>
@@ -392,7 +408,7 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                   tickLine={{ stroke: colors.grid }}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ opacity: 0.15 }} />
-                <Bar dataKey="money" name="Деньги" radius={[5, 5, 0, 0]} maxBarSize={60}>
+                <Bar dataKey="money" name={t('common.money')} radius={[5, 5, 0, 0]} maxBarSize={60}>
                   <LabelList dataKey="money" {...labelListProps} />
                   {moneyData.map((entry, index) => {
                     let fillGradient;
@@ -427,7 +443,9 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
           >
-            <h3 className="text-lg font-medium mb-3 text-primary">Собранные аптечки</h3>
+            <h3 className="text-lg font-medium mb-3 text-primary">
+              {t('common.armorCollectedChart')}
+            </h3>
             <ResponsiveContainer width="100%" height="91%">
               <BarChart data={armorData} barGap={8} margin={{ top: 20 }}>
                 <defs>
@@ -462,7 +480,7 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                   tickLine={{ stroke: colors.grid }}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ opacity: 0.15 }} />
-                <Bar dataKey="armor" name="Броня" radius={[5, 5, 0, 0]} maxBarSize={60}>
+                <Bar dataKey="armor" name={t('common.armor')} radius={[5, 5, 0, 0]} maxBarSize={60}>
                   <LabelList dataKey="armor" {...labelListProps} />
                   {armorData.map((entry, index) => {
                     let fillGradient;
@@ -497,7 +515,7 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
           >
-            <h3 className="text-lg font-medium mb-3 text-primary">Вайпауты</h3>
+            <h3 className="text-lg font-medium mb-3 text-primary">{t('common.wipeoutsChart')}</h3>
             <ResponsiveContainer width="100%" height="91%">
               <BarChart data={wipeoutsData} barGap={8} margin={{ top: 20 }}>
                 <defs>
@@ -532,7 +550,12 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                   tickLine={{ stroke: colors.grid }}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ opacity: 0.15 }} />
-                <Bar dataKey="wipeouts" name="Вайпауты" radius={[5, 5, 0, 0]} maxBarSize={60}>
+                <Bar
+                  dataKey="wipeouts"
+                  name={t('common.wipeouts')}
+                  radius={[5, 5, 0, 0]}
+                  maxBarSize={60}
+                >
                   <LabelList dataKey="wipeouts" {...labelListProps} />
                   {wipeoutsData.map((entry, index) => {
                     let fillGradient;
@@ -567,7 +590,9 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
             className={`h-80 p-4 rounded-lg border ${cardStyles.chartBorder} ${cardStyles.chartBg}`}
             style={{ backgroundColor: colors.chart.background, borderColor: colors.chart.border }}
           >
-            <h3 className="text-lg font-medium mb-3 text-primary">Урон от мин</h3>
+            <h3 className="text-lg font-medium mb-3 text-primary">
+              {t('common.minesDamageChart')}
+            </h3>
             <ResponsiveContainer width="100%" height="91%">
               <PieChart>
                 <defs>
@@ -588,7 +613,7 @@ export const MatchStats: React.FC<MatchStatsProps> = ({ players }) => {
                   data={
                     minesDamageData.length > 0
                       ? minesDamageData
-                      : [{ name: 'Нет данных', value: 1, team: 0 }]
+                      : [{ name: t('common.noData'), value: 1, team: 0 }]
                   }
                   cx="50%"
                   cy="50%"
