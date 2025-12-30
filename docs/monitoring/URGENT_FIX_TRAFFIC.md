@@ -28,6 +28,23 @@
 
 ## Что нужно сделать на сервере СЕЙЧАС
 
+### 0. Отключить системный nginx (если запущен)
+
+Если на сервере запущен системный nginx (не в Docker), отключите его:
+
+```bash
+cd /root/Rock-n-Roll-Racing-Rating-App
+sudo ./scripts/security/disable-system-nginx.sh
+```
+
+Или вручную:
+```bash
+sudo systemctl stop nginx
+sudo systemctl disable nginx
+```
+
+Подробнее: `docs/deployment/DISABLE_SYSTEM_NGINX.md`
+
 ### 1. Обновить Nginx конфигурацию
 
 ```bash
