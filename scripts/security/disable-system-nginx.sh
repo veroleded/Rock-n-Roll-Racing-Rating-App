@@ -40,6 +40,42 @@ systemctl disable nginx 2>/dev/null || echo "   ⚠️  Не удалось от
 echo "   ✅ Автозапуск отключен"
 
 echo ""
+echo "🔍 3.5. Проверка оставшихся процессов nginx..."
+NGINX_PIDS=$(pgrep nginx || echo "")
+if [ ! -z "$NGINX_PIDS" ]; then
+    echo "   ⚠️  Найдены процессы nginx: $NGINX_PIDS"
+    echo "   Завершаю процессы..."
+    echo "$NGINX_PIDS" | while read pid; do
+        if [ ! -z "$pid" ]; then
+            kill -TERM "$pid" 2>/dev/null || true
+        fi
+    done
+    sleep 2
+    
+    # Проверяем еще раз
+    REMAINING=$(pgrep nginx || echo "")
+    if [ ! -z "$REMAINING" ]; then
+        echo "   ⚠️  Некоторые процессы не завершились, принудительное завершение..."
+        echo "$REMAINING" | while read pid; do
+            if [ ! -z "$pid" ]; then
+                kill -KILL "$pid" 2>/dev/null || true
+            fi
+        done
+        sleep 1
+    fi
+    
+    FINAL_CHECK=$(pgrep nginx || echo "")
+    if [ -z "$FINAL_CHECK" ]; then
+        echo "   ✅ Все процессы nginx завершены"
+    else
+        echo "   ⚠️  Остались процессы: $FINAL_CHECK"
+        echo "   Запустите: sudo ./scripts/security/kill-nginx-processes.sh"
+    fi
+else
+    echo "   ✅ Процессы nginx не найдены"
+fi
+
+echo ""
 echo "🔍 4. Проверка занятости портов 80 и 443..."
 if command -v netstat &> /dev/null; then
     PORT_80=$(netstat -tuln | grep ':80 ' | grep LISTEN || echo "")

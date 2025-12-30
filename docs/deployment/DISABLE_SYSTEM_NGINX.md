@@ -22,7 +22,15 @@ sudo systemctl stop nginx
 # 2. Отключить автозапуск
 sudo systemctl disable nginx
 
-# 3. Проверить статус
+# 3. Если процессы все еще работают, завершить их
+sudo ./scripts/security/kill-nginx-processes.sh
+
+# Или вручную:
+sudo pkill nginx
+# Если не помогло:
+sudo killall -9 nginx
+
+# 4. Проверить статус
 sudo systemctl status nginx
 ```
 

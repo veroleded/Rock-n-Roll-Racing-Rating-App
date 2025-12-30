@@ -73,16 +73,15 @@ services:
       - '80:80'   # HTTP (будет редиректить на HTTPS)
       - '443:443' # HTTPS
     volumes:
-      # Конфигурация Nginx
-      - ./nginx.bogdan.conf:/etc/nginx/conf.d/default.conf
+      # Главный конфигурационный файл nginx (с rate limiting zones)
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Конфигурация виртуального хоста
+      - ./nginx.bogdan.conf:/etc/nginx/conf.d/default.conf:ro
       # Монтирование SSL сертификатов Let's Encrypt (read-only)
       # Сертификаты должны быть получены ДО запуска контейнера
       - /etc/letsencrypt:/etc/letsencrypt:ro
       # Логи Nginx (рекомендуется для fail2ban)
-      # Вариант 1: Монтирование на хост (для fail2ban)
       - ./logs/nginx:/var/log/nginx
-      # Вариант 2: Named volume (альтернатива)
-      # - nginx_logs:/var/log/nginx
     depends_on:
       - app
     networks:
