@@ -6,6 +6,9 @@ ENV NODE_ENV=production
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Установка netcat для проверки доступности PostgreSQL
+RUN apk add --no-cache netcat-openbsd
+
 RUN npm install -g tsx
 
 COPY package*.json ./

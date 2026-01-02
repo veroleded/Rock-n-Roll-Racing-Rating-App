@@ -25,8 +25,16 @@ services:
       retries: 3
       start_period: 40s
     command: >
-      sh -c "npx prisma generate &&
+      sh -c "echo 'Ожидание готовности PostgreSQL...' &&
+             until nc -z postgres 5432; do
+               echo 'PostgreSQL недоступен - ждем...'
+               sleep 2
+             done &&
+             echo 'PostgreSQL готов!' &&
+             npx prisma generate &&
              npm run build &&
+             echo 'Инициализация ботов...' &&
+             echo 'Запуск приложения и бота...' &&
              (npm run start & tsx src/bot/index.ts)"
 
   nginx:
@@ -63,7 +71,6 @@ services:
       -c shared_buffers=128MB
       -c work_mem=4MB
       -c max_connections=50
-      -c connection_timeout=10
       -c idle_in_transaction_session_timeout=30000
       -c statement_timeout=30000
 
