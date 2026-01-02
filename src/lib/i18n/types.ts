@@ -92,6 +92,9 @@ export interface Messages {
     fileUploaded: string;
     selectFileToUpload: string;
     uploadFailed: string;
+    fileDeleted: string;
+    deleteFailed: string;
+    confirmDeleteFile: string;
     loginTitle: string;
     loginDescription: string;
     loginError: string;

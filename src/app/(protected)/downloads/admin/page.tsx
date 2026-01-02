@@ -19,12 +19,14 @@ import {
   Loader2,
   Upload,
   X,
+  Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ru, enUS } from "date-fns/locale";
+import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 
 function formatFileSize(bytes: number, locale: 'ru' | 'en'): string {
   if (bytes === 0) return locale === 'ru' ? "0 Б" : "0 B";
@@ -62,12 +64,44 @@ export default function DownloadsAdminPage() {
     },
   });
 
+  const deleteMutation = trpc.downloads.delete.useMutation({
+    onSuccess: () => {
+      toast({
+        title: t('common.success'),
+        description: t('common.fileDeleted'),
+      });
+      refetch();
+      setDeleteDialogOpen(false);
+      setFileToDelete(null);
+    },
+    onError: (error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message || t('common.deleteFailed'),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteClick = (fileId: string, fileName: string) => {
+    setFileToDelete({ id: fileId, fileName });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (fileToDelete) {
+      deleteMutation.mutate({ id: fileToDelete.id });
+    }
+  };
+
   const [selectedGameFile, setSelectedGameFile] = useState<File | null>(null);
   const [selectedEmulatorFile, setSelectedEmulatorFile] = useState<File | null>(
     null
   );
   const gameFileInputRef = useRef<HTMLInputElement>(null);
   const emulatorFileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<{ id: string; fileName: string } | null>(null);
 
   const isAdmin = session?.user?.role === "ADMIN";
 
@@ -152,17 +186,30 @@ export default function DownloadsAdminPage() {
             <CardContent className="space-y-4">
               {gameFile && (
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm font-medium">{t('common.currentFile')}:</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {gameFile.fileName} ({formatFileSize(gameFile.fileSize, locale)})
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t('common.uploaded')}:{" "}
-                    {formatDistanceToNow(new Date(gameFile.uploadedAt), {
-                      addSuffix: true,
-                      locale: dateLocale,
-                    })}
-                  </p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{t('common.currentFile')}:</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {gameFile.fileName} ({formatFileSize(gameFile.fileSize, locale)})
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t('common.uploaded')}:{" "}
+                        {formatDistanceToNow(new Date(gameFile.uploadedAt), {
+                          addSuffix: true,
+                          locale: dateLocale,
+                        })}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteClick(gameFile.id, gameFile.fileName)}
+                      disabled={deleteMutation.isLoading}
+                      className="shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -235,18 +282,31 @@ export default function DownloadsAdminPage() {
             <CardContent className="space-y-4">
               {emulatorFile && (
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm font-medium">{t('common.currentFile')}:</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {emulatorFile.fileName} (
-                    {formatFileSize(emulatorFile.fileSize, locale)})
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t('common.uploaded')}:{" "}
-                    {formatDistanceToNow(new Date(emulatorFile.uploadedAt), {
-                      addSuffix: true,
-                      locale: dateLocale,
-                    })}
-                  </p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{t('common.currentFile')}:</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {emulatorFile.fileName} (
+                        {formatFileSize(emulatorFile.fileSize, locale)})
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t('common.uploaded')}:{" "}
+                        {formatDistanceToNow(new Date(emulatorFile.uploadedAt), {
+                          addSuffix: true,
+                          locale: dateLocale,
+                        })}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteClick(emulatorFile.id, emulatorFile.fileName)}
+                      disabled={deleteMutation.isLoading}
+                      className="shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -306,6 +366,19 @@ export default function DownloadsAdminPage() {
           </Card>
         </div>
       )}
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        isLoading={deleteMutation.isLoading}
+        title={t('common.confirmDelete')}
+        description={
+          fileToDelete
+            ? `${t('common.confirmDeleteFile')} "${fileToDelete.fileName}"?`
+            : t('common.confirmDeleteFile')
+        }
+      />
     </div>
   );
 }

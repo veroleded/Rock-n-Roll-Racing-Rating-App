@@ -101,4 +101,56 @@ export const downloadsRouter = router({
         });
       }
     }),
+
+  // Удалить файл (только для админов)
+  delete: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Находим файл в базе данных
+        const downloadFile = await ctx.prisma.downloadFile.findUnique({
+          where: {
+            id: input.id,
+          },
+        });
+
+        if (!downloadFile) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Файл не найден',
+          });
+        }
+
+        // Удаляем физический файл
+        try {
+          const filePath = path.join(UPLOAD_DIR, downloadFile.filePath);
+          await fs.unlink(filePath);
+        } catch (error) {
+          console.error('Error deleting file from disk:', error);
+          // Продолжаем удаление записи из БД, даже если файл не найден на диске
+        }
+
+        // Удаляем запись из базы данных
+        await ctx.prisma.downloadFile.delete({
+          where: {
+            id: input.id,
+          },
+        });
+
+        return { success: true };
+      } catch (error) {
+        console.error('Error deleting file:', error);
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Не удалось удалить файл',
+        });
+      }
+    }),
 });
