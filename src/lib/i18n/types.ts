@@ -95,6 +95,8 @@ export interface Messages {
     fileDeleted: string;
     deleteFailed: string;
     confirmDeleteFile: string;
+    fileTooLarge: string;
+    fileReadError: string;
     loginTitle: string;
     loginDescription: string;
     loginError: string;

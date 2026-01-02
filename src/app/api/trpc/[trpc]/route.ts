@@ -34,11 +34,25 @@ const handler = async (req: Request) => {
       createContext: () => createTRPCContext(),
     });
 
-    // Измеряем размер ответа
-    const responseClone = response.clone();
-    const responseBody = await responseClone.text();
-    const responseSize = new TextEncoder().encode(responseBody).length;
-    networkBytesOut.inc(responseSize);
+    // Измеряем размер ответа (только для небольших ответов, чтобы не загружать большие файлы в память)
+    let responseSize = 0;
+    const contentLength = response.headers.get('content-length');
+    if (contentLength) {
+      responseSize = parseInt(contentLength, 10);
+    } else {
+      // Для небольших ответов читаем тело для точного измерения
+      const responseClone = response.clone();
+      try {
+        const responseBody = await responseClone.text();
+        responseSize = new TextEncoder().encode(responseBody).length;
+      } catch (error) {
+        // Если не удалось прочитать (например, большой файл), используем приблизительную оценку
+        console.warn('Could not read response body for metrics:', error);
+      }
+    }
+    if (responseSize > 0) {
+      networkBytesOut.inc(responseSize);
+    }
 
     // Записываем метрики
     const status = response.status;

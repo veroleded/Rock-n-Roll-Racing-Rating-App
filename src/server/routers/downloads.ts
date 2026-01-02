@@ -47,8 +47,31 @@ export const downloadsRouter = router({
       try {
         await ensureUploadDir();
 
+        // Проверяем размер base64 данных перед декодированием
+        const base64Size = input.fileData.length;
+        // Base64 увеличивает размер примерно на 33%, поэтому реальный размер файла будет меньше
+        // Но для безопасности проверяем сам base64 размер
+        const MAX_BASE64_SIZE = 550 * 1024 * 1024; // ~550MB base64 = ~400MB файл
+
+        if (base64Size > MAX_BASE64_SIZE) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Файл слишком большой. Максимальный размер: 400MB',
+          });
+        }
+
         // Декодируем base64 данные
-        const fileBuffer = Buffer.from(input.fileData, 'base64');
+        let fileBuffer: Buffer;
+        try {
+          fileBuffer = Buffer.from(input.fileData, 'base64');
+        } catch (error) {
+          console.error('Error decoding base64:', error);
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Неверный формат данных файла',
+          });
+        }
+
         const fileSize = fileBuffer.length;
 
         // Находим существующий файл того же типа

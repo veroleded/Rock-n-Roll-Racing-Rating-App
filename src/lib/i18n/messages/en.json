@@ -93,6 +93,8 @@
     "fileDeleted": "File deleted successfully",
     "deleteFailed": "Failed to delete file",
     "confirmDeleteFile": "Are you sure you want to delete this file? This action cannot be undone.",
+    "fileTooLarge": "File is too large. Maximum size: 400MB",
+    "fileReadError": "Error reading file. Please try again.",
     "loginTitle": "Rock'n'Roll Racing",
     "loginDescription": "Sign in with Discord to access game statistics",
     "loginError": "Login error",

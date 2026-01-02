@@ -31,6 +31,8 @@ services:
       - NEXT_PUBLIC_VERSION=bogdan
       # Переопределяем переменные окружения для HTTPS
       - NODE_ENV=production
+      # Увеличиваем лимит памяти Node.js для обработки больших файлов
+      - NODE_OPTIONS=--max-old-space-size=2048
     restart: always
     depends_on:
       postgres:

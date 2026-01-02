@@ -135,11 +135,41 @@ export default function DownloadsAdminPage() {
       return;
     }
 
-    // Читаем файл как base64
+    // Проверяем размер файла (максимум 400MB для base64, чтобы не превысить лимит 500MB с учетом увеличения размера)
+    const MAX_FILE_SIZE = 400 * 1024 * 1024; // 400MB
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: t('common.error'),
+        description: t('common.fileTooLarge'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Читаем файл как base64 с обработкой ошибок
     const reader = new FileReader();
+    
+    reader.onerror = () => {
+      toast({
+        title: t('common.error'),
+        description: t('common.fileReadError'),
+        variant: "destructive",
+      });
+    };
+
     reader.onload = async (e) => {
-      const base64Data = (e.target?.result as string).split(",")[1]; // Убираем префикс data:...
       try {
+        const result = e.target?.result as string;
+        if (!result) {
+          throw new Error('Failed to read file');
+        }
+        
+        const base64Data = result.split(",")[1]; // Убираем префикс data:...
+        
+        if (!base64Data) {
+          throw new Error('Failed to extract base64 data');
+        }
+
         await uploadMutation.mutateAsync({
           type,
           fileName: file.name,
@@ -147,8 +177,10 @@ export default function DownloadsAdminPage() {
         });
       } catch (error) {
         // Ошибка уже обработана в onError
+        console.error('Upload error:', error);
       }
     };
+    
     reader.readAsDataURL(file);
   };
 
