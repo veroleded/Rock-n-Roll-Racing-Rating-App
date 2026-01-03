@@ -10,7 +10,34 @@ export class QueuesService {
    * Поддерживает оба формата: 'high-mmr' и 'high_mmr'
    */
   private hasHighMmr(channelName: string): boolean {
-    return channelName.includes('high-mmr') || channelName.includes('high_mmr');
+    const normalized = channelName.toLowerCase();
+    return normalized.includes('high-mmr') || normalized.includes('high_mmr');
+  }
+
+  /**
+   * Определяет тип игры на основе названия канала
+   * @param channelName Название канала Discord
+   * @returns Тип игры (GameMode)
+   * @throws TRPCError если тип игры не может быть определен
+   */
+  private getGameTypeFromChannelName(channelName: string): GameMode {
+    // Нормализуем название канала для проверки (приводим к нижнему регистру)
+    const normalizedChannelName = channelName.toLowerCase();
+    
+    // Проверяем в порядке от более специфичных к менее специфичным
+    if (normalizedChannelName.includes('2x2x2')) {
+      return 'TWO_VS_TWO_VS_TWO';
+    } else if (normalizedChannelName.includes('3x3')) {
+      return this.hasHighMmr(normalizedChannelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
+    } else if (normalizedChannelName.includes('2x2')) {
+      return this.hasHighMmr(normalizedChannelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
+    } else {
+      console.error(`[QueuesService] Не удалось определить тип игры для канала: "${channelName}" (нормализованное: "${normalizedChannelName}")`);
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: `Неверный тип игры. Название канала: "${channelName}"`,
+      });
+    }
   }
 
   private getRequiredPlayersCount(gameType: GameMode): number {
@@ -27,20 +54,8 @@ export class QueuesService {
   }
 
   async addPlayerToQueue(userId: string, channelName: string) {
-    let gameType: GameMode;
-    // Проверяем в порядке от более специфичных к менее специфичным
-    if (channelName.includes('2x2x2')) {
-      gameType = 'TWO_VS_TWO_VS_TWO';
-    } else if (channelName.includes('3x3')) {
-      gameType = this.hasHighMmr(channelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
-    } else if (channelName.includes('2x2')) {
-      gameType = this.hasHighMmr(channelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
-    } else {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Неверный тип игры',
-      });
-    }
+    const gameType = this.getGameTypeFromChannelName(channelName);
+    console.log(`[QueuesService] Определен тип игры: ${gameType} для канала: "${channelName}"`);
 
     let queue = await this.prisma.queue.findFirst({
       where: {
@@ -106,20 +121,7 @@ export class QueuesService {
   }
 
   async addBotToQueue(channelName: string) {
-    let gameType: GameMode;
-    // Проверяем в порядке от более специфичных к менее специфичным
-    if (channelName.includes('2x2x2')) {
-      gameType = 'TWO_VS_TWO_VS_TWO';
-    } else if (channelName.includes('3x3')) {
-      gameType = this.hasHighMmr(channelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
-    } else if (channelName.includes('2x2')) {
-      gameType = this.hasHighMmr(channelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
-    } else {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Неверный тип игры',
-      });
-    }
+    const gameType = this.getGameTypeFromChannelName(channelName);
 
     let queue = await this.prisma.queue.findFirst({
       where: {
@@ -174,20 +176,7 @@ export class QueuesService {
   }
 
   async removePlayerFromQueue(userId: string, channelName: string) {
-    let gameType: GameMode;
-    // Проверяем в порядке от более специфичных к менее специфичным
-    if (channelName.includes('2x2x2')) {
-      gameType = 'TWO_VS_TWO_VS_TWO';
-    } else if (channelName.includes('3x3')) {
-      gameType = this.hasHighMmr(channelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
-    } else if (channelName.includes('2x2')) {
-      gameType = this.hasHighMmr(channelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
-    } else {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Неверный тип игры',
-      });
-    }
+    const gameType = this.getGameTypeFromChannelName(channelName);
 
     let queue = await this.prisma.queue.findFirst({
       where: {
@@ -245,20 +234,7 @@ export class QueuesService {
   }
 
   async removeBotFromQueue(channelName: string) {
-    let gameType: GameMode;
-    // Проверяем в порядке от более специфичных к менее специфичным
-    if (channelName.includes('2x2x2')) {
-      gameType = 'TWO_VS_TWO_VS_TWO';
-    } else if (channelName.includes('3x3')) {
-      gameType = this.hasHighMmr(channelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
-    } else if (channelName.includes('2x2')) {
-      gameType = this.hasHighMmr(channelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
-    } else {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Неверный тип игры',
-      });
-    }
+    const gameType = this.getGameTypeFromChannelName(channelName);
 
     let queue = await this.prisma.queue.findFirst({
       where: {
@@ -399,20 +375,7 @@ export class QueuesService {
   }
 
   async cleanQueueByChannel(channelName: string) {
-    let gameType: GameMode;
-    // Проверяем в порядке от более специфичных к менее специфичным
-    if (channelName.includes('2x2x2')) {
-      gameType = 'TWO_VS_TWO_VS_TWO';
-    } else if (channelName.includes('3x3')) {
-      gameType = this.hasHighMmr(channelName) ? 'THREE_VS_THREE_HIGH_MMR' : 'THREE_VS_THREE';
-    } else if (channelName.includes('2x2')) {
-      gameType = this.hasHighMmr(channelName) ? 'TWO_VS_TWO_HIGH_MMR' : 'TWO_VS_TWO';
-    } else {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Неверный тип игры',
-      });
-    }
+    const gameType = this.getGameTypeFromChannelName(channelName);
 
     const queue = await this.prisma.queue.findFirst({
       where: {
