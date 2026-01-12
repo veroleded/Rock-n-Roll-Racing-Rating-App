@@ -61,9 +61,19 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       if (!account) return false;
 
-      const dbUser = await prisma.user.findUnique({
-        where: { id: user.id },
-      });
+      // ВАЖНО: не даём ошибкам БД "протекать" в redirect header (это ломает Headers.set)
+      // и не роняем auth-route, если Postgres временно недоступен (recovery mode).
+      let dbUser: { hasJoinedBot: boolean } | null = null;
+      try {
+        dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { hasJoinedBot: true },
+        });
+      } catch (error) {
+        console.error('Error in signIn callback (DB unavailable?):', error);
+        // Безопаснее отказать во входе, чем делать редирект с "сырым" текстом ошибки.
+        return false;
+      }
 
       if (!dbUser || !dbUser.hasJoinedBot) {
         return '/join-bot';
@@ -95,23 +105,32 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: token.id as string },
-            include: { stats: true },
-          });
+        // Базовые поля берём из JWT, чтобы сессия не падала при проблемах с БД.
+        const tokenId = token.id as string | undefined;
+        session.user.id = tokenId ?? session.user.id;
+        session.user.role = (token.role as string | undefined) ?? session.user.role ?? 'PLAYER';
+        session.user.hasJoinedBot = Boolean(
+          (token as unknown as { hasJoinedBot?: boolean }).hasJoinedBot ?? session.user.hasJoinedBot ?? false,
+        );
+        session.user.stats = null;
 
-          if (!dbUser) {
-            throw new Error('User not found');
+        // Статы подтягиваем из БД best-effort (не роняем auth, если Postgres в recovery mode).
+        if (tokenId) {
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { id: tokenId },
+              include: { stats: true },
+            });
+
+            if (dbUser) {
+              session.user.id = dbUser.id;
+              session.user.role = dbUser.role;
+              session.user.stats = dbUser.stats;
+              session.user.hasJoinedBot = dbUser.hasJoinedBot;
+            }
+          } catch (error) {
+            console.error('Error in session callback (DB unavailable?):', error);
           }
-
-          session.user.id = dbUser.id;
-          session.user.role = dbUser.role;
-          session.user.stats = dbUser.stats;
-          session.user.hasJoinedBot = dbUser.hasJoinedBot;
-        } catch (error) {
-          console.error('Error in session callback:', error);
-          throw error;
         }
       }
       return session;
