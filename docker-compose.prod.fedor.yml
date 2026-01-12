@@ -75,10 +75,13 @@ services:
       - app_network
     command: postgres -c shared_buffers=64MB -c work_mem=4MB
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      # Важно: без -U pg_isready использует текущего пользователя (часто root),
+      # что приводит к спаму "role root does not exist" в логах.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-rnr_racing_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   redis:
     image: redis:7-alpine
