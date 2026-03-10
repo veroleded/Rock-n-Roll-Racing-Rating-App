@@ -3,6 +3,7 @@ node_modules
 npm-debug.log
 yarn-debug.log
 yarn-error.log
+.pnpm-store
 
 # Сборка
 .next
@@ -12,18 +13,25 @@ build
 
 # Временные файлы
 .DS_Store
+.env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.development*
+.env.test*
+.env.production*
 
 # Кеши
 .npm
 .cache
+.turbo
 
-# Логи
+# Логи и тесты
 logs
 *.log
+coverage
+.nyc_output
+__tests__
+*.test.*
+*.spec.*
 
 # Прочее
 .vscode
@@ -34,4 +42,7 @@ README.md
 LICENSE
 docker-compose*
 Dockerfile*
-nginx* 
+nginx*
+postgres_volume
+test-data
+*.md 

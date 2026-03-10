@@ -24,18 +24,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    command: >
-      sh -c "echo 'Ожидание готовности PostgreSQL...' &&
-             until nc -z postgres 5432; do
-               echo 'PostgreSQL недоступен - ждем...'
-               sleep 2
-             done &&
-             echo 'PostgreSQL готов!' &&
-             npx prisma generate &&
-             npm run build &&
-             echo 'Инициализация ботов...' &&
-             echo 'Запуск приложения и бота...' &&
-             (npm run start & tsx src/bot/index.ts)"
 
   nginx:
     image: nginx:alpine
