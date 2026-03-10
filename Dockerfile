@@ -36,6 +36,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/tsconfig.json ./
 
 EXPOSE 3000
 
