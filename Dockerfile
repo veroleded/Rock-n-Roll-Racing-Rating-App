@@ -12,8 +12,9 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 
-# Подготовка standalone: добавляем static и public
-RUN cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/
+# Подготовка standalone: добавляем static и public (если есть)
+RUN cp -r .next/static .next/standalone/.next/ && \
+    ([ -d public ] && cp -r public .next/standalone/) || true
 
 # ========== Stage 2: Runner ==========
 FROM node:20-alpine AS runner
