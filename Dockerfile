@@ -45,4 +45,4 @@ CMD ["sh", "-c", \
    echo 'PostgreSQL готов!' && \
    npx prisma generate && \
    echo 'Запуск приложения и бота...' && \
-   (cd standalone && node server.js) & tsx src/bot/index.ts"]
+   (cd standalone && node server.js) & npx tsx src/bot/index.ts"]
