@@ -34,6 +34,9 @@ COPY --from=builder /app/.next/standalone ./standalone
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
+# Предсгенерированный Prisma Client (обновится при старте если схема изменилась)
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/tsconfig.json ./
